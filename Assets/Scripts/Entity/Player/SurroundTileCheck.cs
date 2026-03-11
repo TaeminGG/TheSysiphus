@@ -4,28 +4,74 @@ using UnityEngine.UIElements;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 
+public class DirectionInfo
+{
+    public bool isValid;        // 해당 위치에 움직여서 갈 수 있는지 여부 (벽인지 아닌지)
+    public int zLevel;          // 해당 위치의 Z값
+    
+    public DirectionInfo(bool valid, int z)
+    {
+        isValid = valid;
+        zLevel = z;
+    }
+}
+
 public class SurroundTileCheck : MonoBehaviour
 {
     public Grid grid;
     public Tilemap tmap;
+    public Tilemap bmap;
+
     public Vector3Int currentPos;
     public Vector3Int targetPos;
 
     public Transform pivot;
+    private Vector3 pivotPos;
 
     private Vector2 mousePos = Vector2.zero;
+
+    //주변 9칸 (제자리 포함)의 Direction Infomation
+    private Dictionary<Vector3Int, DirectionInfo> surroundTiles = new Dictionary<Vector3Int, DirectionInfo>();
 
     void Start()
     {
         GridUpdate();
-        
     }
 
-    public void SurroundTiles(Vector3 pos)
+    // 현재 플레이어 위치를 기준으로 주변 타일 정보(Box Tile) 수집
+    public void UpdateSurroundTiles(Vector3 pos)
     {
-        for (int i = 0; i < 8; i++)
+        for (int x = -1; x < 2; x++)
         {
+            for (int y = -1; y < 2; y++)
+            {
+                bool valid = false;
 
+                for (int z = 3; z >= 0; z--)
+                {
+                    //cellPos - Vector3.forward ->> why??
+                    Vector3Int cellPos = grid.WorldToCell(pos);
+
+                    cellPos.x += x;
+                    cellPos.y += y;
+                    cellPos.z += z;
+
+                    if (bmap.HasTile(cellPos))
+                    {
+                        valid = false;
+                        Debug.Log("Box on " + cellPos);
+                    }
+
+                    if (surroundTiles.ContainsKey(new Vector3Int(x,y,0)))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        surroundTiles.Add(new Vector3Int(x, y, 0), new DirectionInfo(valid, z));
+                    }
+                }
+            }
         }
     }
 
@@ -141,6 +187,15 @@ public class SurroundTileCheck : MonoBehaviour
         //Debug.Log("Cursor : " + tmap.WorldToCell(cam.ScreenToWorldPoint(mousePos)));
     }
 
+    private void FixedUpdate()
+    {
+        pivotPos = pivot.transform.position;
+
+        surroundTiles.Clear();
+        UpdateSurroundTiles(pivotPos);
+
+    }
+
     void OnCursor(InputValue value)
     {
         mousePos = value.Get<Vector2>();
@@ -176,6 +231,10 @@ public class SurroundTileCheck : MonoBehaviour
             if (map.gameObject.name == "Basic")
             {
                 tmap = map;
+            }
+            if(map.gameObject.name == "Box")
+            {
+                bmap = map;
             }
         }
     }
