@@ -10,6 +10,7 @@ public class CameraChase : MonoBehaviour
     public Vector3 cameraDepth = new Vector3(0, 0, -10);
     public float cameraSpeed = 5.0f;
     private Transform playerTransform;
+    private Vector3 playerPos;
 
     void Start()
     {
@@ -19,6 +20,8 @@ public class CameraChase : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.position = Vector3.Lerp(transform.position, playerTransform.position + cameraDepth, Time.deltaTime * cameraSpeed);
+        playerPos = playerTransform.position;
+        playerPos.z = 0;
+        transform.position = Vector3.Lerp(transform.position, playerPos + cameraDepth, Time.deltaTime * cameraSpeed);
     }
 }

@@ -112,12 +112,10 @@ public class PlayerMove : MonoBehaviour
                 else
                     targetZLevel += 2;
 
-                Debug.Log(targetZLevel);
+                //Debug.Log(targetZLevel);
 
                 if (targetZLevel <= playerZ)
                 {
-                    // 벽이면 못가게 해야할듯.. 
-                    // 제일 윗면이어야 움직이게
                     transform.position = targetPos;
                     isOnValidTile = false;
 
@@ -134,9 +132,13 @@ public class PlayerMove : MonoBehaviour
                         fixedZ = targetGroundZLevel;
 
                         if (targetZLevel < 0)
+                        {
                             floorZ = 0;
+                        }
                         else
-                            floorZ = targetZLevel - 2;
+                        {
+                            floorZ = targetZLevel;
+                        }
 
                         float diff = prevZ - targetGroundZLevel;
                         targetPos.y -= diff * 0.25f;
@@ -151,6 +153,9 @@ public class PlayerMove : MonoBehaviour
                             if (prevZ < targetZLevel)
                             {
                                 fixedZ = targetZLevel;
+
+                                floorZ = targetZLevel;
+
                                 float diff = targetZLevel - prevZ;
                                 targetPos.y += diff * 0.25f;
                                 spriteZ -= diff;
@@ -185,28 +190,8 @@ public class PlayerMove : MonoBehaviour
                 {
                     transform.position = targetPos;
                     isOnValidTile = true;
-                    // 떨어져야 하는 곳의 위치, Z값 찾기
-                    Vector3 fallGroundPos = targetPos;
-                    int fallGroundZ = 0;
-                    bool isFoundFallGounrd = false;
-
-                    for(int z = 2;  z <= 10; z += 2)
-                    {
-                        fallGroundPos.y -= 0.5f * (z / 2);
-                        fallGroundZ = stc.GetGroundZLevel(fallGroundPos) + 2;
-
-                        if(fallGroundZ == prevZ - z)
-                        {
-                            targetZLevel = fallGroundZ;
-                            isFoundFallGounrd = true;
-                            break;
-                        }
-                    }
-                    if (!isFoundFallGounrd)
-                    {
-                        targetZLevel = 0;
-                        Debug.Log("ahoi");
-                    }
+                    int fallGroundZ = stc.GetFallGroundZLevel(targetPos);
+                    targetZLevel = (fallGroundZ < 0) ? 0 : fallGroundZ + 2;
 
                     if (prevCell != stc.GetGridPosition(shadow.transform.position) && ((fixedZ != targetZLevel) || fixedZ == -1))
                     {
@@ -214,9 +199,12 @@ public class PlayerMove : MonoBehaviour
                         {
                             fixedZ = targetZLevel;
                             if (targetZLevel <= 0)
+                            {
+                                Debug.Log("hohoi  ");
                                 floorZ = 0;
+                            }
                             else
-                                floorZ = targetZLevel - 2;
+                                floorZ = targetZLevel;
                             float diff = prevZ - targetZLevel;
                             targetPos.y -= diff * 0.25f;
                             spriteZ += diff;
@@ -240,31 +228,12 @@ public class PlayerMove : MonoBehaviour
             yOffset = 0;
         }
         playerSprite.localPosition = new Vector3(0, yOffset, playerZ);
-        shadowSprite.localPosition = new Vector3(0, floorZ, floorZ);
+        shadowSprite.localPosition = new Vector3(0, 0, floorZ);
         
     }
     private void HandleJumpAndGravity()
     {
         Vector3 pivotPos = new Vector3(shadow.position.x, shadow.position.y, 0);
-
-
-        int getZ = stc.GetGroundZLevel(pivotPos);
-
-        if( getZ < 0 )
-        {
-            floorZ = 0;
-        }
-        else
-        {
-            // unvalid 일때 예외처리
-            if(playerZ > getZ+2)
-            {
-                if (!isOnValidTile || groundedZ >= getZ+2)
-                {
-                    floorZ = getZ + 2;
-                }
-            }
-        }
 
         // 점프
         if (isJumping && isGrounded)
@@ -281,6 +250,26 @@ public class PlayerMove : MonoBehaviour
             verticalVelocity += gravity * Time.deltaTime;
             isGrounded = false;
         }
+
+        int getZ = stc.GetGroundZLevel(pivotPos);
+
+        if( getZ < 0 )
+        {
+            floorZ = 0;
+        }
+        else
+        {
+            // unvalid 일때 예외처리
+            if(playerZ > getZ+2 && isGrounded)
+            {
+                if (!isOnValidTile || groundedZ >= getZ+2)
+                {
+                    floorZ = getZ + 2;
+                }
+            }
+        }
+
+        
 
         playerZ += verticalVelocity * Time.deltaTime;
 

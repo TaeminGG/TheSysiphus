@@ -57,14 +57,14 @@ public class SurroundTileCheck : MonoBehaviour
                 bool valid = true;
 
                 // z : 4 2 0
-                for (int z = 4; z >= 0; z-=2)
+                for (int z = 6; z >= 0; z-=2)
                 {
                     Vector3Int cellPos = grid.WorldToCell(pos);
 
                     cellPos.x += x;
                     cellPos.y += y;
 
-                    for (int depth = -2; depth <= 0; depth++)
+                    for (int depth = -3; depth <= 0; depth++)
                     {
                         Vector3Int depthPos = cellPos + new Vector3Int(depth, depth, 0);
 
@@ -214,7 +214,6 @@ public class SurroundTileCheck : MonoBehaviour
         Vector3Int pivotIntPos = grid.WorldToCell(pivotPos);
 
         Vector3Int testPos = cellPos - pivotIntPos;
-        Debug.Log("test : " + testPos);
         testPos.z = 0;
 
         return surroundTiles[testPos].zLevel;
@@ -225,11 +224,7 @@ public class SurroundTileCheck : MonoBehaviour
         Vector3Int pivotIntPos = grid.WorldToCell(pivotPos);
 
         Vector3Int testPos = cellPos - pivotIntPos;
-        Debug.Log("test : " + testPos);
         testPos = new Vector3Int(testPos.x - (playerMove.floorZ / 2), testPos.y - (playerMove.floorZ / 2), 0);
-
-        Debug.Log("fix : " + testPos);
-
         for(int z = 10; z>=0; z -= 2)
         {
             testPos.z = z;
@@ -279,6 +274,29 @@ public class SurroundTileCheck : MonoBehaviour
         // bmap에서 확인된 타일이 없으면 평지로 인식
         return -1;
     }
+
+    // 떨어질 때 어느 지점에 멈춰야 하는지 확인하는 함수
+    public int GetFallGroundZLevel(Vector3 pos)
+    {
+        Vector3Int intPos = grid.WorldToCell(pos);
+        int prevZ = playerMove.groundedZ;
+        // 떨어지기 이전 타일의 바닥(Z=0) 위치 보정
+        Vector3Int cellPos = intPos + new Vector3Int(-prevZ / 2, -prevZ / 2, 0);
+
+        for (int z = prevZ - 2; z >= 0; z -= 2)
+        {
+            cellPos.z = z;
+
+            if (bmap.HasTile(cellPos))
+            {
+                return z;
+            }
+        }
+
+        // bmap에서 확인된 타일이 없으면 평지로 인식
+        return -1;
+    }
+
     // Vector3Int Pos위치에 설치된 타일(박스 윗면)의 높이(Z)를 얻는 함수
     public int GetGroundZLevel(Vector3Int pos)
     {
