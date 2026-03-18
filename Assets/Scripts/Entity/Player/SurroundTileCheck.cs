@@ -24,6 +24,7 @@ public class SurroundTileCheck : MonoBehaviour
 
     public Vector3Int currentPos;
     public Vector3Int targetPos;
+    private Vector3Int prevPos;
 
     public Transform pivot;
     private Vector3 pivotPos;
@@ -33,38 +34,109 @@ public class SurroundTileCheck : MonoBehaviour
     //주변 9칸 (제자리 포함)의 Direction Infomation
     private Dictionary<Vector3Int, DirectionInfo> surroundTiles = new Dictionary<Vector3Int, DirectionInfo>();
 
+    public PlayerMove playerMove;
+
     void Start()
     {
+        playerMove = GetComponent<PlayerMove>();
         GridUpdate();
     }
 
     // 현재 플레이어 위치를 기준으로 주변 타일 정보(Box Tile) 수집
     public void UpdateSurroundTiles(Vector3 pos)
     {
+        if(grid.WorldToCell(pos) != prevPos)
+        {
+            surroundTiles.Clear();
+        }
+
         for (int x = -1; x < 2; x++)
         {
             for (int y = -1; y < 2; y++)
             {
-                bool valid = false;
+                bool valid = true;
 
-                for (int z = 3; z >= 0; z--)
+                // z : 4 2 0
+                for (int z = 4; z >= 0; z-=2)
                 {
-                    //cellPos - Vector3.forward ->> why??
                     Vector3Int cellPos = grid.WorldToCell(pos);
 
                     cellPos.x += x;
                     cellPos.y += y;
-                    cellPos.z += z;
 
-                    if (bmap.HasTile(cellPos))
+                    for (int depth = -2; depth <= 0; depth++)
                     {
-                        valid = false;
-                        Debug.Log("Box on " + cellPos);
+                        Vector3Int depthPos = cellPos + new Vector3Int(depth, depth, 0);
+
+                        depthPos.z = z;
+
+                        bool isMatched = false;
+                        if(depth *(-2) == z)
+                        {
+                            // depth가 0이 아닌 경우에는 플레이어가 땅에 있을 때만 판단
+                            if (depth < 0)
+                            {
+                                if(playerMove.floorZ >= z)
+                                {
+                                    isMatched = true;
+                                }
+                                else
+                                {
+                                    isMatched = false;
+                                }
+                                    
+                            }
+                            else //depth가 0인 경우
+                            {
+                                isMatched = true;
+                            }
+                        }
+                        else
+                        {
+                            if(depth == 0)
+                            {
+                                if(playerMove.floorZ  < z && playerMove.floorZ == 0)
+                                {
+                                    isMatched = true;
+                                }
+                            }
+                        }
+
+                        if (bmap.HasTile(depthPos) && isMatched)
+                        {
+                            if(isMatched)
+                            {
+                                // 한 칸 위에도 타일이 있으면 지나갈 수 있게
+                                depthPos.z = z + 2;
+                                if (bmap.HasTile(depthPos) && playerMove.floorZ >= z+2)
+                                {
+                                    valid = true;
+                                }
+                                else
+                                    valid = false;
+                            }
+                            else
+                                valid = false;
+                        }
+
                     }
 
-                    if (surroundTiles.ContainsKey(new Vector3Int(x,y,0)))
+                    
+
+                    if (surroundTiles.ContainsKey(new Vector3Int(x,y,0)))       // 주변 x, y 에 등록된 칸이 있는지
                     {
-                        continue;
+                        if (surroundTiles[new Vector3Int(x, y, 0)].isValid)     // 등록된 칸이 Valid 인지 확인하고 갱신 혹은 등록
+                        {
+                            surroundTiles[new Vector3Int(x, y, 0)] = new DirectionInfo(valid, z);
+                            if (!valid)
+                                break;
+                        }
+                        else
+                        {
+                            surroundTiles[new Vector3Int(x, y, 0)] = new DirectionInfo(valid, z);
+                            if (!valid)
+                                break;
+                        }
                     }
                     else
                     {
@@ -73,112 +145,187 @@ public class SurroundTileCheck : MonoBehaviour
                 }
             }
         }
+
+        prevPos = grid.WorldToCell(pos);
     }
 
-    public int GetMovementTileZAt(Vector3 pos, float pz)
+    // 해당 타일 위에 아무 타일도 없는지 (해당 타일이 가장 윗 타일인지) 체크
+    public bool CheckIsUpperTile(Vector3 pos, int height)
     {
-        // Z(높이) 오프셋을 제거한 평면 좌표
-        Vector3 logicalPos = new Vector3(pos.x, pos.y, 0);
-        Vector3Int cellPos = tmap.WorldToCell(logicalPos);
+        Vector3Int cellPos = grid.WorldToCell(pos);
+        int groundZ = GetGroundZLevel(pos);
 
-        int maxZ = 0;
-        bool tileFound = false;
-
-        cellPos.x -= 1;
-        cellPos.y -= 1;
-
-        for (int z = 8; z >= 0; z -= 2)
+        // 윗면 타일이 아니면 True 반환 (Z=0)
+        if(groundZ < 0)
         {
+            return true;
+        }
+        else
+        {
+            groundZ += 2;
+            Vector3Int checkPos = cellPos - new Vector3Int(groundZ / 2, groundZ / 2, 0);    // 해당 타일이 설치된 타일의 위치
+            checkPos.z = groundZ;
+            if (bmap.HasTile(checkPos))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    public bool CheckIsUpperTile(Vector3Int pos)       // Vector3Int를 매개변수로 받음 
+    {
+        Vector3Int cellPos = pos;
+        int groundZ = GetGroundZLevel(pos);
+
+        // 윗면 타일이 아니면 True 반환 (Z=0)
+        if (groundZ < 0)
+        {
+            return true;
+        }
+        else
+        {
+            groundZ += 2;
+            Vector3Int checkPos = cellPos - new Vector3Int(groundZ / 2, groundZ / 2, 0);    // 해당 타일이 설치된 타일의 위치
+            checkPos.z = groundZ;
+            if (bmap.HasTile(checkPos))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    public bool GetTileValid(Vector3 axis, float length)
+    {
+        Vector3Int cellPos = grid.WorldToCell(pivotPos + new Vector3(axis.x*length, axis.y*length, 0));
+        Vector3Int pivotIntPos = grid.WorldToCell(pivotPos);
+
+        Vector3Int testPos = cellPos - pivotIntPos;
+        testPos.z = 0;
+
+        return surroundTiles[testPos].isValid;
+    }
+
+    // Axis 방향으로 Legnth 만큼 떨어진 타일의 Z 레벨을 얻는 함수
+    public int GetTileZLevel(Vector3 axis, float length)
+    {
+        Vector3Int cellPos = grid.WorldToCell(pivotPos + new Vector3(axis.x * length, axis.y * length, 0));
+        Vector3Int pivotIntPos = grid.WorldToCell(pivotPos);
+
+        Vector3Int testPos = cellPos - pivotIntPos;
+        Debug.Log("test : " + testPos);
+        testPos.z = 0;
+
+        return surroundTiles[testPos].zLevel;
+    }
+    public int GetTileZLevelAnother(Vector3 axis, float length)
+    {
+        Vector3Int cellPos = grid.WorldToCell(pivotPos + new Vector3(axis.x * length, axis.y * length, 0));
+        Vector3Int pivotIntPos = grid.WorldToCell(pivotPos);
+
+        Vector3Int testPos = cellPos - pivotIntPos;
+        Debug.Log("test : " + testPos);
+        testPos = new Vector3Int(testPos.x - (playerMove.floorZ / 2), testPos.y - (playerMove.floorZ / 2), 0);
+
+        Debug.Log("fix : " + testPos);
+
+        for(int z = 10; z>=0; z -= 2)
+        {
+            testPos.z = z;
+            if (bmap.HasTile(pivotIntPos + testPos))
+                return z;
+        }
+
+        return -1;
+    }
+
+    // Pos 위치에 설치된 타일(박스 아랫면)의 Z값을 얻는 함수
+    public int GetTileZLevel(Vector3 pos)
+    {
+        Vector3Int intPos = grid.WorldToCell(pos);
+
+        for(int z=4; z>=0; z -= 2)
+        {
+            intPos.z = z;
+            if (bmap.HasTile(intPos))
+            {
+                return z;
+            }
+        }
+        return -1;
+    }
+
+    // Vector3 Pos위치에 설치된 타일(박스 윗면)의 높이(Z)를 얻는 함수
+    public int GetGroundZLevel(Vector3 pos)
+    {
+        Vector3Int intPos = grid.WorldToCell(pos);
+
+        for(int i=4; i >=1; i--)
+        {
+            // 아래로 i 칸 만큼 떨어진 타일의 Cell Position
+            Vector3Int cellPos = intPos + new Vector3Int(-i, -i, 0);
+
+            int z = i * 2 - 2;
+
             cellPos.z = z;
-            if (tmap.HasTile(cellPos))
+
+            if (bmap.HasTile(cellPos))
             {
-                maxZ = z;
-                tileFound = true;
-                break;
-            }
-
-        }
-
-        return tileFound ? maxZ : -1;
-    }
-
-    public int GetJumpTileZAt(Vector3 pos, float pz)
-    {
-        // Z(높이) 오프셋을 제거한 평면 좌표
-        Vector3 logicalPos = new Vector3(pos.x, pos.y, 0);
-        Vector3Int cellPos = tmap.WorldToCell(logicalPos);
-
-        // 해당 셀의 모든 Z층 검사 후 가장 높은 Z값의 타일 반환
-        int maxZ = 0;
-        bool tileFound = false;
-
-        // 해당 셀의 3칸 아래의 Z값이 4, 2칸 아래 Z값이 2, 해당 셀의 Z값이 0 인 경우
-        for (int i = 2; i >= 0; i--)
-        {
-            Vector3Int checkPos = Vector3Int.zero;
-            Debug.Log("Cell Pos : " + cellPos + "   under2 : " + new Vector2Int(cellPos.x-2, cellPos.y-2));
-
-            if (i == 2)
-            {
-                checkPos.x = cellPos.x - 2;
-                checkPos.y = cellPos.y - 2;
-                checkPos.z = 4;
-                
-                if (tmap.HasTile(checkPos))
-                {
-                    maxZ = 4;
-                    tileFound = true;
-                    break;
-                }
-            }
-
-            if (i == 1)
-            {
-                checkPos.x = cellPos.x - 1;
-                checkPos.y = cellPos.y - 1;
-                checkPos.z = 2;
-                if (tmap.HasTile(checkPos))
-                {
-                    maxZ = 2;
-                    tileFound = true;
-                    break;
-                }
-            }
-
-            if (i == 0)
-            {
-                if(tmap.HasTile(cellPos))
-                    return 0;
+                return z;
             }
         }
 
-        return tileFound ? maxZ : -1;
+        // bmap에서 확인된 타일이 없으면 평지로 인식
+        return -1;
     }
-
-    // 공중에 있을 때 실행하여 점프 후 바닥을 판정 플레이어가 있는 위치 바닥의 Z값을 기준으로 계산
-    public int GetMaxTileZAt(Vector3 pos, float pz)
+    // Vector3Int Pos위치에 설치된 타일(박스 윗면)의 높이(Z)를 얻는 함수
+    public int GetGroundZLevel(Vector3Int pos)
     {
-        // Z(높이) 오프셋을 제거한 평면 좌표
-        Vector3 logicalPos = new Vector3(pos.x, pos.y, 0);
-        Vector3Int cellPos = tmap.WorldToCell(logicalPos);
+        Vector3Int intPos = pos;
 
-        // 해당 셀의 모든 Z층 검사 후 가장 높은 Z값의 타일 반환
-        int maxZ = 0;
-        bool tileFound = false;
-        
-        for(int z = 8; z >= 0; z -= 2)
+        for (int i = 4; i >= 1; i--)
         {
+            // 아래로 i 칸 만큼 떨어진 타일의 Cell Position
+            Vector3Int cellPos = intPos + new Vector3Int(-i, -i, 0);
+
+            int z = i * 2 - 2;
+
             cellPos.z = z;
-            if (tmap.HasTile(cellPos))
+
+            if (bmap.HasTile(cellPos))
             {
-                maxZ = z;
-                tileFound = true;
-                break;
+                return z;
             }
         }
 
-        return tileFound ? maxZ : -1;
+        // bmap에서 확인된 타일이 없으면 평지로 인식
+        return -1;
+    }
 
+    // 입력받은 Z값부터 순차적으로 비교하여 타일(박스 윗면)의 높이(Z)를 얻는 함수
+    // Z = value
+    public int GetGroundZLevel(Vector3 pos, int value)
+    {
+        Vector3Int intPos = grid.WorldToCell(pos);
+
+        for (int i = value-1; i >= 1; i--)
+        {
+            // 아래로 i 칸 만큼 떨어진 타일의 Cell Position
+            Vector3Int cellPos = intPos + new Vector3Int(-i, -i, 0);
+
+            int z = i * 2 - 2;
+
+            cellPos.z = z;
+
+            if (bmap.HasTile(cellPos))
+            {
+                return z;
+            }
+        }
+
+        // bmap에서 확인된 타일이 없으면 평지로 인식
+        return -1;
     }
 
     void Update()
@@ -190,8 +337,6 @@ public class SurroundTileCheck : MonoBehaviour
     private void FixedUpdate()
     {
         pivotPos = pivot.transform.position;
-
-        surroundTiles.Clear();
         UpdateSurroundTiles(pivotPos);
 
     }
@@ -199,19 +344,6 @@ public class SurroundTileCheck : MonoBehaviour
     void OnCursor(InputValue value)
     {
         mousePos = value.Get<Vector2>();
-    }
-
-    private void CheckSurroundTile()
-    {
-        GridUpdate();
-
-        for (int x = -1; x < 2; x++)
-        {
-            for (int y = -1; y < 2; y++)
-            {
-                bool valid = false;
-            }
-        }
     }
 
     public Vector3Int GetGridPosition(Vector3 pos)

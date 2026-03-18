@@ -13,7 +13,7 @@ public class CameraChase : MonoBehaviour
 
     void Start()
     {
-        playerTransform = GameObject.Find("Player").transform;
+        playerTransform = GameObject.Find("PlayerSprite").transform;
     }
 
     // Update is called once per frame

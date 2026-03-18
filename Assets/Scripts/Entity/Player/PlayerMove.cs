@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 public class PlayerMove : MonoBehaviour
 {
     private Vector2 inputAxis = Vector2.zero;
+    private Vector3 axis;
     public Vector2Int targetAxis = Vector2Int.zero;
 
     [Header("Movement Setting")]
@@ -16,15 +17,20 @@ public class PlayerMove : MonoBehaviour
     public float gravity = -9.81f;
 
     [Header("Status")]
-    [HideInInspector]
     public float playerZ = 0;                   // 플레이어의 가상 Z값 (높이)
-    public float stepHeight = 0.1f;             // 움직여서 통과할 수 있는 높이 최댓값
     private float verticalVelocity = 0f;        // 낙하 속도
     private bool isGrounded = true;             // 착지 여부
     private bool isJumping = false;             // 점프 여부
-    private int floorZ;
-    private int tmpZ;
-    private Vector3Int cellPos;
+    public int floorZ;
+
+    [Header("Dash Setting")]
+    public float dashForce = 5.0f;              // 대쉬 하는 힘
+    public float dashDuration = 0.5f;           // 대쉬 지속시간
+    public float dashCooltime = 2f;             // 대쉬 쿨타임
+    private float dashTime = 0f;                // 대쉬 지속시간 확인변수
+    private float dashCooltimeCheck = 0f;
+
+    private float spriteZ = 0f;
 
     private Rigidbody2D rid;
     private Animator anim;
@@ -34,9 +40,13 @@ public class PlayerMove : MonoBehaviour
     private float spriteWorldY = 0f;            // 스프라이트의 Y 월드좌표
     private float yOffset = 0f;
 
+    private int fixedZ;                         // 위, 아래로 이동할 때 착지할 바닥의 Z값
+
+    private bool isOnValidTile = false;       // 플레이어 위치의 타일이 valid 타일인지 여부
+    public int groundedZ = 0;
 
     public Transform shadow;                    // 그림자의 Transform
-    private bool isOnFloor = true;              // 플레이어가 바닥에 닿아있는지 여부
+    public Transform shadowSprite;
 
     private void Awake()
     {
@@ -51,7 +61,6 @@ public class PlayerMove : MonoBehaviour
         moveSpeedSet = moveSpeed;
 
         floorZ = 0;
-        tmpZ = 0;
     }
 
     private void Update()
@@ -65,73 +74,197 @@ public class PlayerMove : MonoBehaviour
         UpdatePosition();
     }
 
-
     private void PlayerMoveMent()
     {
-        Vector3 axis = inputAxis;
+        if (dashTime < dashDuration)
+        {
+            dashTime += Time.deltaTime;
+            moveSpeed += dashForce;
+            dashCooltimeCheck += Time.deltaTime;
+        }
+        else
+        {
+            axis = inputAxis;
+            moveSpeed = moveSpeedSet;
+            dashCooltimeCheck += Time.deltaTime;
+        }
+            
+        Vector3Int prevCell;
+        int prevZ;    // 이동 전 FloorZ를 저장하는 변수
+
+        int targetZLevel;
 
         if(inputAxis.magnitude > 0.1f)
         {
-            Vector3 targetPos = transform.position + axis * moveSpeed * Time.deltaTime;
+            Vector3 targetPos = shadow.transform.position + axis * moveSpeed * Time.deltaTime;
+            targetZLevel = 0;
 
-            // 공중 체공 여부
-            if (!isGrounded)
+            prevCell = stc.GetGridPosition(shadow.transform.position);
+            prevZ = floorZ;
+
+            if (!stc.GetTileValid(axis, moveSpeed * Time.deltaTime))
             {
-                int targetTileZ = stc.GetMovementTileZAt(targetPos, playerZ);
-                int upperTileZ = stc.GetMovementTileZAt(new Vector3(targetPos.z, targetPos.y + 0.5f, 0), playerZ);
+                //targetZLevel = stc.GetTileZLevel(axis, moveSpeed * Time.deltaTime) + 2;       // target 타일의 Z레벨 +2 (박스형테 이기 때문에)
+                targetZLevel = stc.GetTileZLevelAnother(axis, moveSpeed * Time.deltaTime);
 
-                // targetPos의 타일 높이가 플레이어가 밟고있는 타일 높이보다 높으면 움직임 제한
-                if (targetTileZ <= playerZ && upperTileZ + 0.1f <= playerZ)
-                {
-                    transform.position = targetPos;
-                }
-                // 벽에 부딪히는 판정
+                if (targetZLevel < 0)
+                    targetZLevel = 0;
                 else
+                    targetZLevel += 2;
+
+                Debug.Log(targetZLevel);
+
+                if (targetZLevel <= playerZ)
                 {
+                    // 벽이면 못가게 해야할듯.. 
+                    // 제일 윗면이어야 움직이게
+                    transform.position = targetPos;
+                    isOnValidTile = false;
+
+                    int targetGroundZLevel = stc.GetGroundZLevel(targetPos);
+                    if (targetGroundZLevel < 0)
+                        targetGroundZLevel = 0;
+                    else
+                    {
+                        if (targetGroundZLevel >= 0)
+                            targetGroundZLevel += 2;
+                    }
+                    if (prevZ > targetGroundZLevel)
+                    {
+                        fixedZ = targetGroundZLevel;
+
+                        if (targetZLevel < 0)
+                            floorZ = 0;
+                        else
+                            floorZ = targetZLevel - 2;
+
+                        float diff = prevZ - targetGroundZLevel;
+                        targetPos.y -= diff * 0.25f;
+                        int fixedGroundZLevel = stc.GetGroundZLevel(targetPos);
+                        spriteZ += diff;
+                        transform.position = targetPos;
+                    }
+                    else
+                    {
+                        if (prevCell != stc.GetGridPosition(shadow.transform.position) && ((fixedZ != targetZLevel) || fixedZ == -1))
+                        {
+                            if (prevZ < targetZLevel)
+                            {
+                                fixedZ = targetZLevel;
+                                float diff = targetZLevel - prevZ;
+                                targetPos.y += diff * 0.25f;
+                                spriteZ -= diff;
+                                transform.position = targetPos;
+                            }
+                        }
+                    }
 
                 }
             }
             else
             {
-                int targetTileZ = stc.GetMovementTileZAt(targetPos, playerZ);
+                targetZLevel = stc.GetGroundZLevel(targetPos);
 
-                // targetPos의 타일 높이가 플레이어가 밟고있는 타일 높이보다 높으면 움직임 제한
-                if (targetTileZ <= playerZ)
+                if (targetZLevel < 0)
+                    targetZLevel = 0;
+                else
+                    targetZLevel += 2;
+
+                if(targetZLevel > prevZ)
+                {
+                    targetZLevel = stc.GetGroundZLevel(targetPos, prevZ);
+                }
+
+                // 같은 Z 높이 타일이 아닌 경우 떨어짐 처리
+                if (targetZLevel == floorZ)
                 {
                     transform.position = targetPos;
+                    isOnValidTile = true;
                 }
-                // 벽에 부딪히는 판정
                 else
                 {
+                    transform.position = targetPos;
+                    isOnValidTile = true;
+                    // 떨어져야 하는 곳의 위치, Z값 찾기
+                    Vector3 fallGroundPos = targetPos;
+                    int fallGroundZ = 0;
+                    bool isFoundFallGounrd = false;
 
+                    for(int z = 2;  z <= 10; z += 2)
+                    {
+                        fallGroundPos.y -= 0.5f * (z / 2);
+                        fallGroundZ = stc.GetGroundZLevel(fallGroundPos) + 2;
+
+                        if(fallGroundZ == prevZ - z)
+                        {
+                            targetZLevel = fallGroundZ;
+                            isFoundFallGounrd = true;
+                            break;
+                        }
+                    }
+                    if (!isFoundFallGounrd)
+                    {
+                        targetZLevel = 0;
+                        Debug.Log("ahoi");
+                    }
+
+                    if (prevCell != stc.GetGridPosition(shadow.transform.position) && ((fixedZ != targetZLevel) || fixedZ == -1))
+                    {
+                        if (prevZ > targetZLevel)
+                        {
+                            fixedZ = targetZLevel;
+                            if (targetZLevel <= 0)
+                                floorZ = 0;
+                            else
+                                floorZ = targetZLevel - 2;
+                            float diff = prevZ - targetZLevel;
+                            targetPos.y -= diff * 0.25f;
+                            spriteZ += diff;
+                            transform.position = targetPos;
+                        }
+                    }
                 }
             }
+
+            
         }
 
     }
     private void UpdatePosition()
     {
-        float yOffset = (playerZ - floorZ) * 0.25f;
+        spriteZ += verticalVelocity * Time.deltaTime;
+        yOffset = spriteZ * 0.25f;
 
-        if(spriteWorldY > yOffset+0.05f)
+        if(playerZ <= floorZ)
         {
-            spriteWorldY += gravity * Time.deltaTime * 0.5f;
+            yOffset = 0;
         }
-        else
-        {
-            spriteWorldY = yOffset;
-        }
-
-        if (playerSprite != null)
-        {
-            playerSprite.localPosition = new Vector3(0, spriteWorldY, 0);
-        }
+        playerSprite.localPosition = new Vector3(0, yOffset, playerZ);
+        shadowSprite.localPosition = new Vector3(0, floorZ, floorZ);
+        
     }
     private void HandleJumpAndGravity()
     {
-        Vector3 pivotPos = new Vector3(stc.pivot.position.x, stc.pivot.position.y, 0);
-        
-        //Debug.Log("Pivot Pos : " + pivotPos + " Player Pos : " + stc.pivot.position);
+        Vector3 pivotPos = new Vector3(shadow.position.x, shadow.position.y, 0);
+
+
+        int getZ = stc.GetGroundZLevel(pivotPos);
+
+        if( getZ < 0 )
+        {
+            floorZ = 0;
+        }
+        else
+        {
+            // unvalid 일때 예외처리
+            if(playerZ > getZ+2)
+            {
+                if (!isOnValidTile || groundedZ >= getZ+2)
+                {
+                    floorZ = getZ + 2;
+                }
+            }
+        }
 
         // 점프
         if (isJumping && isGrounded)
@@ -147,29 +280,6 @@ public class PlayerMove : MonoBehaviour
             moveSpeed = moveSpeedSet * airResi;    // 공중에서 속도 감소
             verticalVelocity += gravity * Time.deltaTime;
             isGrounded = false;
-
-            int getZ = stc.GetJumpTileZAt(pivotPos, playerZ);
-            if (inputAxis.magnitude > 0.1f && getZ != -1 && getZ < tmpZ)
-            {
-                // 진행 방향의 조금 앞(0.3f 거리) 타일 높이를 확인
-                Vector3 targetPos = pivotPos + (Vector3)inputAxis.normalized * 0.3f;
-                int nextZ = stc.GetJumpTileZAt(targetPos, playerZ);
-
-                // 앞쪽이 여전히 이전 높이(tmpZ)와 같다면, 타일 사이의 틈새를 지나는 중이므로 높이 유지
-                if (nextZ == tmpZ)
-                {
-                    getZ = tmpZ;
-                }
-            }
-            if (getZ != -1 && tmpZ != getZ)
-            {
-                if (inputAxis.magnitude > 0.1f || getZ > tmpZ)
-                {
-                    floorZ = getZ;   // 플레이어 발 밑 바닥 타일의 높이 (점프 중)
-                }
-            }
-
-            Debug.Log("FloorZ : " + floorZ + "       tmpZ : " + tmpZ + "pivotPos : " + pivotPos);
         }
 
         playerZ += verticalVelocity * Time.deltaTime;
@@ -177,58 +287,21 @@ public class PlayerMove : MonoBehaviour
         // 착지 했을 때
         if (playerZ <= floorZ)
         {
-            if(!isGrounded)
-                cellPos = stc.GetGridPosition(pivotPos);
+            if (!isGrounded)
+            {
+                isGrounded = true;
+                groundedZ = floorZ;
+                spriteZ = 0;
+            }
+            else
+            {
 
-            isGrounded = true;
+            }
+
+            fixedZ = -1;
             playerZ = floorZ;
             moveSpeed = moveSpeedSet;   // 착지 시 속도 복구
             verticalVelocity = 0;
-
-            tmpZ = floorZ;
-
-            Vector3Int currentCellPos = stc.GetGridPosition(pivotPos);
-
-            if (cellPos != currentCellPos)
-            {
-                cellPos = currentCellPos;
-
-                int getZ = stc.GetJumpTileZAt(pivotPos, playerZ);
-                if (getZ != -1)
-                {
-                    if (getZ < tmpZ)
-                    {
-                        float dropHeight = (floorZ - getZ) * 0.25f;
-                        floorZ = getZ;
-
-                        // 변화한 Z값 만큼 플레이어의 그림자 위치 (앵커) 아래로 이동
-                        Vector3 resetPos = new Vector3(transform.position.x, transform.position.y - dropHeight, 0);
-
-                        //resetPos가 벽의 옆면이 아닐 때 까지 새 위치 계산
-                        bool isStuck = true;
-                        int tryCount = 1;
-                        while (isStuck)
-                        {
-                            int tileZ = stc.GetMovementTileZAt(resetPos, getZ);
-                            if (tileZ > getZ)
-                            {
-                                resetPos.x += -0.2f * MathF.Pow(-1, tryCount);
-                                resetPos.y += -0.1f * MathF.Pow(-1, tryCount);
-                            }
-                            else
-                            {
-                                isStuck = false;
-                            }
-
-                            if (tryCount >= 100)
-                                break;
-
-                            tryCount++;
-                        }
-                        transform.position = resetPos;
-                    }
-                }
-            }
         }
 
         //Debug.Log("Player Z : " + playerZ + " Floor Z : " + floorZ);
@@ -245,5 +318,14 @@ public class PlayerMove : MonoBehaviour
     {
         if(isGrounded)
             isJumping = true;
+    }
+
+    private void OnDash(InputValue value)
+    {
+        if (dashCooltimeCheck >= dashCooltime)
+        {
+            dashCooltimeCheck = 0;
+            dashTime = 0;
+        }
     }
 }
