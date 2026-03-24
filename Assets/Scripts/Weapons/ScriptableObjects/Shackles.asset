@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f39123f8020c5a4aa5b436f154a9d06, type: 3}
+  m_Name: Shackles
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponData
+  weaponName: Shackles
+  weaponSprite: {fileID: 0}
+  combos:
+  - {fileID: 11400000, guid: c4a04a8f7c9890d4cbc5b62084ab4830, type: 2}
+  - {fileID: 11400000, guid: 067d3a7495c5db847b53b063d8772f4e, type: 2}
+  - {fileID: 11400000, guid: 6c6d6f226d8e0114286ddd30f1640d95, type: 2}

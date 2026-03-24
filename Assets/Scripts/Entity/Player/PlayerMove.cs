@@ -37,7 +37,6 @@ public class PlayerMove : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private SurroundTileCheck stc;
     public Transform playerSprite;              // 스프라이트를 가진 자식 오브젝트의 Transform
-    private float spriteWorldY = 0f;            // 스프라이트의 Y 월드좌표
     private float yOffset = 0f;
 
     private int fixedZ;                         // 위, 아래로 이동할 때 착지할 바닥의 Z값
@@ -63,10 +62,6 @@ public class PlayerMove : MonoBehaviour
         floorZ = 0;
     }
 
-    private void Update()
-    {
-    }
-
     private void FixedUpdate()
     {
         HandleJumpAndGravity();
@@ -76,6 +71,7 @@ public class PlayerMove : MonoBehaviour
 
     private void PlayerMoveMent()
     {
+        // 대쉬 중 방향 전환을 막음
         if (dashTime < dashDuration)
         {
             dashTime += Time.deltaTime;
@@ -84,7 +80,11 @@ public class PlayerMove : MonoBehaviour
         }
         else
         {
-            axis = inputAxis;
+            // 공격 중 이동 불가
+            if (GetComponent<AttackController>().isAttacking)
+                axis = Vector2.zero;
+            else
+                axis = inputAxis;
             moveSpeed = moveSpeedSet;
             dashCooltimeCheck += Time.deltaTime;
         }
@@ -104,15 +104,12 @@ public class PlayerMove : MonoBehaviour
 
             if (!stc.GetTileValid(axis, moveSpeed * Time.deltaTime))
             {
-                //targetZLevel = stc.GetTileZLevel(axis, moveSpeed * Time.deltaTime) + 2;       // target 타일의 Z레벨 +2 (박스형테 이기 때문에)
                 targetZLevel = stc.GetTileZLevelAnother(axis, moveSpeed * Time.deltaTime);
 
                 if (targetZLevel < 0)
                     targetZLevel = 0;
                 else
                     targetZLevel += 2;
-
-                //Debug.Log(targetZLevel);
 
                 if (targetZLevel <= playerZ)
                 {
@@ -129,22 +126,27 @@ public class PlayerMove : MonoBehaviour
                     }
                     if (prevZ > targetGroundZLevel)
                     {
-                        fixedZ = targetGroundZLevel;
+                        int fallGroundZ = stc.GetFallGroundZLevel(targetPos);
+                        targetZLevel = (fallGroundZ < 0) ? 0 : fallGroundZ + 2;
 
-                        if (targetZLevel < 0)
+                        if (prevCell != stc.GetGridPosition(shadow.transform.position) && ((fixedZ != targetZLevel) || fixedZ == -1))
                         {
-                            floorZ = 0;
+                            if (prevZ > targetZLevel)
+                            {
+                                fixedZ = targetZLevel;
+                                if (targetZLevel <= 0)
+                                {
+                                    Debug.Log("hohoi  ");
+                                    floorZ = 0;
+                                }
+                                else
+                                    floorZ = targetZLevel;
+                                float diff = prevZ - targetZLevel;
+                                targetPos.y -= diff * 0.25f;
+                                spriteZ += diff;
+                                transform.position = targetPos;
+                            }
                         }
-                        else
-                        {
-                            floorZ = targetZLevel;
-                        }
-
-                        float diff = prevZ - targetGroundZLevel;
-                        targetPos.y -= diff * 0.25f;
-                        int fixedGroundZLevel = stc.GetGroundZLevel(targetPos);
-                        spriteZ += diff;
-                        transform.position = targetPos;
                     }
                     else
                     {
@@ -292,11 +294,12 @@ public class PlayerMove : MonoBehaviour
             moveSpeed = moveSpeedSet;   // 착지 시 속도 복구
             verticalVelocity = 0;
         }
-
-        //Debug.Log("Player Z : " + playerZ + " Floor Z : " + floorZ);
     }
 
-
+    public bool IsPlayerOnGround()
+    {
+        return isGrounded;
+    }
 
     private void OnMove(InputValue value)
     {
@@ -305,13 +308,13 @@ public class PlayerMove : MonoBehaviour
 
     private void OnJump(InputValue value)
     {
-        if(isGrounded)
+        if(isGrounded && !GetComponent<AttackController>().isAttacking)
             isJumping = true;
     }
 
     private void OnDash(InputValue value)
     {
-        if (dashCooltimeCheck >= dashCooltime)
+        if (dashCooltimeCheck >= dashCooltime && !GetComponent<AttackController>().isAttacking)
         {
             dashCooltimeCheck = 0;
             dashTime = 0;

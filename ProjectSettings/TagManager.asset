@@ -8,13 +8,13 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - PlayerAttack
   - Water
   - UI
   - Player
-  - Elevation_1
-  - Elevation_2
-  - Elevation_3
+  - Enemies
+  - 
+  - 
   - 
   - 
   - 

@@ -6,8 +6,8 @@ using UnityEngine.InputSystem;
 
 public class DirectionInfo
 {
-    public bool isValid;        // ÇØ´ç À§Ä¡¿¡ ¿òÁ÷¿©¼­ °¥ ¼ö ÀÖ´ÂÁö ¿©ºÎ (º®ÀÎÁö ¾Æ´ÑÁö)
-    public int zLevel;          // ÇØ´ç À§Ä¡ÀÇ Z°ª
+    public bool isValid;        // í•´ë‹¹ ìœ„ì¹˜ì— ì›€ì§ì—¬ì„œ ê°ˆ ìˆ˜ ìˆëŠ”ì§€ ì—¬ë¶€ (ë²½ì¸ì§€ ì•„ë‹Œì§€)
+    public int zLevel;          // í•´ë‹¹ ìœ„ì¹˜ì˜ Zê°’
     
     public DirectionInfo(bool valid, int z)
     {
@@ -31,7 +31,7 @@ public class SurroundTileCheck : MonoBehaviour
 
     private Vector2 mousePos = Vector2.zero;
 
-    //ÁÖº¯ 9Ä­ (Á¦ÀÚ¸® Æ÷ÇÔ)ÀÇ Direction Infomation
+    //ì£¼ë³€ 9ì¹¸ (ì œìë¦¬ í¬í•¨)ì˜ Direction Infomation
     private Dictionary<Vector3Int, DirectionInfo> surroundTiles = new Dictionary<Vector3Int, DirectionInfo>();
 
     public PlayerMove playerMove;
@@ -42,7 +42,7 @@ public class SurroundTileCheck : MonoBehaviour
         GridUpdate();
     }
 
-    // ÇöÀç ÇÃ·¹ÀÌ¾î À§Ä¡¸¦ ±âÁØÀ¸·Î ÁÖº¯ Å¸ÀÏ Á¤º¸(Box Tile) ¼öÁı
+    // í˜„ì¬ í”Œë ˆì´ì–´ ìœ„ì¹˜ë¥¼ ê¸°ì¤€ìœ¼ë¡œ ì£¼ë³€ íƒ€ì¼ ì •ë³´(Box Tile) ìˆ˜ì§‘
     public void UpdateSurroundTiles(Vector3 pos)
     {
         if(grid.WorldToCell(pos) != prevPos)
@@ -73,7 +73,7 @@ public class SurroundTileCheck : MonoBehaviour
                         bool isMatched = false;
                         if(depth *(-2) == z)
                         {
-                            // depth°¡ 0ÀÌ ¾Æ´Ñ °æ¿ì¿¡´Â ÇÃ·¹ÀÌ¾î°¡ ¶¥¿¡ ÀÖÀ» ¶§¸¸ ÆÇ´Ü
+                            // depthê°€ 0ì´ ì•„ë‹Œ ê²½ìš°ì—ëŠ” í”Œë ˆì´ì–´ê°€ ë•…ì— ìˆì„ ë•Œë§Œ íŒë‹¨
                             if (depth < 0)
                             {
                                 if(playerMove.floorZ >= z)
@@ -86,7 +86,7 @@ public class SurroundTileCheck : MonoBehaviour
                                 }
                                     
                             }
-                            else //depth°¡ 0ÀÎ °æ¿ì
+                            else //depthê°€ 0ì¸ ê²½ìš°
                             {
                                 isMatched = true;
                             }
@@ -106,7 +106,7 @@ public class SurroundTileCheck : MonoBehaviour
                         {
                             if(isMatched)
                             {
-                                // ÇÑ Ä­ À§¿¡µµ Å¸ÀÏÀÌ ÀÖÀ¸¸é Áö³ª°¥ ¼ö ÀÖ°Ô
+                                // í•œ ì¹¸ ìœ„ì—ë„ íƒ€ì¼ì´ ìˆìœ¼ë©´ ì§€ë‚˜ê°ˆ ìˆ˜ ìˆê²Œ
                                 depthPos.z = z + 2;
                                 if (bmap.HasTile(depthPos) && playerMove.floorZ >= z+2)
                                 {
@@ -123,9 +123,9 @@ public class SurroundTileCheck : MonoBehaviour
 
                     
 
-                    if (surroundTiles.ContainsKey(new Vector3Int(x,y,0)))       // ÁÖº¯ x, y ¿¡ µî·ÏµÈ Ä­ÀÌ ÀÖ´ÂÁö
+                    if (surroundTiles.ContainsKey(new Vector3Int(x,y,0)))       // ì£¼ë³€ x, y ì— ë“±ë¡ëœ ì¹¸ì´ ìˆëŠ”ì§€
                     {
-                        if (surroundTiles[new Vector3Int(x, y, 0)].isValid)     // µî·ÏµÈ Ä­ÀÌ Valid ÀÎÁö È®ÀÎÇÏ°í °»½Å È¤Àº µî·Ï
+                        if (surroundTiles[new Vector3Int(x, y, 0)].isValid)     // ë“±ë¡ëœ ì¹¸ì´ Valid ì¸ì§€ í™•ì¸í•˜ê³  ê°±ì‹  í˜¹ì€ ë“±ë¡
                         {
                             surroundTiles[new Vector3Int(x, y, 0)] = new DirectionInfo(valid, z);
                             if (!valid)
@@ -149,13 +149,13 @@ public class SurroundTileCheck : MonoBehaviour
         prevPos = grid.WorldToCell(pos);
     }
 
-    // ÇØ´ç Å¸ÀÏ À§¿¡ ¾Æ¹« Å¸ÀÏµµ ¾ø´ÂÁö (ÇØ´ç Å¸ÀÏÀÌ °¡Àå À­ Å¸ÀÏÀÎÁö) Ã¼Å©
+    // í•´ë‹¹ íƒ€ì¼ ìœ„ì— ì•„ë¬´ íƒ€ì¼ë„ ì—†ëŠ”ì§€ (í•´ë‹¹ íƒ€ì¼ì´ ê°€ì¥ ìœ— íƒ€ì¼ì¸ì§€) ì²´í¬
     public bool CheckIsUpperTile(Vector3 pos, int height)
     {
         Vector3Int cellPos = grid.WorldToCell(pos);
         int groundZ = GetGroundZLevel(pos);
 
-        // À­¸é Å¸ÀÏÀÌ ¾Æ´Ï¸é True ¹İÈ¯ (Z=0)
+        // ìœ—ë©´ íƒ€ì¼ì´ ì•„ë‹ˆë©´ True ë°˜í™˜ (Z=0)
         if(groundZ < 0)
         {
             return true;
@@ -163,7 +163,7 @@ public class SurroundTileCheck : MonoBehaviour
         else
         {
             groundZ += 2;
-            Vector3Int checkPos = cellPos - new Vector3Int(groundZ / 2, groundZ / 2, 0);    // ÇØ´ç Å¸ÀÏÀÌ ¼³Ä¡µÈ Å¸ÀÏÀÇ À§Ä¡
+            Vector3Int checkPos = cellPos - new Vector3Int(groundZ / 2, groundZ / 2, 0);    // í•´ë‹¹ íƒ€ì¼ì´ ì„¤ì¹˜ëœ íƒ€ì¼ì˜ ìœ„ì¹˜
             checkPos.z = groundZ;
             if (bmap.HasTile(checkPos))
             {
@@ -172,12 +172,12 @@ public class SurroundTileCheck : MonoBehaviour
         }
         return true;
     }
-    public bool CheckIsUpperTile(Vector3Int pos)       // Vector3Int¸¦ ¸Å°³º¯¼ö·Î ¹ŞÀ½ 
+    public bool CheckIsUpperTile(Vector3Int pos)       // Vector3Intë¥¼ ë§¤ê°œë³€ìˆ˜ë¡œ ë°›ìŒ 
     {
         Vector3Int cellPos = pos;
         int groundZ = GetGroundZLevel(pos);
 
-        // À­¸é Å¸ÀÏÀÌ ¾Æ´Ï¸é True ¹İÈ¯ (Z=0)
+        // ìœ—ë©´ íƒ€ì¼ì´ ì•„ë‹ˆë©´ True ë°˜í™˜ (Z=0)
         if (groundZ < 0)
         {
             return true;
@@ -185,7 +185,7 @@ public class SurroundTileCheck : MonoBehaviour
         else
         {
             groundZ += 2;
-            Vector3Int checkPos = cellPos - new Vector3Int(groundZ / 2, groundZ / 2, 0);    // ÇØ´ç Å¸ÀÏÀÌ ¼³Ä¡µÈ Å¸ÀÏÀÇ À§Ä¡
+            Vector3Int checkPos = cellPos - new Vector3Int(groundZ / 2, groundZ / 2, 0);    // í•´ë‹¹ íƒ€ì¼ì´ ì„¤ì¹˜ëœ íƒ€ì¼ì˜ ìœ„ì¹˜
             checkPos.z = groundZ;
             if (bmap.HasTile(checkPos))
             {
@@ -207,7 +207,7 @@ public class SurroundTileCheck : MonoBehaviour
         return surroundTiles[testPos].isValid;
     }
 
-    // Axis ¹æÇâÀ¸·Î Legnth ¸¸Å­ ¶³¾îÁø Å¸ÀÏÀÇ Z ·¹º§À» ¾ò´Â ÇÔ¼ö
+    // Axis ë°©í–¥ìœ¼ë¡œ Legnth ë§Œí¼ ë–¨ì–´ì§„ íƒ€ì¼ì˜ Z ë ˆë²¨ì„ ì–»ëŠ” í•¨ìˆ˜
     public int GetTileZLevel(Vector3 axis, float length)
     {
         Vector3Int cellPos = grid.WorldToCell(pivotPos + new Vector3(axis.x * length, axis.y * length, 0));
@@ -235,7 +235,7 @@ public class SurroundTileCheck : MonoBehaviour
         return -1;
     }
 
-    // Pos À§Ä¡¿¡ ¼³Ä¡µÈ Å¸ÀÏ(¹Ú½º ¾Æ·§¸é)ÀÇ Z°ªÀ» ¾ò´Â ÇÔ¼ö
+    // Pos ìœ„ì¹˜ì— ì„¤ì¹˜ëœ íƒ€ì¼(ë°•ìŠ¤ ì•„ë«ë©´)ì˜ Zê°’ì„ ì–»ëŠ” í•¨ìˆ˜
     public int GetTileZLevel(Vector3 pos)
     {
         Vector3Int intPos = grid.WorldToCell(pos);
@@ -251,14 +251,14 @@ public class SurroundTileCheck : MonoBehaviour
         return -1;
     }
 
-    // Vector3 PosÀ§Ä¡¿¡ ¼³Ä¡µÈ Å¸ÀÏ(¹Ú½º À­¸é)ÀÇ ³ôÀÌ(Z)¸¦ ¾ò´Â ÇÔ¼ö
+    // Vector3 Posìœ„ì¹˜ì— ì„¤ì¹˜ëœ íƒ€ì¼(ë°•ìŠ¤ ìœ—ë©´)ì˜ ë†’ì´(Z)ë¥¼ ì–»ëŠ” í•¨ìˆ˜
     public int GetGroundZLevel(Vector3 pos)
     {
         Vector3Int intPos = grid.WorldToCell(pos);
 
         for(int i=4; i >=1; i--)
         {
-            // ¾Æ·¡·Î i Ä­ ¸¸Å­ ¶³¾îÁø Å¸ÀÏÀÇ Cell Position
+            // ì•„ë˜ë¡œ i ì¹¸ ë§Œí¼ ë–¨ì–´ì§„ íƒ€ì¼ì˜ Cell Position
             Vector3Int cellPos = intPos + new Vector3Int(-i, -i, 0);
 
             int z = i * 2 - 2;
@@ -271,16 +271,16 @@ public class SurroundTileCheck : MonoBehaviour
             }
         }
 
-        // bmap¿¡¼­ È®ÀÎµÈ Å¸ÀÏÀÌ ¾øÀ¸¸é ÆòÁö·Î ÀÎ½Ä
+        // bmapì—ì„œ í™•ì¸ëœ íƒ€ì¼ì´ ì—†ìœ¼ë©´ í‰ì§€ë¡œ ì¸ì‹
         return -1;
     }
 
-    // ¶³¾îÁú ¶§ ¾î´À ÁöÁ¡¿¡ ¸ØÃç¾ß ÇÏ´ÂÁö È®ÀÎÇÏ´Â ÇÔ¼ö
+    // ë–¨ì–´ì§ˆ ë•Œ ì–´ëŠ ì§€ì ì— ë©ˆì¶°ì•¼ í•˜ëŠ”ì§€ í™•ì¸í•˜ëŠ” í•¨ìˆ˜
     public int GetFallGroundZLevel(Vector3 pos)
     {
         Vector3Int intPos = grid.WorldToCell(pos);
         int prevZ = playerMove.groundedZ;
-        // ¶³¾îÁö±â ÀÌÀü Å¸ÀÏÀÇ ¹Ù´Ú(Z=0) À§Ä¡ º¸Á¤
+        // ë–¨ì–´ì§€ê¸° ì´ì „ íƒ€ì¼ì˜ ë°”ë‹¥(Z=0) ìœ„ì¹˜ ë³´ì •
         Vector3Int cellPos = intPos + new Vector3Int(-prevZ / 2, -prevZ / 2, 0);
 
         for (int z = prevZ - 2; z >= 0; z -= 2)
@@ -293,18 +293,18 @@ public class SurroundTileCheck : MonoBehaviour
             }
         }
 
-        // bmap¿¡¼­ È®ÀÎµÈ Å¸ÀÏÀÌ ¾øÀ¸¸é ÆòÁö·Î ÀÎ½Ä
+        // bmapì—ì„œ í™•ì¸ëœ íƒ€ì¼ì´ ì—†ìœ¼ë©´ í‰ì§€ë¡œ ì¸ì‹
         return -1;
     }
 
-    // Vector3Int PosÀ§Ä¡¿¡ ¼³Ä¡µÈ Å¸ÀÏ(¹Ú½º À­¸é)ÀÇ ³ôÀÌ(Z)¸¦ ¾ò´Â ÇÔ¼ö
+    // Vector3Int Posìœ„ì¹˜ì— ì„¤ì¹˜ëœ íƒ€ì¼(ë°•ìŠ¤ ìœ—ë©´)ì˜ ë†’ì´(Z)ë¥¼ ì–»ëŠ” í•¨ìˆ˜
     public int GetGroundZLevel(Vector3Int pos)
     {
         Vector3Int intPos = pos;
 
         for (int i = 4; i >= 1; i--)
         {
-            // ¾Æ·¡·Î i Ä­ ¸¸Å­ ¶³¾îÁø Å¸ÀÏÀÇ Cell Position
+            // ì•„ë˜ë¡œ i ì¹¸ ë§Œí¼ ë–¨ì–´ì§„ íƒ€ì¼ì˜ Cell Position
             Vector3Int cellPos = intPos + new Vector3Int(-i, -i, 0);
 
             int z = i * 2 - 2;
@@ -317,11 +317,11 @@ public class SurroundTileCheck : MonoBehaviour
             }
         }
 
-        // bmap¿¡¼­ È®ÀÎµÈ Å¸ÀÏÀÌ ¾øÀ¸¸é ÆòÁö·Î ÀÎ½Ä
+        // bmapì—ì„œ í™•ì¸ëœ íƒ€ì¼ì´ ì—†ìœ¼ë©´ í‰ì§€ë¡œ ì¸ì‹
         return -1;
     }
 
-    // ÀÔ·Â¹ŞÀº Z°ªºÎÅÍ ¼øÂ÷ÀûÀ¸·Î ºñ±³ÇÏ¿© Å¸ÀÏ(¹Ú½º À­¸é)ÀÇ ³ôÀÌ(Z)¸¦ ¾ò´Â ÇÔ¼ö
+    // ì…ë ¥ë°›ì€ Zê°’ë¶€í„° ìˆœì°¨ì ìœ¼ë¡œ ë¹„êµí•˜ì—¬ íƒ€ì¼(ë°•ìŠ¤ ìœ—ë©´)ì˜ ë†’ì´(Z)ë¥¼ ì–»ëŠ” í•¨ìˆ˜
     // Z = value
     public int GetGroundZLevel(Vector3 pos, int value)
     {
@@ -329,7 +329,7 @@ public class SurroundTileCheck : MonoBehaviour
 
         for (int i = value-1; i >= 1; i--)
         {
-            // ¾Æ·¡·Î i Ä­ ¸¸Å­ ¶³¾îÁø Å¸ÀÏÀÇ Cell Position
+            // ì•„ë˜ë¡œ i ì¹¸ ë§Œí¼ ë–¨ì–´ì§„ íƒ€ì¼ì˜ Cell Position
             Vector3Int cellPos = intPos + new Vector3Int(-i, -i, 0);
 
             int z = i * 2 - 2;
@@ -342,7 +342,7 @@ public class SurroundTileCheck : MonoBehaviour
             }
         }
 
-        // bmap¿¡¼­ È®ÀÎµÈ Å¸ÀÏÀÌ ¾øÀ¸¸é ÆòÁö·Î ÀÎ½Ä
+        // bmapì—ì„œ í™•ì¸ëœ íƒ€ì¼ì´ ì—†ìœ¼ë©´ í‰ì§€ë¡œ ì¸ì‹
         return -1;
     }
 
@@ -359,10 +359,6 @@ public class SurroundTileCheck : MonoBehaviour
 
     }
 
-    void OnCursor(InputValue value)
-    {
-        mousePos = value.Get<Vector2>();
-    }
 
     public Vector3Int GetGridPosition(Vector3 pos)
     {
@@ -378,11 +374,11 @@ public class SurroundTileCheck : MonoBehaviour
 
         foreach (Tilemap map in maps)
         {
-            if (map.gameObject.name == "Basic")
+            if (map.gameObject.name == "tmap")
             {
                 tmap = map;
             }
-            if(map.gameObject.name == "Box")
+            if(map.gameObject.name == "bmap")
             {
                 bmap = map;
             }
