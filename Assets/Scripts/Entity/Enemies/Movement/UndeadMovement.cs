@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class UndeadMovement : MonoBehaviour, IEnemyMovement
 {
@@ -14,8 +15,9 @@ public class UndeadMovement : MonoBehaviour, IEnemyMovement
     public Transform sprite;
     private Vector3 targetPos = Vector3.zero;
     private GroundedEnemy groundedEnemy;
+    private UndeadAttack attack;
     private EnemyStats stat;
-    private Transform player;
+    public Transform player;
     public Grid grid;
     private Animator anim;
 
@@ -24,12 +26,15 @@ public class UndeadMovement : MonoBehaviour, IEnemyMovement
     private Vector3 knockback = Vector3.zero;
     private Vector3 prevPos = Vector3.zero;
 
+    [HideInInspector]
+    public bool isStuned = false;
 
     void Awake()
     {
         groundedEnemy = GetComponent<GroundedEnemy>();
         stat = GetComponent<EnemyStats>();
         anim = sprite.GetComponent<Animator>();
+        attack = GetComponent<UndeadAttack>();
     }
 
     void Start()
@@ -55,13 +60,13 @@ public class UndeadMovement : MonoBehaviour, IEnemyMovement
 
         if (targetPos.x < transform.position.x)
         {
-            // 넉백 중에는 flip실행 X
-            if(isArrive)
+            // 넉백, 공격 중에는 flip실행 X
+            if(isArrive && !attack.isAttacking)
                 sprite.GetComponent<SpriteRenderer>().flipX = true;
         }
         else
         {
-            if (isArrive)
+            if (isArrive && !attack.isAttacking)
                 sprite.GetComponent<SpriteRenderer>().flipX = false;
         }
             
@@ -72,7 +77,7 @@ public class UndeadMovement : MonoBehaviour, IEnemyMovement
         PlayerMove playerMove = player.GetComponent<PlayerMove>();
 
         // 플레이어 포착 시 이동
-        if (!isDetected)
+        if (!isDetected || isStuned)
         {
             targetPos = transform.position;
             anim.SetBool("isWalking", false);
@@ -92,7 +97,7 @@ public class UndeadMovement : MonoBehaviour, IEnemyMovement
         }
         else
         {
-            if (isArrive)
+            if (isArrive && !attack.isAttacking)
             {
                 // 목표 지점까지 이동
                 if (Vector3.Distance(transform.position, targetPos) > 0.05f)
@@ -189,9 +194,24 @@ public class UndeadMovement : MonoBehaviour, IEnemyMovement
             }
         }
     }
-    public void Stop()
+
+    public void CrowdControl(IEnemyMovement.CC cc, float t)
     {
-        
+        if(cc == IEnemyMovement.CC.Slow)
+        {
+
+        }
+        if(cc == IEnemyMovement.CC.Stun)
+        {
+            isStuned = true;
+            StartCoroutine(Stun(t));
+        }
+    }
+
+    private IEnumerator Stun(float dur)
+    {
+        yield return new WaitForSeconds(dur);
+        isStuned = false;
     }
 
     public void SetPlayerDetected(bool val)

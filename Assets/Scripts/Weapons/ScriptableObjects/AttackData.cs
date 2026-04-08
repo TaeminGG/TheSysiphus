@@ -14,6 +14,10 @@ public class AttackData : ScriptableObject
     public float zUpperRange;           // Z(높이)값 위쪽 공격 범위
     public float zLowerRange;           // Z(높이)값 아래 공격 범위
 
+    public GameObject visual;
+    public bool flipX;
+    public bool flipY;
+
     public float GetFinalDamage(float playerDamage)
     {
         return damage + Mathf.RoundToInt(playerDamage * damageScaling);

@@ -3,8 +3,6 @@ using UnityEngine.Tilemaps;
 
 public class ChunkLoader : MonoBehaviour
 {
-    // 타일맵에 청크를 추가하는 스크립트
-
     private Grid grid;
     public Tilemap tmap;
     public Tilemap bmap;

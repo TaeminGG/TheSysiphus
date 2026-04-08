@@ -6,11 +6,12 @@ public class EnemyStats : MonoBehaviour, IDamageable
 {
     public float maxHp = 100f;
     private float currentHp = 0f;
-    public float knockBackResist = 1f;      // ³Ë¹é ÀúÇ×·Â (³Ë¹é¼Óµµ ¹× ³Ë¹é °Å¸®¿¡ ¿µÇâ, 1f ÀÏ ¶§ ÃÖ´ë ³·À»¼ö·Ï ÀúÇ×ÇÔ)
+    public float knockBackResist = 1f;      // ë„‰ë°± ì €í•­ë ¥ (ë„‰ë°±ì†ë„ ë° ë„‰ë°± ê±°ë¦¬ì— ì˜í–¥, 1f ì¼ ë•Œ ìµœëŒ€ ë‚®ì„ìˆ˜ë¡ ì €í•­í•¨)
 
     public event Action<float> OnDamaged;
     public event Action OnDeath;
 
+    [HideInInspector]
     public bool isKnockback = false;
     public Vector2 knockbackVector = Vector2.zero;
 
@@ -20,7 +21,7 @@ public class EnemyStats : MonoBehaviour, IDamageable
     public Canvas canvas;
     public EnemyHpBar hpbar;
     public GameObject damageText;
-    public Transform damagePos;             // ÇÇ°İ ½Ã µ¥¹ÌÁö°¡ Ç¥½ÃµÉ À§Ä¡
+    public Transform damagePos;             // í”¼ê²© ì‹œ ë°ë¯¸ì§€ê°€ í‘œì‹œë  ìœ„ì¹˜
 
     public bool IsDead => currentHp <= 0;
     void Awake()
@@ -42,27 +43,22 @@ public class EnemyStats : MonoBehaviour, IDamageable
     {
         if(IsDead) return;
 
-        if(attack != null && attack.CanAttack)
-        {
-            attack.Attack();
-        }
-
         hpbar.HpSetting(currentHp / maxHp);
     }
 
-    // ÇÇ°İ
+    // í”¼ê²©
     public void TakeDamage(float damage, Vector2 knockback)
     {
         if (IsDead) return;
 
-        // Ã¼·Â °¨¼Ò ¹× ÇÇ°İ ÀÌº¥Æ® ½ÇÇà
+        // ì²´ë ¥ ê°ì†Œ ë° í”¼ê²© ì´ë²¤íŠ¸ ì‹¤í–‰
         currentHp -= damage;
         OnDamaged?.Invoke(damage);
 
-        // ³Ë¹é Ã³¸®
+        // ë„‰ë°± ì²˜ë¦¬
         isKnockback = true;
 
-        // ³Ë¹é ÀúÇ×¿¡ µû¶ó ³Ë¹é Vector Á¶Àı
+        // ë„‰ë°± ì €í•­ì— ë”°ë¼ ë„‰ë°± Vector ì¡°ì ˆ
         knockbackVector = knockback * knockBackResist;
 
         if (IsDead)

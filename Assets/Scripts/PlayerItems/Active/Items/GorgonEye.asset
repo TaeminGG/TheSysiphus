@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f014f7d623954024d842fa98707f6c9c, type: 3}
+  m_Name: GorgonEye
+  m_EditorClassIdentifier: Assembly-CSharp::GorgonEye
+  itemName: "\uACE0\uB974\uACE4\uC758 \uB208"
+  icon: {fileID: 21300000, guid: ef43e652542247e49bfa5ee0c458492a, type: 3}
+  description: "\uC8FC\uBCC0 \uC801\uC744 \uC7A0\uC2DC\uB3D9\uC548 \uC11D\uD654\uC2DC\uD0A8\uB2E4"
+  dummy: {fileID: 2909194874420595253, guid: d551f8015eee0af49bcb6febf04bd27a, type: 3}

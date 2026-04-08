@@ -18,8 +18,8 @@ public class GroundedEnemy : MonoBehaviour
     private Vector3Int prevPos;
     public class DirectionInfo
     {
-        public bool isValid;        // ÇØ´ç À§Ä¡¿¡ ¿òÁ÷¿©¼­ °¥ ¼ö ÀÖ´ÂÁö ¿©ºÎ (º®ÀÎÁö ¾Æ´ÑÁö)
-        public int zLevel;          // ÇØ´ç À§Ä¡ÀÇ Z°ª
+        public bool isValid;        // í•´ë‹¹ ìœ„ì¹˜ì— ì›€ì§ì—¬ì„œ ê°ˆ ìˆ˜ ìˆëŠ”ì§€ ì—¬ë¶€ (ë²½ì¸ì§€ ì•„ë‹Œì§€)
+        public int zLevel;          // í•´ë‹¹ ìœ„ì¹˜ì˜ Zê°’
 
         public DirectionInfo(bool valid, int z)
         {
@@ -28,7 +28,7 @@ public class GroundedEnemy : MonoBehaviour
         }
     }
 
-    //ÁÖº¯ 9Ä­ (Á¦ÀÚ¸® Æ÷ÇÔ)ÀÇ Direction Infomation
+    //ì£¼ë³€ 9ì¹¸ (ì œìë¦¬ í¬í•¨)ì˜ Direction Infomation
     private Dictionary<Vector3Int, DirectionInfo> surroundTiles = new Dictionary<Vector3Int, DirectionInfo>();
 
     public void UpdateSurroundTiles(Vector3 pos)
@@ -39,7 +39,7 @@ public class GroundedEnemy : MonoBehaviour
             surroundTiles.Clear();
         }
 
-        // floorZ(È°µ¿ Zlevl)°¡ 0ÀÏ ‹ bmap¿¡ Å¸ÀÏÀÌ Á¸Àç(³ôÀÌ ¹«°ü)ÇÏ¸é unvalid
+        // floorZ(í™œë™ Zlevl)ê°€ 0ì¼ ë–ˆ bmapì— íƒ€ì¼ì´ ì¡´ì¬(ë†’ì´ ë¬´ê´€)í•˜ë©´ unvalid
 
         if (floorZ == 0)
         {
@@ -63,9 +63,9 @@ public class GroundedEnemy : MonoBehaviour
                             valid = false;
                         }
 
-                        if (surroundTiles.ContainsKey(new Vector3Int(x, y, 0)))       // ÁÖº¯ x, y ¿¡ µî·ÏµÈ Ä­ÀÌ ÀÖ´ÂÁö
+                        if (surroundTiles.ContainsKey(new Vector3Int(x, y, 0)))       // ì£¼ë³€ x, y ì— ë“±ë¡ëœ ì¹¸ì´ ìˆëŠ”ì§€
                         {
-                            if (surroundTiles[new Vector3Int(x, y, 0)].isValid)     // µî·ÏµÈ Ä­ÀÌ Valid ÀÎÁö È®ÀÎÇÏ°í °»½Å È¤Àº µî·Ï
+                            if (surroundTiles[new Vector3Int(x, y, 0)].isValid)     // ë“±ë¡ëœ ì¹¸ì´ Valid ì¸ì§€ í™•ì¸í•˜ê³  ê°±ì‹  í˜¹ì€ ë“±ë¡
                             {
                                 surroundTiles[new Vector3Int(x, y, 0)] = new DirectionInfo(valid, z);
                                 if (!valid)
@@ -102,7 +102,7 @@ public class GroundedEnemy : MonoBehaviour
         return surroundTiles[testPos].isValid;
     }
 
-    // Vector3Int PosÀ§Ä¡¿¡ ¼³Ä¡µÈ Å¸ÀÏ(¹Ú½º À­¸é)ÀÇ ³ôÀÌ(Z)¸¦ ¾ò´Â ÇÔ¼ö
+    // Vector3Int Posìœ„ì¹˜ì— ì„¤ì¹˜ëœ íƒ€ì¼(ë°•ìŠ¤ ìœ—ë©´)ì˜ ë†’ì´(Z)ë¥¼ ì–»ëŠ” í•¨ìˆ˜
     public int GetGroundZLevel(Vector3Int pos)
     {
 
@@ -119,11 +119,11 @@ public class GroundedEnemy : MonoBehaviour
             }
         }
 
-        // bmap¿¡¼­ È®ÀÎµÈ Å¸ÀÏÀÌ ¾øÀ¸¸é ÆòÁö·Î ÀÎ½Ä
+        // bmapì—ì„œ í™•ì¸ëœ íƒ€ì¼ì´ ì—†ìœ¼ë©´ í‰ì§€ë¡œ ì¸ì‹
         return -1;
     }
 
-    // ´ÙÀ½ ÀÌµ¿ÇÒ ¼¿À» Ã£´Â ÇÔ¼ö
+    // ë‹¤ìŒ ì´ë™í•  ì…€ì„ ì°¾ëŠ” í•¨ìˆ˜
     public Vector3Int GetNextCell()
     {
         Vector3Int currentCell = grid.WorldToCell(transform.position);
@@ -136,14 +136,14 @@ public class GroundedEnemy : MonoBehaviour
         {
             for (int y = -1; y < 2; y++)
             {
-                if(x==0 && y==0) continue;  // Á¦ÀÚ¸®´Â ¹«½Ã
+                if(x==0 && y==0) continue;  // ì œìë¦¬ëŠ” ë¬´ì‹œ
                 
                 Vector3Int offset = new Vector3Int(x, y, 0);
 
-                // ³ôÀÌ(Z)°¡ 0ÀÏ ‹š¿Í ¾Æ´Ò ¶§ ³ª´©¾î Ã³¸®
+                // ë†’ì´(Z)ê°€ 0ì¼ ë–„ì™€ ì•„ë‹ ë•Œ ë‚˜ëˆ„ì–´ ì²˜ë¦¬
                 if(floorZ == 0)
                 {
-                    // surroundTile¿¡ Á¸ÀçÇÏ°í ÀÌµ¿ °¡´ÉÇÑ ¼¿¸¸ Ã³¸®
+                    // surroundTileì— ì¡´ì¬í•˜ê³  ì´ë™ ê°€ëŠ¥í•œ ì…€ë§Œ ì²˜ë¦¬
                     if (!surroundTiles.ContainsKey(offset)) continue;
                     if (!surroundTiles[offset].isValid) continue;
 
@@ -171,15 +171,12 @@ public class GroundedEnemy : MonoBehaviour
                     }
 
 
-                    Debug.Log("targetCell : " + grid.CellToWorld(targetCell) + "    getZ : " + getZ);
-
                     float dist = Vector3.Distance(targetWorldPos, player.position);
 
                     if (dist < distance)
                     {
                         distance = dist;
                         nextCell = targetCell;
-                        Debug.Log("next : " + grid.CellToWorld(nextCell));
                     }
                 }
                 
@@ -202,15 +199,6 @@ public class GroundedEnemy : MonoBehaviour
     private void FixedUpdate()
     {
         UpdateSurroundTiles(transform.position);
-        ChasePlayer();
-    }
-
-    private void ChasePlayer()
-    {
-        PlayerMove playerMove = player.GetComponent<PlayerMove>();
-        if (playerMove.floorZ != floorZ) return;    // ÇÃ·¹ÀÌ¾î°¡ ÀÖ´Â ¹Ù´Ú Å¸ÀÏÀÌ EnemyÀÇ È°µ¿ Z ·¹º§°ú °°Àº °æ¿ì¿¡¸¸ ½ÇÇà
-        
-        // ÀÌµ¿ ÁßÀÌ¸é ¸ñÇ¥ ÁöÁ¡±îÁö ÀÌµ¿
     }
 
     public Vector3Int GetGridPosition(Vector3 pos)

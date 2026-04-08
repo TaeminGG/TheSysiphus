@@ -10,16 +10,19 @@ public class AttackController : MonoBehaviour
 
     private int currentCombo = 0;
     public bool isAttacking = false;
-    private bool inputBuffered = false;     // 다음 공격 가능
+    public bool inputBuffered = false;     // 다음 공격 가능
     private float comboTimer = 0f;
     private float attackTimer = 0f;
 
     public AttackHitBox hitbox;
-    private Animator anim;
+    public Animator anim;
+    private PlayerMove playerMove;
+
+    private bool isAnimPlayed = false;
 
     private void Awake()
     {
-        // anim = GetComponentInParent<Animator>();
+        playerMove = GetComponent<PlayerMove>();
     }
 
     private void Start()
@@ -49,10 +52,12 @@ public class AttackController : MonoBehaviour
             return;
 
         if (!isAttacking)
+        {
             StartAttack(0);
+        }
         else
         {
-            if(comboTimer >0f && currentCombo < combos.Length - 1)
+            if (comboTimer > 0f && currentCombo < combos.Length - 1)
             {
                 inputBuffered = true;
             }
@@ -61,9 +66,11 @@ public class AttackController : MonoBehaviour
 
     private void StartAttack(int combo)
     {
+        playerMove.AttackLookAt();      // 플레이어가 바라보는 방향 설정
+
         currentCombo = combo;
-        isAttacking = true;         // 공격 중으로 상태 변경
         inputBuffered = false;
+        isAttacking = true;         // 공격 중으로 상태 변경
 
         AttackData data = combos[currentCombo];
 
@@ -75,9 +82,8 @@ public class AttackController : MonoBehaviour
         comboTimer = 0f;
 
         // 애니메이션 속도 공격속도에 비례해서 적용
-        // anim.SetFloat("AttackSpeed", attackSpeed);
-        // anim.SetTrigger(data.animTrigger);
-
+        anim.SetFloat("AttackSpeed", attackSpeed);
+        anim.SetTrigger(data.animTrigger);
         Vector2 attackDir = GetComponent<PlayerAttackDirection>().GetAttackDirection();
         float playerDamage = GetComponent<PlayerStats>().damage;
         hitbox.Setup(data, attackSpeed, playerDamage, attackDir, GetComponent<PlayerMove>().floorZ);
@@ -107,13 +113,15 @@ public class AttackController : MonoBehaviour
         // 공격 종료
         if(attackTimer <= 0f)
         {
-            if(inputBuffered && currentCombo < combos.Length - 1)
+            if (inputBuffered && currentCombo < combos.Length - 1)
             {
                 // 입력이 들어왔으면 다음 공격으로
                 StartAttack(currentCombo + 1);
             }
             else
             {
+                anim.SetTrigger("AttackEnded");
+                anim.ResetTrigger(data.animTrigger);
                 ResetCombo();
             }
         }
@@ -121,7 +129,6 @@ public class AttackController : MonoBehaviour
 
     private void ResetCombo()
     {
-        // anim.speed = 1.0f;  // 애니메이션 속도 원상복구
         isAttacking = false;
         inputBuffered = false;
         currentCombo = 0;

@@ -2,6 +2,7 @@ using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using UnityEngine.UIElements;
 
 public class AttackHitBox : MonoBehaviour
 {
@@ -10,11 +11,16 @@ public class AttackHitBox : MonoBehaviour
     private Collider2D col;
     private List<Collider2D> hitTargets = new List<Collider2D>();
 
-    private float playerDamage;
+    private SpriteRenderer spriteRenderer;
+    private Animator anim;
+
+    public Transform visual;
+
+    private float damage;
     private float floorZ = 0;
 
 
-    [Header("Debug")]
+    [Header("Debug Gizmo")]
     public bool showDebugInGame = true;     // 게임뷰 표시 여부
     public Color activeColor = new Color(1f, 0f, 0f, 0.4f);
     public Color inactiveColor = new Color(1f, 1f, 0f, 0.2f);
@@ -26,6 +32,11 @@ public class AttackHitBox : MonoBehaviour
     {
         col = GetComponent<Collider2D>();
 
+        if (visual != null)
+        {
+            spriteRenderer = visual.GetComponent<SpriteRenderer>();
+            anim = visual.GetComponent<Animator>();
+        }
         SetupDebugRenderer();
     }
 
@@ -35,8 +46,18 @@ public class AttackHitBox : MonoBehaviour
     {
         currentData = data;
         hitTargets.Clear();
-        playerDamage = playerAttackDamage;
+        damage = playerAttackDamage;
         floorZ = z;
+
+        SpriteRenderer dataSprite = data.visual.GetComponent<SpriteRenderer>();
+        Animator dataAnim = data.visual.GetComponent<Animator>();
+
+        spriteRenderer.sprite = dataSprite.sprite;
+        spriteRenderer.flipX = data.flipX;
+        spriteRenderer.flipY = data.flipY;
+        anim.ResetControllerState();
+        anim.runtimeAnimatorController = dataAnim.runtimeAnimatorController;
+        visual.localPosition = new Vector3(data.hitboxOffset.x, data.hitboxOffset.y);
 
         if(col is BoxCollider2D box)
         {
@@ -49,11 +70,35 @@ public class AttackHitBox : MonoBehaviour
         angle -= 90f;
         transform.rotation=Quaternion.Euler(0f,0f,angle);
 
+        visual.rotation = Quaternion.Euler(0f,0f,angle - 90f);
+
         EnableHitBox();
 
         // 공격 속도에 비례해서 히트박스 지속시간 조절
         float asDuration = (data.attackDuration * 0.5f) / attackSpeed;
         StartCoroutine(AutoDisable(asDuration));
+    }
+
+    public void EnemySetup(AttackData data, float attackDamage, float duration, Vector3 pos, float angle, float z)
+    {
+        currentData = data;
+        hitTargets.Clear();
+        damage = attackDamage;
+        floorZ = z;
+
+        if (col is BoxCollider2D box)
+        {
+            box.size = data.hitboxSize;
+            box.offset = data.hitboxOffset;
+        }
+
+        Vector3 targetPos = pos;
+        targetPos.z = 0;
+        transform.position = targetPos;
+        transform.rotation = Quaternion.Euler(0f,0f,angle);
+
+        EnableHitBox();
+        StartCoroutine(AutoDisable(duration));
     }
 
     private IEnumerator AutoDisable(float delay)
@@ -93,26 +138,76 @@ public class AttackHitBox : MonoBehaviour
 
         hitTargets.Add(other);
 
-        if (other.TryGetComponent<IDamageable>(out var target))
+        // 피격 주체 체크
+        if((hitLayer & (1 << LayerMask.NameToLayer("Player"))) != 0)
         {
-            // Z 공격 범위에 해당하는 적만 공격
-            float zUpper = currentData.zUpperRange;
-            float zLower = currentData.zLowerRange;
-
-            other.TryGetComponent<IEnemyMovement>(out var targetEnemy);
-
-            float enemyFloorZ = targetEnemy.FloorZ;
-
-            if(floorZ + zUpper >= enemyFloorZ)
+            if(other.TryGetComponent<IDamageable>(out var target))
             {
-                if(floorZ - zLower <= enemyFloorZ)
-                {
-                    // 계수 적용된 최종 데미지 계산
-                    float finalDamage = currentData.GetFinalDamage(playerDamage);
+                // Z 공격 범위에 플레이어가 있어야 공격판정 적용
+                float zUpper = currentData.zUpperRange;
+                float zLower = currentData.zLowerRange;
 
-                    Vector2 knockback = (other.transform.position - transform.position).normalized
-                                        * currentData.knockbackForce;
-                    target.TakeDamage(finalDamage, knockback);
+                other.TryGetComponent<PlayerMove>(out var player);
+
+                float playerZvalue = player.playerZ;
+
+                if (floorZ + zUpper >= playerZvalue)
+                {
+                    if (floorZ - zLower <= playerZvalue)
+                    {
+                        // 계수 적용된 최종 데미지 계산
+                        float finalDamage = currentData.GetFinalDamage(damage);
+
+                        Vector2 knockback = (other.transform.position - transform.position).normalized
+                                            * currentData.knockbackForce;
+                        target.TakeDamage(finalDamage, knockback);
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (other.TryGetComponent<IDamageable>(out var target))
+            {
+                // Z 공격 범위에 해당하는 적만 공격
+                float zUpper = currentData.zUpperRange;
+                float zLower = currentData.zLowerRange;
+
+                other.TryGetComponent<IEnemyMovement>(out var targetEnemy);
+
+                float enemyFloorZ = targetEnemy.FloorZ;
+
+                if (floorZ + zUpper >= enemyFloorZ)
+                {
+                    if (floorZ - zLower <= enemyFloorZ)
+                    {
+                        // 계수 적용된 최종 데미지 계산
+                        float finalDamage = currentData.GetFinalDamage(damage);
+
+                        Vector2 knockback = (other.transform.position - transform.position).normalized
+                                            * currentData.knockbackForce;
+                        target.TakeDamage(finalDamage, knockback);
+                    }
+                }
+            }
+        }
+
+        if ((hitLayer & (1 << LayerMask.NameToLayer("Probs"))) != 0)
+        {
+            if (other.TryGetComponent<BreakableProbs>(out var target))
+            {
+                // Z 공격 범위에 플레이어가 있어야 공격판정 적용
+                float zUpper = currentData.zUpperRange;
+                float zLower = currentData.zLowerRange;
+
+                float zValue = target.floorZ;
+
+                if (floorZ + zUpper >= zValue)
+                {
+                    if (floorZ - zLower <= zValue)
+                    {
+                        target.Attacked();
+                    }
                 }
             }
         }

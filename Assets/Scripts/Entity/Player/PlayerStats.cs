@@ -1,5 +1,7 @@
 using System;
 using UnityEngine;
+using System.Collections;
+using UnityEngine.InputSystem;
 
 public class PlayerStats : MonoBehaviour, IDamageable
 {
@@ -9,18 +11,41 @@ public class PlayerStats : MonoBehaviour, IDamageable
     public float damage = 0;
     public float attackSpeed = 1f;
 
-    public float invDuration = 0.5f;        // ÇÇ°İ ½Ã ¹«Àû ½Ã°£
+    public float invDuration = 0.5f;        // í”¼ê²© ì‹œ ë¬´ì  ì‹œê°„
     private float invTimer = 0f;
-    private bool isInv => invTimer > 0f;    // ÇÇ°İ¹«Àû ¿©ºÎ
+    private bool isInv => invTimer > 0f;    // í”¼ê²©ë¬´ì  ì‹œê°„ í™•ì¸
+
+    private int gold = 0;                   // ë³´ìœ  ì¤‘ì¸ ê³¨ë“œëŸ‰
+
+    private int potionCount = 5;
+    private int maxPotion = 5;
+    public float healAmount = 30f;
+    public float healCooltime = 1.0f;
+    private float healTimer = 0f;
 
     public bool IsDead => currentHp <= 0;
 
-    public event Action<float> OnDamaged;     // ÇÇ°İ ÀÌº¥Æ® (µî·Ï, ÇØÁ¦ ÀØÁö¸»±â)
-    public event Action OnDeath;            // »ç¸Á ÀÌº¥Æ®
+    [HideInInspector]
+    public event Action<float> OnDamaged;   // í”¼ê²© ì´ë²¤íŠ¸ (ë“±ë¡, í•´ì œ ìŠì§€ë§ê¸°)
+    public event Action OnDeath;            // ì‚¬ë§ ì´ë²¤íŠ¸
+    public event Action OnKill;             // ì  ì²˜ì¹˜ ì‹œ
+    public event Action OnDash;             // ëŒ€ì‰¬ ì‹œ
+    public event Action OnHealEvent;        // íšŒë³µ ì‹œ
+
+
+    public Canvas canvas;
+    public GameObject damageText;
+    public Transform damagePos;             // í”¼ê²© ì‹œ ë°ë¯¸ì§€ê°€ í‘œì‹œë  ìœ„ì¹˜
+
+    public GameObject healEffect;
 
     private void Start()
     {
         currentHp = maxHp;
+        healTimer = healCooltime;
+
+        OnDamaged += ShowDamage;
+        OnHealEvent += ShowHealEffect;
     }
 
     private void Update()
@@ -29,21 +54,55 @@ public class PlayerStats : MonoBehaviour, IDamageable
         {
             invTimer -= Time.deltaTime;
         }
+
+        healTimer += Time.deltaTime;
     }
 
     public void TakeDamage(float damage, Vector2 knockback)
     {
         if (IsDead || isInv) return;
 
-        invTimer = invDuration;         // ÇÇ°İ ¹«Àû ½ÃÀÛ
+        invTimer = invDuration;         // í”¼ê²© ë¬´ì  ì‹œì‘
         currentHp = Mathf.Max(0, currentHp - damage);
-        OnDamaged.Invoke(damage);
+        OnDamaged?.Invoke(damage);
 
         if (IsDead)
             OnDeath?.Invoke();
     }
 
-    // °ø°İ·Â Áõ°¨ ½Ã È£Ãâ
+    public void HitByRock()
+    {
+        Debug.Log("Die");
+    }
+
+    private void ShowDamage(float damage)
+    {
+        if (damageText == null)
+        {
+            return;
+        }
+
+        Vector3 pos = damagePos.position;
+        Vector3 randomPos = new Vector3(UnityEngine.Random.Range(pos.x - 0.5f, pos.x + 0.5f), pos.y, 0);
+
+        GameObject text = GameObject.Instantiate(damageText, randomPos, Quaternion.identity, canvas.transform);
+
+        text.GetComponent<DamageText>().Setup(damage);
+    }
+    private void ShowHealEffect()
+    {
+        if (healEffect == null)
+        {
+            return;
+        }
+
+        Vector3 pos = damagePos.position;
+        Vector3 randomPos = new Vector3(UnityEngine.Random.Range(pos.x - 0.5f, pos.x + 0.5f), pos.y, 0);
+
+        Instantiate(healEffect, randomPos, Quaternion.identity, canvas.transform);
+    }
+
+    // ê³µê²©ë ¥ ì¦ê° ì‹œ í˜¸ì¶œ
     public void AddAttackDamage(float amount)
     {
         damage += amount;
@@ -53,4 +112,102 @@ public class PlayerStats : MonoBehaviour, IDamageable
         damage -= amount;
     }
 
+    public float GetCurrentHp()
+    {
+        return currentHp;
+    }
+
+    public float GetMaxHp()
+    {
+        return maxHp;
+    }
+
+    public void AddMaxHp(float amount)
+    {
+        maxHp += amount;
+    }
+
+    public void ReduceMaxHp(float amount)
+    {
+        maxHp -= amount;
+    }
+
+    public void Heal(float amount)
+    {
+        if (currentHp + amount >= maxHp)
+            currentHp = maxHp;
+        else
+            currentHp += amount;
+        OnHealEvent?.Invoke();
+    }
+
+    public void AddMoveSpeed(float speed)
+    {
+        PlayerMove playerMove = GetComponent<PlayerMove>();
+
+        playerMove.AddSpeed(speed);
+    }
+    public void ReduceMoveSpeed(float speed)
+    {
+        PlayerMove playerMove = GetComponent<PlayerMove>();
+
+        playerMove.ReduceSpeed(speed);
+    }
+
+    public int GetGold()
+    {
+        return gold;
+    }
+
+    public void AddGold(int g)
+    {
+        gold += g;
+    }
+    
+    public int GetPotionCount()
+    {
+        return potionCount;
+    }
+    public void ChargePotion(int amount)
+    {
+        if (potionCount + amount >= maxPotion)
+            potionCount = maxPotion;
+        else
+            potionCount += amount;
+    }
+
+    public void Dash()
+    {
+        OnDash?.Invoke();
+    }
+
+    public void Buff(int idx, float amount, float duration)
+    {
+        // ê³µê²©ë ¥ ì¦ê°€
+        if(idx == 0)
+        {
+            damage += amount;
+            StartCoroutine(DamageBuff(amount, duration));
+        }
+    }
+
+    private IEnumerator DamageBuff(float amount, float dur)
+    {
+        yield return new WaitForSeconds(dur);
+        damage -= amount;
+    }
+
+    private void OnHeal(InputValue value)
+    {
+        // ì²´ë ¥ì´ ìµœëŒ€ë©´ ì˜ˆì™¸ì²˜ë¦¬
+        if (currentHp >= maxHp)
+            return;
+
+        if(potionCount > 0 && healTimer > healCooltime)
+        {
+            healTimer = 0;
+            potionCount--;
+            Heal(healAmount);
+        }
+    }
 }

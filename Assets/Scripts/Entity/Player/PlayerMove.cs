@@ -1,5 +1,4 @@
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,25 +8,40 @@ public class PlayerMove : MonoBehaviour
     private Vector3 axis;
     public Vector2Int targetAxis = Vector2Int.zero;
 
+    private enum LookAt
+    {
+        E,
+        W,
+        S,
+        N,
+        NE,
+        NW,
+        SE,
+        SW
+    }
+    private LookAt lookAt = LookAt.S;
+
     [Header("Movement Setting")]
     public float moveSpeed = 3.0f;
     private float moveSpeedSet = 0f;
-    public float airResi = 0.5f;                // °øÁß¿¡¼­ ¼Óµµ °¨¼Ò ºñÀ²
+    public float airResi = 0.5f;                // ê³µì¤‘ì—ì„œ ì†ë„ ê°ì†Œ ë¹„ìœ¨
     public float jumpForce = 5.0f;
     public float gravity = -9.81f;
 
     [Header("Status")]
-    public float playerZ = 0;                   // ÇÃ·¹ÀÌ¾îÀÇ °¡»ó Z°ª (³ôÀÌ)
-    private float verticalVelocity = 0f;        // ³«ÇÏ ¼Óµµ
-    private bool isGrounded = true;             // ÂøÁö ¿©ºÎ
-    private bool isJumping = false;             // Á¡ÇÁ ¿©ºÎ
+    public float playerZ = 0;                   // í”Œë ˆì´ì–´ì˜ ê°€ìƒ Zê°’ (ë†’ì´)
+    private float verticalVelocity = 0f;        // ë‚™í•˜ ì†ë„
+    private bool isGrounded = true;             // ì°©ì§€ ì—¬ë¶€
+    private bool isJumping = false;             // ì í”„ ì—¬ë¶€
     public int floorZ;
+    public int groundedZ = 0;
+    public float spritePivotY = 0.38f;
 
     [Header("Dash Setting")]
-    public float dashForce = 5.0f;              // ´ë½¬ ÇÏ´Â Èû
-    public float dashDuration = 0.5f;           // ´ë½¬ Áö¼Ó½Ã°£
-    public float dashCooltime = 2f;             // ´ë½¬ ÄğÅ¸ÀÓ
-    private float dashTime = 0f;                // ´ë½¬ Áö¼Ó½Ã°£ È®ÀÎº¯¼ö
+    public float dashForce = 5.0f;              // ëŒ€ì‰¬ í•˜ëŠ” í˜
+    public float dashDuration = 0.5f;           // ëŒ€ì‰¬ ì§€ì†ì‹œê°„
+    public float dashCooltime = 2f;             // ëŒ€ì‰¬ ì¿¨íƒ€ì„
+    private float dashTime = 0f;                // ëŒ€ì‰¬ ì§€ì†ì‹œê°„ í™•ì¸ë³€ìˆ˜
     private float dashCooltimeCheck = 0f;
 
     private float spriteZ = 0f;
@@ -36,23 +50,32 @@ public class PlayerMove : MonoBehaviour
     private Animator anim;
     private SpriteRenderer spriteRenderer;
     private SurroundTileCheck stc;
-    public Transform playerSprite;              // ½ºÇÁ¶óÀÌÆ®¸¦ °¡Áø ÀÚ½Ä ¿ÀºêÁ§Æ®ÀÇ Transform
+    private PlayerStats stats;
+    private PassiveItemList passiveItemList;
     private float yOffset = 0f;
 
-    private int fixedZ;                         // À§, ¾Æ·¡·Î ÀÌµ¿ÇÒ ¶§ ÂøÁöÇÒ ¹Ù´ÚÀÇ Z°ª
+    private int fixedZ;                         // ìœ„, ì•„ë˜ë¡œ ì´ë™í•  ë•Œ ì°©ì§€í•  ë°”ë‹¥ì˜ Zê°’
 
-    private bool isOnValidTile = false;       // ÇÃ·¹ÀÌ¾î À§Ä¡ÀÇ Å¸ÀÏÀÌ valid Å¸ÀÏÀÎÁö ¿©ºÎ
-    public int groundedZ = 0;
+    private bool isOnValidTile = false;       // í”Œë ˆì´ì–´ ìœ„ì¹˜ì˜ íƒ€ì¼ì´ valid íƒ€ì¼ì¸ì§€ ì—¬ë¶€
 
-    public Transform shadow;                    // ±×¸²ÀÚÀÇ Transform
+    [Header("Transform")]
+    public Transform shadow;                    // ê·¸ë¦¼ìì˜ Transform
     public Transform shadowSprite;
+    public Transform playerSprite;              // ìŠ¤í”„ë¼ì´íŠ¸ë¥¼ ê°€ì§„ ìì‹ ì˜¤ë¸Œì íŠ¸ì˜ Transform
+
+    private bool isAttacking = false;
+
+    // ì•„ì´í…œ íšë“ ê´€ë ¨
+    public static event Action OnPickup;
 
     private void Awake()
     {
         rid = GetComponent<Rigidbody2D>();
-        anim = GetComponent<Animator>();
+        anim = playerSprite.GetComponent<Animator>();
         spriteRenderer = playerSprite.GetComponent<SpriteRenderer>();
         stc = GetComponent<SurroundTileCheck>();
+        stats=GetComponent<PlayerStats>();
+        passiveItemList = GetComponent<PassiveItemList>();
     }
 
     private void Start()
@@ -69,9 +92,48 @@ public class PlayerMove : MonoBehaviour
         UpdatePosition();
     }
 
+    // ê³µê²© ì‹œ ê³µê²© ë°©í–¥ì„ ë°”ë¼ë³´ê²Œ ì„¤ì •í•˜ëŠ” í•¨ìˆ˜ (AttackController.cs ì—ì„œ ì‹¤í–‰)
+    public void AttackLookAt()
+    {
+        float angle = GetComponent<PlayerAttackDirection>().GetAttackAngle();
+
+        if (-22.5f < angle || 22.5f >= angle)
+        {
+            axis = Vector2.right;
+        }
+        if (22.5f < angle && 67.5f >= angle)
+        {
+            axis = new Vector2(1, 1).normalized;
+        }
+        if (67.5f < angle && 112.5f >= angle)
+        {
+            axis = Vector2.up;
+        }
+        if (112.5f < angle && 157.5f >= angle)
+        {
+            axis = new Vector2(-1, 1).normalized;
+        }
+        if (157.5f < angle || -157.5f >= angle)
+        {
+            axis = Vector2.left;
+        }
+        if (-157.5f < angle && -112.5f >= angle)
+        {
+            axis = new Vector2(-1, -1).normalized;
+        }
+        if (-112.5f < angle && -67.5f >= angle)
+        {
+            axis = Vector2.down;
+        }
+        if (-67.5f < angle && -22.5f >= angle)
+        {
+            axis = new Vector2(1, -1).normalized;
+        }
+    }
+
     private void PlayerMoveMent()
     {
-        // ´ë½¬ Áß ¹æÇâ ÀüÈ¯À» ¸·À½
+        // ëŒ€ì‰¬ ì¤‘ ë°©í–¥ ì „í™˜ì„ ë§‰ìŒ
         if (dashTime < dashDuration)
         {
             dashTime += Time.deltaTime;
@@ -80,17 +142,82 @@ public class PlayerMove : MonoBehaviour
         }
         else
         {
-            // °ø°İ Áß ÀÌµ¿ ºÒ°¡
+            // ê³µê²© ì¤‘ ì´ë™ ë¶ˆê°€
             if (GetComponent<AttackController>().isAttacking)
-                axis = Vector2.zero;
+            {
+                isAttacking = true;
+            }
             else
+            {
                 axis = inputAxis;
+                isAttacking = false;
+            }
             moveSpeed = moveSpeedSet;
             dashCooltimeCheck += Time.deltaTime;
+
+            if(axis.x < 0f)
+            {
+                if (axis.y < 0f)
+                    lookAt = LookAt.SW;
+                else
+                {
+                    if (axis.y > 0f)
+                        lookAt = LookAt.NW;
+                    else
+                    {
+                        if (axis.y == 0f)
+                            lookAt = LookAt.W;
+                    }
+                }
+            }
+            else if(axis.x > 0f)
+            {
+                if (axis.y < 0f)
+                    lookAt = LookAt.SE;
+                else
+                {
+                    if (axis.y > 0f)
+                        lookAt = LookAt.NE;
+                    else
+                    {
+                        if (axis.y == 0f)
+                            lookAt = LookAt.E;
+                    }
+                }
+            }
+            else
+            {
+                if (axis.y > 0f)
+                    lookAt = LookAt.N;
+                else if (axis.y < 0f)
+                    lookAt = LookAt.S;
+            }
+
         }
-            
+
+        // ë°”ë¼ë³´ëŠ” ë°©í–¥ì— ë”°ë¼ Animation Controller ì •ìˆ˜ê°’ ë³€ê²½
+        if (lookAt == LookAt.S)
+            anim.SetInteger("Look", 0);
+        else if (lookAt == LookAt.SE || lookAt == LookAt.SW)
+            anim.SetInteger("Look", 1);
+        else if (lookAt == LookAt.E || lookAt == LookAt.W)
+            anim.SetInteger("Look", 2);
+        else if (lookAt == LookAt.NE || lookAt == LookAt.NW)
+            anim.SetInteger("Look", 3);
+        else if (lookAt == LookAt.N)
+            anim.SetInteger("Look", 4);
+
+        if (lookAt == LookAt.SW || lookAt == LookAt.NW || lookAt == LookAt.W)
+            spriteRenderer.flipX = true;
+        else
+            spriteRenderer.flipX = false;
+
+
+        if (isAttacking)
+            axis = Vector2.zero;
+
         Vector3Int prevCell;
-        int prevZ;    // ÀÌµ¿ Àü FloorZ¸¦ ÀúÀåÇÏ´Â º¯¼ö
+        int prevZ;    // ì´ë™ ì „ FloorZë¥¼ ì €ì¥í•˜ëŠ” ë³€ìˆ˜
 
         int targetZLevel;
 
@@ -182,7 +309,7 @@ public class PlayerMove : MonoBehaviour
                     targetZLevel = stc.GetGroundZLevel(targetPos, prevZ);
                 }
 
-                // °°Àº Z ³ôÀÌ Å¸ÀÏÀÌ ¾Æ´Ñ °æ¿ì ¶³¾îÁü Ã³¸®
+                // ê°™ì€ Z ë†’ì´ íƒ€ì¼ì´ ì•„ë‹Œ ê²½ìš° ë–¨ì–´ì§ ì²˜ë¦¬
                 if (targetZLevel == floorZ)
                 {
                     transform.position = targetPos;
@@ -229,7 +356,13 @@ public class PlayerMove : MonoBehaviour
         {
             yOffset = 0;
         }
-        playerSprite.localPosition = new Vector3(0, yOffset, playerZ);
+
+
+        float correctedZ = playerZ + (spritePivotY-0.18f) / 0.26f;
+
+        // ìŠ¤í”„ë¼ì´íŠ¸ì˜ ë¶€ëª¨(pivot)ì˜ Zê°’ì„ ë°”ê¾¸ê³  ìŠ¤í”„ë¼ì´íŠ¸ëŠ” Yê°’ë§Œ ë³€ê²½
+        playerSprite.parent.localPosition = new Vector3(0, spritePivotY + yOffset, 0);
+        playerSprite.localPosition = new Vector3(0, 0, correctedZ);
         shadowSprite.localPosition = new Vector3(0, 0, floorZ);
         
     }
@@ -237,7 +370,7 @@ public class PlayerMove : MonoBehaviour
     {
         Vector3 pivotPos = new Vector3(shadow.position.x, shadow.position.y, 0);
 
-        // Á¡ÇÁ
+        // ì í”„
         if (isJumping && isGrounded)
         {
             verticalVelocity = jumpForce;
@@ -245,10 +378,10 @@ public class PlayerMove : MonoBehaviour
             isJumping = false;
         }
 
-        // Áß·Â Àû¿ë
+        // ì¤‘ë ¥ ì ìš©
         if (!isGrounded || playerZ > floorZ)
         {
-            moveSpeed = moveSpeedSet * airResi;    // °øÁß¿¡¼­ ¼Óµµ °¨¼Ò
+            moveSpeed = moveSpeedSet * airResi;    // ê³µì¤‘ì—ì„œ ì†ë„ ê°ì†Œ
             verticalVelocity += gravity * Time.deltaTime;
             isGrounded = false;
         }
@@ -261,7 +394,7 @@ public class PlayerMove : MonoBehaviour
         }
         else
         {
-            // unvalid ÀÏ¶§ ¿¹¿ÜÃ³¸®
+            // unvalid ì¼ë•Œ ì˜ˆì™¸ì²˜ë¦¬
             if(playerZ > getZ+2 && isGrounded)
             {
                 if (!isOnValidTile || groundedZ >= getZ+2)
@@ -275,7 +408,7 @@ public class PlayerMove : MonoBehaviour
 
         playerZ += verticalVelocity * Time.deltaTime;
 
-        // ÂøÁö ÇßÀ» ¶§
+        // ì°©ì§€ í–ˆì„ ë•Œ
         if (playerZ <= floorZ)
         {
             if (!isGrounded)
@@ -291,7 +424,7 @@ public class PlayerMove : MonoBehaviour
 
             fixedZ = -1;
             playerZ = floorZ;
-            moveSpeed = moveSpeedSet;   // ÂøÁö ½Ã ¼Óµµ º¹±¸
+            moveSpeed = moveSpeedSet;   // ì°©ì§€ ì‹œ ì†ë„ ë³µêµ¬
             verticalVelocity = 0;
         }
     }
@@ -300,6 +433,18 @@ public class PlayerMove : MonoBehaviour
     {
         return isGrounded;
     }
+
+    public void AddSpeed(float speed)
+    {
+        moveSpeed += speed;
+        moveSpeedSet += speed;
+    }
+    public void ReduceSpeed(float speed)
+    {
+        moveSpeed -= speed;
+        moveSpeedSet -= speed;
+    }
+
 
     private void OnMove(InputValue value)
     {
@@ -312,10 +457,16 @@ public class PlayerMove : MonoBehaviour
             isJumping = true;
     }
 
+    private void OnInteract(InputValue value)
+    {
+        OnPickup?.Invoke();
+    }
+
     private void OnDash(InputValue value)
     {
         if (dashCooltimeCheck >= dashCooltime && !GetComponent<AttackController>().isAttacking)
         {
+            stats.Dash();
             dashCooltimeCheck = 0;
             dashTime = 0;
         }

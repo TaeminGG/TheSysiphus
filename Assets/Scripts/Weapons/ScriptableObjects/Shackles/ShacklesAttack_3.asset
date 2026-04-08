@@ -22,3 +22,6 @@ MonoBehaviour:
   knockbackForce: 1
   zUpperRange: 2
   zLowerRange: 0
+  visual: {fileID: 2574547470419931623, guid: 310e8010f4b42c54bb96718e0c6a937d, type: 3}
+  flipX: 0
+  flipY: 0

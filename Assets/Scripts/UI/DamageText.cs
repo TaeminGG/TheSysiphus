@@ -33,10 +33,10 @@ public class DamageText : MonoBehaviour
             timer += Time.deltaTime;
             float t = timer / duration;
 
-            // À§·Î ¿Ã¶ó°¡°Ô
+            // ìœ„ë¡œ ì˜¬ë¼ê°€ê²Œ
             transform.position = startPos + Vector3.up * speed * t;
 
-            // Á¡Á¡ Åõ¸íÇÏ°Ô
+            // ì ì  íˆ¬ëª…í•˜ê²Œ
             text.color = new Color(startColor.r, startColor.g, startColor.b, 1f - t);
             yield return null;
         }
