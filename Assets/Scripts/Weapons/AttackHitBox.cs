@@ -7,6 +7,7 @@ using UnityEngine.UIElements;
 public class AttackHitBox : MonoBehaviour
 {
     public LayerMask hitLayer;
+    [SerializeField] private HitSparkController hitSparkController;
     private AttackData currentData;
     private Collider2D col;
     private List<Collider2D> hitTargets = new List<Collider2D>();
@@ -161,6 +162,8 @@ public class AttackHitBox : MonoBehaviour
                         Vector2 knockback = (other.transform.position - transform.position).normalized
                                             * currentData.knockbackForce;
                         target.TakeDamage(finalDamage, knockback);
+                        PlayHitSpark(other, knockback);
+                        PlayHitCameraFeedback();
                     }
                 }
             }
@@ -187,6 +190,8 @@ public class AttackHitBox : MonoBehaviour
                         Vector2 knockback = (other.transform.position - transform.position).normalized
                                             * currentData.knockbackForce;
                         target.TakeDamage(finalDamage, knockback);
+                        PlayHitSpark(other, knockback);
+                        PlayHitCameraFeedback();
                     }
                 }
             }
@@ -211,6 +216,43 @@ public class AttackHitBox : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void PlayHitCameraFeedback()
+    {
+        if (currentData == null || currentData.onHitCameraPreset == null)
+        {
+            return;
+        }
+
+        CameraFeedbackService.Instance?.Play(currentData.onHitCameraPreset);
+    }
+
+    private void PlayHitSpark(Collider2D other, Vector2 knockback)
+    {
+        if (currentData == null || currentData.onHitSparkPrefab == null)
+        {
+            return;
+        }
+
+        if (hitSparkController == null)
+        {
+            hitSparkController = FindFirstObjectByType<HitSparkController>();
+        }
+
+        if (hitSparkController == null)
+        {
+            return;
+        }
+
+        HitSparkSettings settings = currentData.onHitSparkSettings;
+
+        if (settings.direction.sqrMagnitude <= 0.001f)
+        {
+            settings.direction = knockback.normalized;
+        }
+
+        hitSparkController.Play(currentData.onHitSparkPrefab, other.bounds.center, settings);
     }
 
 
