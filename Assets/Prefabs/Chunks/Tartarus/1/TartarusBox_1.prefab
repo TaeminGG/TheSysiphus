@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 962242558811302373}
   - component: {fileID: 4180273827225572839}
   m_Layer: 0
-  m_Name: TanatosBox
+  m_Name: TartarusBox_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
