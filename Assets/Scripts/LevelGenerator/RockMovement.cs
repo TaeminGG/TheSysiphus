@@ -4,8 +4,6 @@ public class RockMovement : MonoBehaviour
 {
     public float moveSpeed = 1.0f;
     public LayerMask hitLayer;  // 플레이어 레이어만 탐색
-
-    private bool isHit = false;
     
     void Start()
     {
@@ -30,6 +28,5 @@ public class RockMovement : MonoBehaviour
         if (((1 << other.gameObject.layer) & hitLayer) == 0) return;
 
         other.gameObject.GetComponent<PlayerStats>().HitByRock();
-        isHit = true;
     }
 }
