@@ -18,8 +18,6 @@ public class AttackController : MonoBehaviour
     public Animator anim;
     private PlayerMove playerMove;
 
-    private bool isAnimPlayed = false;
-
     private void Awake()
     {
         playerMove = GetComponent<PlayerMove>();

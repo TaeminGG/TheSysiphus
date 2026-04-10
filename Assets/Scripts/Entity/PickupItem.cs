@@ -13,6 +13,8 @@ public class PickupItem : MonoBehaviour
     public PassiveItem item;
     public ActiveItem activeItem;
 
+    public int floorZ = 0;
+
     private PlayerMove playerMove;
     private bool isPickedUp = false;
 
@@ -32,13 +34,14 @@ public class PickupItem : MonoBehaviour
             itemName.text = activeItem.itemName;
             itemDescription.text = activeItem.description;
         }
-            canvas.enabled = false;
+        canvas.enabled = false;
         playerMove = GameObject.Find("Player").GetComponent<PlayerMove>();
     }
 
     private void Pickup()
     {
         if (isPickedUp) return;
+        if (!IsPlayerOnSameFloor()) return;
         isPickedUp = true;
 
         playerMove.GetComponent<PassiveItemList>().AddItem(item);
@@ -50,6 +53,7 @@ public class PickupItem : MonoBehaviour
     {
 
         if (isPickedUp) return;
+        if (!IsPlayerOnSameFloor()) return;
         isPickedUp = true;
 
         playerMove.GetComponent<ActiveInventory>().AddItem(activeItem);
@@ -60,6 +64,10 @@ public class PickupItem : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (((1 << other.gameObject.layer) & hitLayer) == 0) return;
+        if (!other.TryGetComponent<PlayerMove>(out var enteringPlayer)) return;
+
+        playerMove = enteringPlayer;
+        if (!IsPlayerOnSameFloor()) return;
 
         canvas.enabled = true;
 
@@ -88,6 +96,19 @@ public class PickupItem : MonoBehaviour
         {
             PlayerMove.OnPickup -= ActivePickup;
         }
+    }
+
+    public void SetZ(int z)
+    {
+        floorZ = z;
+        Vector3 pos = transform.position;
+        pos.z = z;
+        transform.position = pos;
+    }
+
+    private bool IsPlayerOnSameFloor()
+    {
+        return playerMove != null && playerMove.floorZ == floorZ;
     }
 
 

@@ -22,6 +22,17 @@ MonoBehaviour:
   knockbackForce: 1
   zUpperRange: 0
   zLowerRange: 0
+  onHitCameraPreset: {fileID: 11400000, guid: a599b1d9deba72143b98a62ccacb250f, type: 2}
+  onHitSparkPrefab: {fileID: 926944835836502072, guid: 7b04a79274bd66b43a07d24ba12fbdee, type: 3}
+  onHitSparkSettings:
+    count: 8
+    color: {r: 1, g: 0.9, b: 0.3, a: 1}
+    speedMin: 1
+    speedMax: 2
+    gravity: 0.6
+    spreadAngle: 30
+    lifetime: 0.2
+    direction: {x: 0, y: 0}
   visual: {fileID: 2574547470419931623, guid: d885a0f5b68c5464982082be13f5af12, type: 3}
   flipX: 0
   flipY: 1

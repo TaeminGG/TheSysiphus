@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8913355371346929235}
   - component: {fileID: 4006955710395824188}
   m_Layer: 0
-  m_Name: TanatosTile
+  m_Name: TartarusTile_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

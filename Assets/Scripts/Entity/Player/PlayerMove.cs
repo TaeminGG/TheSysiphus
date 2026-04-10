@@ -216,6 +216,10 @@ public class PlayerMove : MonoBehaviour
         if (isAttacking)
             axis = Vector2.zero;
 
+        float currentMoveSpeed = moveSpeed;
+        if (!isGrounded || playerZ > floorZ)
+            currentMoveSpeed *= airResi;
+
         Vector3Int prevCell;
         int prevZ;    // 이동 전 FloorZ를 저장하는 변수
 
@@ -223,15 +227,15 @@ public class PlayerMove : MonoBehaviour
 
         if(inputAxis.magnitude > 0.1f)
         {
-            Vector3 targetPos = shadow.transform.position + axis * moveSpeed * Time.deltaTime;
+            Vector3 targetPos = shadow.transform.position + axis * currentMoveSpeed * Time.deltaTime;
             targetZLevel = 0;
 
             prevCell = stc.GetGridPosition(shadow.transform.position);
             prevZ = floorZ;
 
-            if (!stc.GetTileValid(axis, moveSpeed * Time.deltaTime))
+            if (!stc.GetTileValid(axis, currentMoveSpeed * Time.deltaTime))
             {
-                targetZLevel = stc.GetTileZLevelAnother(axis, moveSpeed * Time.deltaTime);
+                targetZLevel = stc.GetTileZLevelAnother(axis, currentMoveSpeed * Time.deltaTime);
 
                 if (targetZLevel < 0)
                     targetZLevel = 0;
@@ -381,7 +385,6 @@ public class PlayerMove : MonoBehaviour
         // 중력 적용
         if (!isGrounded || playerZ > floorZ)
         {
-            moveSpeed = moveSpeedSet * airResi;    // 공중에서 속도 감소
             verticalVelocity += gravity * Time.deltaTime;
             isGrounded = false;
         }
