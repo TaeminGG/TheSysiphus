@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CameraChase : MonoBehaviour
 {
@@ -17,6 +18,13 @@ public class CameraChase : MonoBehaviour
     [SerializeField] private Transform followTarget;
     [SerializeField] private string fallbackTargetName = "PlayerSprite";
 
+    [Header("Mouse Look Offset")]
+    [SerializeField] private bool useMouseLookOffset = true;
+    [SerializeField] private float maxMouseLookDistance = 1.5f;
+    [SerializeField, Range(0f, 0.95f)] private float mouseLookDeadZone = 0.15f;
+    [SerializeField] private float mouseLookSmoothSpeed = 8f;
+    [SerializeField] private AnimationCurve mouseLookCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
     [Header("Zoom")]
     [SerializeField] private Camera targetCamera;
     [SerializeField] private float defaultZoom = 5f;
@@ -28,6 +36,7 @@ public class CameraChase : MonoBehaviour
     private Coroutine shakeRoutine;
     private Coroutine zoomRoutine;
     private Vector3 shakeOffset = Vector3.zero;
+    private Vector3 mouseLookOffset = Vector3.zero;
     private float targetZoom;
 
     private void Awake()
@@ -69,6 +78,7 @@ public class CameraChase : MonoBehaviour
         Vector3 desiredPosition = followTarget.position;
         desiredPosition.z = 0f;
         desiredPosition += cameraDepth;
+        desiredPosition += UpdateMouseLookOffset();
         desiredPosition += shakeOffset;
 
         if (useBounds)
@@ -146,6 +156,33 @@ public class CameraChase : MonoBehaviour
         {
             followTarget = targetObject.transform;
         }
+    }
+
+    private Vector3 UpdateMouseLookOffset()
+    {
+        if (!useMouseLookOffset || Mouse.current == null || Screen.width <= 0 || Screen.height <= 0)
+        {
+            mouseLookOffset = Vector3.Lerp(mouseLookOffset, Vector3.zero, Time.deltaTime * mouseLookSmoothSpeed);
+            return mouseLookOffset;
+        }
+
+        Vector2 mousePosition = Mouse.current.position.ReadValue();
+        Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+        Vector2 screenHalfSize = screenCenter;
+
+        Vector2 normalizedFromCenter = new Vector2(
+            (mousePosition.x - screenCenter.x) / screenHalfSize.x,
+            (mousePosition.y - screenCenter.y) / screenHalfSize.y);
+
+        float rawDistance = Mathf.Clamp01(normalizedFromCenter.magnitude);
+        float intensity = Mathf.InverseLerp(mouseLookDeadZone, 1f, rawDistance);
+        intensity = mouseLookCurve != null ? mouseLookCurve.Evaluate(intensity) : intensity;
+
+        Vector2 direction = rawDistance > 0.001f ? normalizedFromCenter.normalized : Vector2.zero;
+        Vector3 targetOffset = new Vector3(direction.x, direction.y, 0f) * maxMouseLookDistance * intensity;
+
+        mouseLookOffset = Vector3.Lerp(mouseLookOffset, targetOffset, Time.deltaTime * mouseLookSmoothSpeed);
+        return mouseLookOffset;
     }
 
     private IEnumerator ShakeRoutine(float duration, float magnitude, float frequency, AnimationCurve curve)
