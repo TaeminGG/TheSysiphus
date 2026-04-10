@@ -184,8 +184,14 @@ public class ChunkLoader : MonoBehaviour
         if (spawnedObject.TryGetComponent(out BreakableProbs breakableProbs))
             breakableProbs.floorZ = floorZ;
 
+        if (spawnedObject.TryGetComponent(out PickupChest pickupChest))
+            pickupChest.SetZ(floorZ);
+
         if (spawnedObject.TryGetComponent(out DroppedItem droppedItem))
             droppedItem.SetZ(floorZ);
+
+        if (spawnedObject.TryGetComponent(out PickupItem pickupItem))
+            pickupItem.SetZ(floorZ);
     }
 
     private void GridUpdate()

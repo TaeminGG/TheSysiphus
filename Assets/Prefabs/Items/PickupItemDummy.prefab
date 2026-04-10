@@ -468,7 +468,7 @@ GameObject:
   - component: {fileID: 2014214187594728054}
   - component: {fileID: 3515841182814381495}
   m_Layer: 11
-  m_Name: ActivePickupItem
+  m_Name: PickupItemDummy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -605,7 +605,8 @@ MonoBehaviour:
   itemName: {fileID: 1080195949853339568}
   itemDescription: {fileID: 8214594980116093219}
   item: {fileID: 0}
-  activeItem: {fileID: 11400000, guid: db27c7aaca375db4080cbe80b3f2e9f8, type: 2}
+  activeItem: {fileID: 0}
+  floorZ: 0
   isPassive: 0
 --- !u!1 &5546880327620640345
 GameObject:
