@@ -68100,9 +68100,9 @@ MonoBehaviour:
   floorZ: 0
   groundedZ: 0
   spritePivotY: 0.38
-  dashForce: 12
+  dashForce: 8
   dashDuration: 0.1
-  dashCooltime: 2
+  dashCooltime: 1.8
   shadow: {fileID: 7060957797898269417}
   shadowSprite: {fileID: 676653981}
   playerSprite: {fileID: 1414741589}
