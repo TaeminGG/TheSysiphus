@@ -17,6 +17,7 @@ public class PickupItem : MonoBehaviour
 
     private PlayerMove playerMove;
     private bool isPickedUp = false;
+    private bool isInteractable = false;
 
     public bool isPassive = true;               // 패시브 아이템인지 액티브 아이템인지
 
@@ -36,6 +37,11 @@ public class PickupItem : MonoBehaviour
         }
         canvas.enabled = false;
         playerMove = GameObject.Find("Player").GetComponent<PlayerMove>();
+    }
+
+    private void OnDisable()
+    {
+        UnregisterPickup();
     }
 
     private void Pickup()
@@ -66,36 +72,26 @@ public class PickupItem : MonoBehaviour
         if (((1 << other.gameObject.layer) & hitLayer) == 0) return;
         if (!other.TryGetComponent<PlayerMove>(out var enteringPlayer)) return;
 
-        playerMove = enteringPlayer;
-        if (!IsPlayerOnSameFloor()) return;
+        RefreshInteractionState(enteringPlayer);
+    }
 
-        canvas.enabled = true;
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        if (((1 << other.gameObject.layer) & hitLayer) == 0) return;
+        if (!other.TryGetComponent<PlayerMove>(out var stayingPlayer)) return;
 
-        if (isPassive)
-        {
-            PlayerMove.OnPickup -= Pickup;
-            PlayerMove.OnPickup += Pickup;
-        }
-        else
-        {
-            PlayerMove.OnPickup -= ActivePickup;
-            PlayerMove.OnPickup += ActivePickup;
-        }
+        RefreshInteractionState(stayingPlayer);
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
         if (((1 << other.gameObject.layer) & hitLayer) == 0) return;
+        if (!other.TryGetComponent<PlayerMove>(out var exitingPlayer)) return;
+        if (playerMove != null && playerMove != exitingPlayer) return;
 
         canvas.enabled = false;
-        if (isPassive)
-        {
-            PlayerMove.OnPickup -= Pickup;
-        }
-        else
-        {
-            PlayerMove.OnPickup -= ActivePickup;
-        }
+        isInteractable = false;
+        UnregisterPickup();
     }
 
     public void SetZ(int z)
@@ -109,6 +105,49 @@ public class PickupItem : MonoBehaviour
     private bool IsPlayerOnSameFloor()
     {
         return playerMove != null && playerMove.floorZ == floorZ;
+    }
+
+    private void RefreshInteractionState(PlayerMove targetPlayer)
+    {
+        playerMove = targetPlayer;
+
+        bool canInteract = IsPlayerOnSameFloor();
+        if (isInteractable == canInteract)
+        {
+            if (canInteract)
+                RegisterPickup();
+            return;
+        }
+
+        isInteractable = canInteract;
+        canvas.enabled = canInteract;
+
+        if (canInteract)
+        {
+            RegisterPickup();
+            return;
+        }
+
+        UnregisterPickup();
+    }
+
+    private void RegisterPickup()
+    {
+        if (isPassive)
+        {
+            PlayerMove.OnPickup -= Pickup;
+            PlayerMove.OnPickup += Pickup;
+            return;
+        }
+
+        PlayerMove.OnPickup -= ActivePickup;
+        PlayerMove.OnPickup += ActivePickup;
+    }
+
+    private void UnregisterPickup()
+    {
+        PlayerMove.OnPickup -= Pickup;
+        PlayerMove.OnPickup -= ActivePickup;
     }
 
 
