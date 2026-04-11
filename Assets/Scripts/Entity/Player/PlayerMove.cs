@@ -83,6 +83,8 @@ public class PlayerMove : MonoBehaviour
         moveSpeedSet = moveSpeed;
 
         floorZ = 0;
+        dashTime = dashDuration;
+        dashCooltimeCheck = dashCooltime;
     }
 
     private void FixedUpdate()
@@ -134,10 +136,10 @@ public class PlayerMove : MonoBehaviour
     private void PlayerMoveMent()
     {
         // 대쉬 중 방향 전환을 막음
-        if (dashTime < dashDuration)
+        bool isDashing = dashTime < dashDuration;
+        if (isDashing)
         {
             dashTime += Time.deltaTime;
-            moveSpeed += dashForce;
             dashCooltimeCheck += Time.deltaTime;
         }
         else
@@ -216,8 +218,11 @@ public class PlayerMove : MonoBehaviour
         if (isAttacking)
             axis = Vector2.zero;
 
-        float currentMoveSpeed = moveSpeed;
-        if (!isGrounded || playerZ > floorZ)
+        float currentMoveSpeed = moveSpeedSet;
+        if (isDashing)
+            currentMoveSpeed += dashForce;
+
+        if (!isDashing && (!isGrounded || playerZ > floorZ))
             currentMoveSpeed *= airResi;
 
         Vector3Int prevCell;
