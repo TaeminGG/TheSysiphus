@@ -19,6 +19,20 @@ MonoBehaviour:
   hitboxOffset: {x: 0, y: 0.5}
   attackDuration: 0.5
   comboInputWindow: 0
-  knockbackForce: 0
+  knockbackForce: 1
   zUpperRange: 0
   zLowerRange: 0
+  onHitCameraPreset: {fileID: 0}
+  onHitSparkPrefab: {fileID: 0}
+  onHitSparkSettings:
+    count: 0
+    color: {r: 0, g: 0, b: 0, a: 0}
+    speedMin: 0
+    speedMax: 0
+    gravity: 0
+    spreadAngle: 0
+    lifetime: 0
+    direction: {x: 0, y: 0}
+  visual: {fileID: 0}
+  flipX: 0
+  flipY: 0

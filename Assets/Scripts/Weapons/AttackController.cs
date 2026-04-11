@@ -17,10 +17,14 @@ public class AttackController : MonoBehaviour
     public AttackHitBox hitbox;
     public Animator anim;
     private PlayerMove playerMove;
+    private PlayerCrowdControl crowdControl;
 
     private void Awake()
     {
         playerMove = GetComponent<PlayerMove>();
+        crowdControl = GetComponent<PlayerCrowdControl>();
+        if (crowdControl == null)
+            crowdControl = gameObject.AddComponent<PlayerCrowdControl>();
     }
 
     private void Start()
@@ -31,6 +35,15 @@ public class AttackController : MonoBehaviour
     private void Update()
     {
         attackSpeed = GetComponent<PlayerStats>().attackSpeed;
+        if (crowdControl != null && !crowdControl.CanAttack)
+        {
+            if (isAttacking)
+            {
+                anim.SetTrigger("AttackEnded");
+                ResetCombo();
+            }
+            return;
+        }
         HandleTimer();
     }
 
@@ -137,6 +150,9 @@ public class AttackController : MonoBehaviour
 
     void OnAttack(InputValue value)
     {
+        if (crowdControl != null && !crowdControl.CanAttack)
+            return;
+
         if(GetComponent<PlayerMove>().IsPlayerOnGround())
             OnAttackInput();
     }
