@@ -1,9 +1,4 @@
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
-using UnityEngine.Rendering;
-using UnityEngine.UI;
-using UnityEngine.U2D;
-using System.Collections;
 
 public class SpecterMovement : MonoBehaviour, IEnemyMovement
 {
@@ -12,29 +7,26 @@ public class SpecterMovement : MonoBehaviour, IEnemyMovement
 
     public int FloorZ => floorZ;
 
-    public bool isDetected = false;    // 플레이어 포착 여부
+    public bool isDetected = false;
 
     private Vector3 targetPos;
 
     public Transform sprite;
     private FloatingEnemy floatingEnemy;
-    private EnemyStats stat;
+    private EnemyCrowdControl crowdControl;
     private SpecterAttack attack;
     private Transform player;
     private Grid grid;
     private Animator anim;
 
-    private bool isArrive = true;      // 넉백 위치에 도착했는 지 여부
-    private float knockbackDistance = 0;    // 기존 위치와 넉백 위치 사이 거리
-    private Vector3 knockback = Vector3.zero;
-    private Vector3 prevPos = Vector3.zero;
+    private bool isArrive = true;
 
-    [HideInInspector]
-    public bool isStuned = false;
     void Awake()
     {
         floatingEnemy = GetComponent<FloatingEnemy>();
-        stat = GetComponent<EnemyStats>();
+        crowdControl = GetComponent<EnemyCrowdControl>();
+        if (crowdControl == null)
+            crowdControl = gameObject.AddComponent<EnemyCrowdControl>();
         attack = GetComponent<SpecterAttack>();
         anim = sprite.GetComponent<Animator>();
     }
@@ -60,7 +52,6 @@ public class SpecterMovement : MonoBehaviour, IEnemyMovement
     {
         if (targetPos.x < transform.position.x)
         {
-            // 넉백, 공격 중에는 flip실행 X
             if (isArrive && !attack.isAttacking)
                 sprite.GetComponent<SpriteRenderer>().flipX = true;
         }
@@ -75,76 +66,70 @@ public class SpecterMovement : MonoBehaviour, IEnemyMovement
     {
         PlayerMove playerMove = player.GetComponent<PlayerMove>();
 
-        // 플레이어 포착 시 이동
-        if (!isDetected || isStuned)
+        if (crowdControl != null && crowdControl.IsKnockbackActive)
+        {
+            HandleKnockback();
+            return;
+        }
+
+        if (!isDetected || (crowdControl != null && !crowdControl.CanMove))
         {
             targetPos = transform.position;
             return;
         }
 
-        // 넉백 상태 확인
-        if (stat.isKnockback)
+        float currentMoveSpeed = moveSpeed;
+        if (crowdControl != null)
+            currentMoveSpeed *= crowdControl.MoveSpeedMultiplier;
+
+        if (isArrive && !attack.isAttacking)
         {
-            isArrive = false;
-            stat.isKnockback = false;
-            knockback = stat.knockbackVector;
-            prevPos = transform.position;
-            knockbackDistance = Vector3.Distance(prevPos, prevPos + knockback);
-        }
-        else
-        {
-            if (isArrive && !attack.isAttacking)
+            if (Vector3.Distance(transform.position, targetPos) > 0.05f)
             {
-                // 목표 지점까지 이동
-                if (Vector3.Distance(transform.position, targetPos) > 0.05f)
-                {
-                    transform.position = Vector3.MoveTowards(
-                        transform.position,
-                        targetPos,
-                        moveSpeed * Time.deltaTime
-                    );
-                    return;
-                }
-
-                targetPos = transform.position + (playerMove.transform.position - transform.position).normalized;
+                transform.position = Vector3.MoveTowards(
+                    transform.position,
+                    targetPos,
+                    currentMoveSpeed * Time.deltaTime
+                );
+                return;
             }
-        }
 
-        // 넉백 처리
-        if (!isArrive)
-        {
-            targetPos = transform.position + (knockback.normalized * 10f * stat.knockBackResist * Time.deltaTime);
-
-            transform.position = targetPos;
-            if (Vector3.Distance(prevPos, transform.position) >= knockbackDistance)
-            {
-                isArrive = true;
-            }
+            targetPos = transform.position + (playerMove.transform.position - transform.position).normalized;
         }
     }
 
-    public void CrowdControl(IEnemyMovement.CC cc, float t)
+    public void ApplyCrowdControl(EnemyCrowdControlRequest request)
     {
-        if (cc == IEnemyMovement.CC.Slow)
-        {
+        if (crowdControl == null)
+            crowdControl = GetComponent<EnemyCrowdControl>();
 
-        }
-        if (cc == IEnemyMovement.CC.Stun)
-        {
-            isStuned = true;
-            StartCoroutine(Stun(t));
-        }
+        if (crowdControl == null)
+            crowdControl = gameObject.AddComponent<EnemyCrowdControl>();
+
+        crowdControl.ApplyEffect(request);
     }
-
-    private IEnumerator Stun(float dur)
-    {
-        yield return new WaitForSeconds(dur);
-        isStuned = false;
-    }
-
 
     public void SetPlayerDetected(bool val)
     {
         isDetected = val;
+    }
+
+    private void HandleKnockback()
+    {
+        isArrive = false;
+
+        Vector3 previousPosition = transform.position;
+        Vector3 knockbackStep = (Vector3)(crowdControl.GetKnockbackDirection() * crowdControl.GetKnockbackMoveSpeed() * Time.deltaTime);
+        transform.position += knockbackStep;
+        crowdControl.ConsumeKnockbackDistance(Vector2.Distance(
+            new Vector2(previousPosition.x, previousPosition.y),
+            new Vector2(transform.position.x, transform.position.y))
+        );
+
+        if (!crowdControl.IsKnockbackActive)
+        {
+            isArrive = true;
+            targetPos = transform.position;
+        }
     }
 }

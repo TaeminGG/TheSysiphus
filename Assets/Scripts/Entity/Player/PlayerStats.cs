@@ -174,6 +174,10 @@ public class PlayerStats : MonoBehaviour, IDamageable
     {
         return potionCount;
     }
+    public int GetMaxPotionCount()
+    {
+        return maxPotion;
+    }
     public void ChargePotion(int amount)
     {
         if (potionCount + amount >= maxPotion)
