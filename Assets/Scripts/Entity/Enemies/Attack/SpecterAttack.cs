@@ -4,34 +4,42 @@ public class SpecterAttack : MonoBehaviour, IEnemyAttack
 {
     private Animator anim;
     private SpecterMovement movement;
+    private EnemyCrowdControl crowdControl;
     private PlayerMove playerMove;
 
     private float floorZ = 0;
 
     public float range = 1.0f;
 
-    public float readyTime = 0.5f;          // 공격 준비 시간
-    private float damage = 5.0f;            // 공격 데미지
-    private float duration = 0.5f;          // 히트박스 지속시간
-    public float coolTime = 1.5f;           // 탐지 후(공격 준비 시작 후) 다음 공격까지 대기시간.
+    public float readyTime = 0.5f;
+    private float damage = 5.0f;
+    private float duration = 0.5f;
+    public float coolTime = 1.5f;
     private float timer = 0f;
 
     public bool isAttacking = false;
     private bool isAttacked = false;
 
-    public GameObject projectile;           // 발사체 gameobject
+    public GameObject projectile;
     private AttackHitBox hitBox;
-    public AttackData attackData;           // 발사체 data
+    public AttackData attackData;
 
     void Start()
     {
         movement = GetComponent<SpecterMovement>();
+        crowdControl = GetComponent<EnemyCrowdControl>();
         playerMove = GameObject.Find("Player").GetComponent<PlayerMove>();
         floorZ = movement.floorZ;
     }
 
     void Update()
     {
+        if (crowdControl != null && !crowdControl.CanAttack)
+        {
+            ResetAttackState();
+            return;
+        }
+
         if (CanAttack && !isAttacking)
             isAttacking = true;
 
@@ -47,9 +55,7 @@ public class SpecterAttack : MonoBehaviour, IEnemyAttack
 
             if (timer >= coolTime)
             {
-                timer = 0;
-                isAttacking = false;
-                isAttacked = false;
+                ResetAttackState();
             }
         }
     }
@@ -71,8 +77,7 @@ public class SpecterAttack : MonoBehaviour, IEnemyAttack
 
     private bool AttackRange()
     {
-        // 스턴 상태면 공격 불가
-        if (movement.isStuned)
+        if (crowdControl != null && !crowdControl.CanAttack)
             return false;
 
         if (!isAttacking)
@@ -86,5 +91,12 @@ public class SpecterAttack : MonoBehaviour, IEnemyAttack
         }
 
         return false;
+    }
+
+    private void ResetAttackState()
+    {
+        timer = 0f;
+        isAttacking = false;
+        isAttacked = false;
     }
 }

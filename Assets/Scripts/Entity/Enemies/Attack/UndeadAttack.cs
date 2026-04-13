@@ -4,16 +4,17 @@ public class UndeadAttack : MonoBehaviour, IEnemyAttack
 {
     private Animator anim;
     private UndeadMovement movement;
+    private EnemyCrowdControl crowdControl;
     private PlayerMove playerMove;
 
-    private float floorZ=0;
+    private float floorZ = 0;
 
     public float range = 1.0f;
 
-    public float readyTime = 0.5f;          // 공격 준비 시간
-    private float damage = 5.0f;            // 공격 데미지
-    private float duration = 0.5f;          // 히트박스 지속시간
-    public float coolTime = 1.5f;           // 탐지 후(공격 준비 시작 후) 다음 공격까지 대기시간.
+    public float readyTime = 0.5f;
+    private float damage = 5.0f;
+    private float duration = 0.5f;
+    public float coolTime = 1.5f;
     private float timer = 0f;
 
     public bool isAttacking = false;
@@ -25,12 +26,19 @@ public class UndeadAttack : MonoBehaviour, IEnemyAttack
     void Start()
     {
         movement = GetComponent<UndeadMovement>();
+        crowdControl = GetComponent<EnemyCrowdControl>();
         playerMove = GameObject.Find("Player").GetComponent<PlayerMove>();
         floorZ = movement.floorZ;
     }
 
     void Update()
     {
+        if (crowdControl != null && !crowdControl.CanAttack)
+        {
+            ResetAttackState();
+            return;
+        }
+
         if (CanAttack && !isAttacking)
             isAttacking = true;
 
@@ -44,11 +52,9 @@ public class UndeadAttack : MonoBehaviour, IEnemyAttack
                 Attack();
             }
 
-            if(timer >= coolTime)
+            if (timer >= coolTime)
             {
-                timer = 0;
-                isAttacking=false;
-                isAttacked=false;
+                ResetAttackState();
             }
         }
     }
@@ -69,21 +75,26 @@ public class UndeadAttack : MonoBehaviour, IEnemyAttack
 
     private bool AttackRange()
     {
-        // Stun 상태면 공격 불가
-        if (movement.isStuned)
+        if (crowdControl != null && !crowdControl.CanAttack)
             return false;
 
-        // 플레이어와 같은 Z값 + 범위에 들어오면 공격
         if (playerMove.floorZ == floorZ && !isAttacking)
         {
             float diff = Vector2.Distance(playerMove.transform.position, transform.position);
 
-            if(diff <= range)
+            if (diff <= range)
             {
                 return true;
             }
         }
 
         return false;
+    }
+
+    private void ResetAttackState()
+    {
+        timer = 0f;
+        isAttacking = false;
+        isAttacked = false;
     }
 }

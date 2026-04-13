@@ -38,11 +38,15 @@ public class PlayerStats : MonoBehaviour, IDamageable
     public Transform damagePos;             // 피격 시 데미지가 표시될 위치
 
     public GameObject healEffect;
+    private PlayerCrowdControl crowdControl;
 
     private void Start()
     {
         currentHp = maxHp;
         healTimer = healCooltime;
+        crowdControl = GetComponent<PlayerCrowdControl>();
+        if (crowdControl == null)
+            crowdControl = gameObject.AddComponent<PlayerCrowdControl>();
 
         OnDamaged += ShowDamage;
         OnHealEvent += ShowHealEffect;
@@ -65,6 +69,8 @@ public class PlayerStats : MonoBehaviour, IDamageable
         invTimer = invDuration;         // 피격 무적 시작
         currentHp = Mathf.Max(0, currentHp - damage);
         OnDamaged?.Invoke(damage);
+        if (crowdControl != null)
+            crowdControl.ApplyKnockback(knockback);
 
         if (IsDead)
             OnDeath?.Invoke();
@@ -168,6 +174,10 @@ public class PlayerStats : MonoBehaviour, IDamageable
     {
         return potionCount;
     }
+    public int GetMaxPotionCount()
+    {
+        return maxPotion;
+    }
     public void ChargePotion(int amount)
     {
         if (potionCount + amount >= maxPotion)
@@ -179,6 +189,32 @@ public class PlayerStats : MonoBehaviour, IDamageable
     public void Dash()
     {
         OnDash?.Invoke();
+    }
+
+    public void ApplyCrowdControl(PlayerCrowdControlRequest request)
+    {
+        if (crowdControl == null)
+            crowdControl = GetComponent<PlayerCrowdControl>();
+
+        if (crowdControl == null)
+            crowdControl = gameObject.AddComponent<PlayerCrowdControl>();
+
+        crowdControl.ApplyEffect(request);
+    }
+
+    public void ApplyStun(float duration)
+    {
+        ApplyCrowdControl(PlayerCrowdControlRequest.CreateStun(duration));
+    }
+
+    public void ApplySlow(float duration, float moveSpeedMultiplier)
+    {
+        ApplyCrowdControl(PlayerCrowdControlRequest.CreateSlow(duration, moveSpeedMultiplier));
+    }
+
+    public void ApplyKnockback(Vector2 knockback)
+    {
+        ApplyCrowdControl(PlayerCrowdControlRequest.CreateKnockback(knockback));
     }
 
     public void Buff(int idx, float amount, float duration)
@@ -199,6 +235,8 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
     private void OnHeal(InputValue value)
     {
+        if (crowdControl != null && !crowdControl.CanHeal)
+            return;
         // 체력이 최대면 예외처리
         if (currentHp >= maxHp)
             return;

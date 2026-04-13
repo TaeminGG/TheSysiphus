@@ -16,10 +16,13 @@ public class ActiveInventory : MonoBehaviour
     public bool isChanged = false;
 
     public GameObject dropItem;
+    private PlayerCrowdControl crowdControl;
 
-    private void Start()
+    private void Awake()
     {
-
+        crowdControl = GetComponent<PlayerCrowdControl>();
+        if (crowdControl == null)
+            crowdControl = gameObject.AddComponent<PlayerCrowdControl>();
     }
 
     private void Update()
@@ -58,6 +61,9 @@ public class ActiveInventory : MonoBehaviour
 
     public void UseCurrentItem()
     {
+        if (crowdControl != null && !crowdControl.CanUseItems)
+            return;
+
         if (!isUsed && items.Count > 0)
         {
             isUsed = true;

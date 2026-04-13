@@ -1,5 +1,4 @@
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class EnemyStats : MonoBehaviour, IDamageable
@@ -11,12 +10,9 @@ public class EnemyStats : MonoBehaviour, IDamageable
     public event Action<float> OnDamaged;
     public event Action OnDeath;
 
-    [HideInInspector]
-    public bool isKnockback = false;
-    public Vector2 knockbackVector = Vector2.zero;
-
     private IEnemyAttack attack;
     private IEnemyMovement movement;
+    private EnemyCrowdControl crowdControl;
 
     public Canvas canvas;
     public EnemyHpBar hpbar;
@@ -30,6 +26,9 @@ public class EnemyStats : MonoBehaviour, IDamageable
 
         movement = GetComponent<IEnemyMovement>();
         attack = GetComponent<IEnemyAttack>();
+        crowdControl = GetComponent<EnemyCrowdControl>();
+        if (crowdControl == null)
+            crowdControl = gameObject.AddComponent<EnemyCrowdControl>();
     }
 
     void Start()
@@ -54,15 +53,41 @@ public class EnemyStats : MonoBehaviour, IDamageable
         // 체력 감소 및 피격 이벤트 실행
         currentHp -= damage;
         OnDamaged?.Invoke(damage);
+        if (crowdControl != null)
+            crowdControl.ApplyKnockback(knockback * knockBackResist);
 
         // 넉백 처리
-        isKnockback = true;
 
         // 넉백 저항에 따라 넉백 Vector 조절
-        knockbackVector = knockback * knockBackResist;
 
         if (IsDead)
             OnDeath?.Invoke();
+    }
+
+    public void ApplyCrowdControl(EnemyCrowdControlRequest request)
+    {
+        if (crowdControl == null)
+            crowdControl = GetComponent<EnemyCrowdControl>();
+
+        if (crowdControl == null)
+            crowdControl = gameObject.AddComponent<EnemyCrowdControl>();
+
+        crowdControl.ApplyEffect(request);
+    }
+
+    public void ApplyStun(float duration)
+    {
+        ApplyCrowdControl(EnemyCrowdControlRequest.CreateStun(duration));
+    }
+
+    public void ApplySlow(float duration, float moveSpeedMultiplier)
+    {
+        ApplyCrowdControl(EnemyCrowdControlRequest.CreateSlow(duration, moveSpeedMultiplier));
+    }
+
+    public void ApplyKnockback(Vector2 knockback)
+    {
+        ApplyCrowdControl(EnemyCrowdControlRequest.CreateKnockback(knockback));
     }
 
     private void EnemyDead()

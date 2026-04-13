@@ -22,7 +22,7 @@ public class GorgonEyeDummy : MonoBehaviour
 
         if(other.TryGetComponent<IEnemyMovement>(out var target))
         {
-            target.CrowdControl(IEnemyMovement.CC.Stun, 5);
+            target.ApplyCrowdControl(EnemyCrowdControlRequest.CreateStun(ccDuration));
         }
     }
 }

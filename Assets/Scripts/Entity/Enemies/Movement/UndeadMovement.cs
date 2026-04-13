@@ -1,38 +1,31 @@
 using UnityEngine;
-using UnityEngine.UI;
-using System.Collections;
 
 public class UndeadMovement : MonoBehaviour, IEnemyMovement
 {
     public float moveSpeed = 5.0f;
 
-    public int floorZ = 0;              // 해당 적이 있는 Z값 높이 (변경 X)
-
+    public int floorZ = 0;
     public int FloorZ => floorZ;
 
-    public bool isDetected = false;    // 플레이어 포착 여부
+    public bool isDetected = false;
 
     public Transform sprite;
     private Vector3 targetPos = Vector3.zero;
     private GroundedEnemy groundedEnemy;
     private UndeadAttack attack;
-    private EnemyStats stat;
+    private EnemyCrowdControl crowdControl;
     public Transform player;
     public Grid grid;
     private Animator anim;
 
-    private bool isArrive = true;      // 넉백 위치에 도착했는 지 여부
-    private float knockbackDistance = 0;    // 기존 위치와 넉백 위치 사이 거리
-    private Vector3 knockback = Vector3.zero;
-    private Vector3 prevPos = Vector3.zero;
-
-    [HideInInspector]
-    public bool isStuned = false;
+    private bool isArrive = true;
 
     void Awake()
     {
         groundedEnemy = GetComponent<GroundedEnemy>();
-        stat = GetComponent<EnemyStats>();
+        crowdControl = GetComponent<EnemyCrowdControl>();
+        if (crowdControl == null)
+            crowdControl = gameObject.AddComponent<EnemyCrowdControl>();
         anim = sprite.GetComponent<Animator>();
         attack = GetComponent<UndeadAttack>();
     }
@@ -57,11 +50,9 @@ public class UndeadMovement : MonoBehaviour, IEnemyMovement
         spritePos.z = floorZ;
         sprite.localPosition = spritePos;
 
-
         if (targetPos.x < transform.position.x)
         {
-            // 넉백, 공격 중에는 flip실행 X
-            if(isArrive && !attack.isAttacking)
+            if (isArrive && !attack.isAttacking)
                 sprite.GetComponent<SpriteRenderer>().flipX = true;
         }
         else
@@ -69,15 +60,17 @@ public class UndeadMovement : MonoBehaviour, IEnemyMovement
             if (isArrive && !attack.isAttacking)
                 sprite.GetComponent<SpriteRenderer>().flipX = false;
         }
-            
     }
-    
+
     public void Move()
     {
-        PlayerMove playerMove = player.GetComponent<PlayerMove>();
+        if (crowdControl != null && crowdControl.IsKnockbackActive)
+        {
+            HandleKnockback();
+            return;
+        }
 
-        // 플레이어 포착 시 이동
-        if (!isDetected || isStuned)
+        if (!isDetected || (crowdControl != null && !crowdControl.CanMove))
         {
             targetPos = transform.position;
             anim.SetBool("isWalking", false);
@@ -85,137 +78,89 @@ public class UndeadMovement : MonoBehaviour, IEnemyMovement
         }
 
         anim.SetBool("isWalking", true);
+        float currentMoveSpeed = moveSpeed;
+        if (crowdControl != null)
+            currentMoveSpeed *= crowdControl.MoveSpeedMultiplier;
 
-        // 넉백 상태 확인
-        if(stat.isKnockback)
+        if (isArrive && !attack.isAttacking)
         {
-            isArrive = false;
-            stat.isKnockback = false;
-            knockback = stat.knockbackVector;
-            prevPos = transform.position;
-            knockbackDistance = Vector3.Distance(prevPos, prevPos+knockback);
-        }
-        else
-        {
-            if (isArrive && !attack.isAttacking)
+            if (Vector3.Distance(transform.position, targetPos) > 0.05f)
             {
-                // 목표 지점까지 이동
-                if (Vector3.Distance(transform.position, targetPos) > 0.05f)
-                {
-                    transform.position = Vector3.MoveTowards(
-                        transform.position,
-                        targetPos,
-                        moveSpeed * Time.deltaTime
-                    );
-                    return;
-                }
-
-                // 다음 이동할 칸 선택
-                Vector3Int bestCell = groundedEnemy.GetNextCell();
-                if (bestCell != Vector3Int.zero)
-                {
-                    targetPos = grid.GetCellCenterWorld(bestCell);
-                    targetPos.z = 0f;
-                }
+                transform.position = Vector3.MoveTowards(
+                    transform.position,
+                    targetPos,
+                    currentMoveSpeed * Time.deltaTime
+                );
+                return;
             }
-        }
 
-        // 넉백 처리
-        if (!isArrive)
-        {
-            targetPos = transform.position + (knockback.normalized * 10f * stat.knockBackResist * Time.deltaTime);
-
-            // FloorZ가 0인 경우 따로 처리
-
-            if (floorZ == 0)
+            Vector3Int bestCell = groundedEnemy.GetNextCell();
+            if (bestCell != Vector3Int.zero)
             {
-                if (groundedEnemy.GetTileValid(targetPos))
-                {
-                    transform.position = targetPos;
-                    if (Vector3.Distance(prevPos, transform.position) >= knockbackDistance)
-                    {
-                        isArrive = true;
-
-                        // 다음 이동할 칸 선택
-                        Vector3Int bestCell = groundedEnemy.GetNextCell();
-                        if (bestCell != Vector3Int.zero)
-                        {
-                            targetPos = grid.GetCellCenterWorld(bestCell);
-                            targetPos.z = 0f;
-                        }
-                    }
-                }
-                else
-                {
-                    isArrive = true;
-
-                    // 다음 이동할 칸 선택
-                    Vector3Int bestCell = groundedEnemy.GetNextCell();
-                    if (bestCell != Vector3Int.zero)
-                    {
-                        targetPos = grid.GetCellCenterWorld(bestCell);
-                        targetPos.z = 0f;
-                    }
-                }
-            }
-            else
-            {
-                Vector3Int cellPos = groundedEnemy.GetGridPosition(targetPos);
-                int getZ = groundedEnemy.GetGroundZLevel(cellPos) + 2;
-
-                if (getZ == floorZ)
-                {
-                    transform.position = targetPos;
-                    if (Vector3.Distance(prevPos, transform.position) >= knockbackDistance)
-                    {
-                        isArrive = true;
-
-                        // 다음 이동할 칸 선택
-                        Vector3Int bestCell = groundedEnemy.GetNextCell();
-                        if (bestCell != Vector3Int.zero)
-                        {
-                            targetPos = grid.GetCellCenterWorld(bestCell);
-                            targetPos.z = 0f;
-                        }
-                    }
-                }
-                else
-                {
-                    isArrive = true;
-
-                    // 다음 이동할 칸 선택
-                    Vector3Int bestCell = groundedEnemy.GetNextCell();
-                    if (bestCell != Vector3Int.zero)
-                    {
-                        targetPos = grid.GetCellCenterWorld(bestCell);
-                        targetPos.z = 0f;
-                    }
-                }
+                targetPos = grid.GetCellCenterWorld(bestCell);
+                targetPos.z = 0f;
             }
         }
     }
 
-    public void CrowdControl(IEnemyMovement.CC cc, float t)
+    public void ApplyCrowdControl(EnemyCrowdControlRequest request)
     {
-        if(cc == IEnemyMovement.CC.Slow)
-        {
+        if (crowdControl == null)
+            crowdControl = GetComponent<EnemyCrowdControl>();
 
-        }
-        if(cc == IEnemyMovement.CC.Stun)
-        {
-            isStuned = true;
-            StartCoroutine(Stun(t));
-        }
-    }
+        if (crowdControl == null)
+            crowdControl = gameObject.AddComponent<EnemyCrowdControl>();
 
-    private IEnumerator Stun(float dur)
-    {
-        yield return new WaitForSeconds(dur);
-        isStuned = false;
+        crowdControl.ApplyEffect(request);
     }
 
     public void SetPlayerDetected(bool val)
     {
         isDetected = val;
+    }
+
+    private void HandleKnockback()
+    {
+        isArrive = false;
+
+        Vector3 previousPosition = transform.position;
+        Vector3 knockbackStep = (Vector3)(crowdControl.GetKnockbackDirection() * crowdControl.GetKnockbackMoveSpeed() * Time.deltaTime);
+        Vector3 nextPosition = transform.position + knockbackStep;
+
+        if (floorZ == 0)
+        {
+            if (!groundedEnemy.GetTileValid(nextPosition))
+            {
+                crowdControl.ClearKnockback();
+                isArrive = true;
+                targetPos = transform.position;
+                return;
+            }
+        }
+        else
+        {
+            Vector3Int cellPos = groundedEnemy.GetGridPosition(nextPosition);
+            int getZ = groundedEnemy.GetGroundZLevel(cellPos) + 2;
+
+            if (getZ != floorZ)
+            {
+                crowdControl.ClearKnockback();
+                isArrive = true;
+                targetPos = transform.position;
+                return;
+            }
+        }
+
+        transform.position = nextPosition;
+        crowdControl.ConsumeKnockbackDistance(Vector2.Distance(
+            new Vector2(previousPosition.x, previousPosition.y),
+            new Vector2(transform.position.x, transform.position.y))
+        );
+
+        if (!crowdControl.IsKnockbackActive)
+        {
+            isArrive = true;
+            targetPos = transform.position;
+        }
     }
 }

@@ -192,6 +192,9 @@ public class ChunkLoader : MonoBehaviour
 
         if (spawnedObject.TryGetComponent(out PickupItem pickupItem))
             pickupItem.SetZ(floorZ);
+
+        if (spawnedObject.TryGetComponent(out FountainOfHealth fountain))
+            fountain.SetZ(floorZ);
     }
 
     private void GridUpdate()
