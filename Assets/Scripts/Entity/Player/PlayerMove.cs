@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -66,7 +66,8 @@ public class PlayerMove : MonoBehaviour
 
     private bool isAttacking = false;
 
-    public static event Action OnPickup;
+    private readonly List<IPlayerInteractable> interactables = new List<IPlayerInteractable>();
+    private IPlayerInteractable currentInteractable;
 
     private void Awake()
     {
@@ -88,6 +89,11 @@ public class PlayerMove : MonoBehaviour
         floorZ = 0;
         dashTime = dashDuration;
         dashCooltimeCheck = dashCooltime;
+    }
+
+    private void Update()
+    {
+        RefreshCurrentInteractable();
     }
 
     private void FixedUpdate()
@@ -431,6 +437,93 @@ public class PlayerMove : MonoBehaviour
         moveSpeedSet -= speed;
     }
 
+    public void RegisterInteractable(IPlayerInteractable interactable)
+    {
+        if (IsInteractableDestroyed(interactable) || interactables.Contains(interactable))
+            return;
+
+        interactables.Add(interactable);
+        RefreshCurrentInteractable();
+    }
+
+    public void UnregisterInteractable(IPlayerInteractable interactable)
+    {
+        if (IsInteractableDestroyed(interactable))
+            return;
+
+        if (!interactables.Remove(interactable))
+            return;
+
+        if (ReferenceEquals(currentInteractable, interactable))
+        {
+            SetInteractableFocus(currentInteractable, false);
+            currentInteractable = null;
+        }
+
+        RefreshCurrentInteractable();
+    }
+
+    private void RefreshCurrentInteractable()
+    {
+        for (int i = interactables.Count - 1; i >= 0; i--)
+        {
+            if (!IsInteractableDestroyed(interactables[i]))
+                continue;
+
+            if (ReferenceEquals(currentInteractable, interactables[i]))
+                currentInteractable = null;
+
+            interactables.RemoveAt(i);
+        }
+
+        IPlayerInteractable bestInteractable = null;
+        int bestPriority = int.MinValue;
+        float bestDistance = float.MaxValue;
+
+        for (int i = 0; i < interactables.Count; i++)
+        {
+            IPlayerInteractable interactable = interactables[i];
+            if (!interactable.CanInteract(this))
+                continue;
+
+            int priority = interactable.InteractionPriority;
+            float distance = (interactable.InteractionPosition - transform.position).sqrMagnitude;
+
+            if (bestInteractable == null || priority > bestPriority || (priority == bestPriority && distance < bestDistance))
+            {
+                bestInteractable = interactable;
+                bestPriority = priority;
+                bestDistance = distance;
+            }
+        }
+
+        if (ReferenceEquals(currentInteractable, bestInteractable))
+            return;
+
+        SetInteractableFocus(currentInteractable, false);
+        currentInteractable = bestInteractable;
+        SetInteractableFocus(currentInteractable, true);
+    }
+
+    private void SetInteractableFocus(IPlayerInteractable interactable, bool isFocused)
+    {
+        if (IsInteractableDestroyed(interactable))
+            return;
+
+        interactable.SetInteractionFocus(this, isFocused);
+    }
+
+    private bool IsInteractableDestroyed(IPlayerInteractable interactable)
+    {
+        if (interactable == null)
+            return true;
+
+        if (interactable is MonoBehaviour behaviour)
+            return behaviour == null;
+
+        return false;
+    }
+
     private void OnMove(InputValue value)
     {
         inputAxis = new Vector2(value.Get<Vector2>().x, value.Get<Vector2>().y).normalized;
@@ -447,7 +540,9 @@ public class PlayerMove : MonoBehaviour
         if (crowdControl != null && !crowdControl.CanInteract)
             return;
 
-        OnPickup?.Invoke();
+        RefreshCurrentInteractable();
+        currentInteractable?.Interact(this);
+        RefreshCurrentInteractable();
     }
 
     private void OnDash(InputValue value)

@@ -1,41 +1,40 @@
 using System;
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerStats : MonoBehaviour, IDamageable
 {
-    private float maxHp = 100;
+    private float maxHp = 100f;
     private float currentHp;
 
-    public float damage = 0;
+    public float damage = 0f;
     public float attackSpeed = 1f;
 
-    public float invDuration = 0.5f;        // 피격 시 무적 시간
+    public float invDuration = 0.5f;
     private float invTimer = 0f;
-    private bool isInv => invTimer > 0f;    // 피격무적 시간 확인
+    private bool isInv => invTimer > 0f;
 
-    private int gold = 0;                   // 보유 중인 골드량
+    private int gold = 0;
 
     private int potionCount = 5;
     private int maxPotion = 5;
     public float healAmount = 30f;
-    public float healCooltime = 1.0f;
+    public float healCooltime = 1f;
     private float healTimer = 0f;
 
-    public bool IsDead => currentHp <= 0;
+    public bool IsDead => currentHp <= 0f;
 
-    [HideInInspector]
-    public event Action<float> OnDamaged;   // 피격 이벤트 (등록, 해제 잊지말기)
-    public event Action OnDeath;            // 사망 이벤트
-    public event Action OnKill;             // 적 처치 시
-    public event Action OnDash;             // 대쉬 시
-    public event Action OnHealEvent;        // 회복 시
-
+    [HideInInspector] public event Action<float> OnDamaged;
+    public event Action OnDeath;
+    public event Action OnKill;
+    public event Action OnDash;
+    public event Action OnHealEvent;
+    public event Action<int> OnGoldChanged;
 
     public Canvas canvas;
     public GameObject damageText;
-    public Transform damagePos;             // 피격 시 데미지가 표시될 위치
+    public Transform damagePos;
 
     public GameObject healEffect;
     private PlayerCrowdControl crowdControl;
@@ -50,25 +49,26 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
         OnDamaged += ShowDamage;
         OnHealEvent += ShowHealEffect;
+        OnGoldChanged?.Invoke(gold);
     }
 
     private void Update()
     {
-        if(invTimer > 0f)
-        {
+        if (invTimer > 0f)
             invTimer -= Time.deltaTime;
-        }
 
         healTimer += Time.deltaTime;
     }
 
-    public void TakeDamage(float damage, Vector2 knockback)
+    public void TakeDamage(float amount, Vector2 knockback)
     {
-        if (IsDead || isInv) return;
+        if (IsDead || isInv)
+            return;
 
-        invTimer = invDuration;         // 피격 무적 시작
-        currentHp = Mathf.Max(0, currentHp - damage);
-        OnDamaged?.Invoke(damage);
+        invTimer = invDuration;
+        currentHp = Mathf.Max(0f, currentHp - amount);
+        OnDamaged?.Invoke(amount);
+
         if (crowdControl != null)
             crowdControl.ApplyKnockback(knockback);
 
@@ -81,38 +81,34 @@ public class PlayerStats : MonoBehaviour, IDamageable
         Debug.Log("Die");
     }
 
-    private void ShowDamage(float damage)
+    private void ShowDamage(float amount)
     {
-        if (damageText == null)
-        {
+        if (damageText == null || damagePos == null || canvas == null)
             return;
-        }
 
         Vector3 pos = damagePos.position;
-        Vector3 randomPos = new Vector3(UnityEngine.Random.Range(pos.x - 0.5f, pos.x + 0.5f), pos.y, 0);
+        Vector3 randomPos = new Vector3(UnityEngine.Random.Range(pos.x - 0.5f, pos.x + 0.5f), pos.y, 0f);
 
-        GameObject text = GameObject.Instantiate(damageText, randomPos, Quaternion.identity, canvas.transform);
-
-        text.GetComponent<DamageText>().Setup(damage);
+        GameObject text = Instantiate(damageText, randomPos, Quaternion.identity, canvas.transform);
+        text.GetComponent<DamageText>().Setup(amount);
     }
+
     private void ShowHealEffect()
     {
-        if (healEffect == null)
-        {
+        if (healEffect == null || damagePos == null || canvas == null)
             return;
-        }
 
         Vector3 pos = damagePos.position;
-        Vector3 randomPos = new Vector3(UnityEngine.Random.Range(pos.x - 0.5f, pos.x + 0.5f), pos.y, 0);
+        Vector3 randomPos = new Vector3(UnityEngine.Random.Range(pos.x - 0.5f, pos.x + 0.5f), pos.y, 0f);
 
         Instantiate(healEffect, randomPos, Quaternion.identity, canvas.transform);
     }
 
-    // 공격력 증감 시 호출
     public void AddAttackDamage(float amount)
     {
         damage += amount;
     }
+
     public void ReduceAttackDamage(float amount)
     {
         damage -= amount;
@@ -140,23 +136,19 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
     public void Heal(float amount)
     {
-        if (currentHp + amount >= maxHp)
-            currentHp = maxHp;
-        else
-            currentHp += amount;
+        currentHp = Mathf.Min(maxHp, currentHp + amount);
         OnHealEvent?.Invoke();
     }
 
     public void AddMoveSpeed(float speed)
     {
         PlayerMove playerMove = GetComponent<PlayerMove>();
-
         playerMove.AddSpeed(speed);
     }
+
     public void ReduceMoveSpeed(float speed)
     {
         PlayerMove playerMove = GetComponent<PlayerMove>();
-
         playerMove.ReduceSpeed(speed);
     }
 
@@ -165,25 +157,41 @@ public class PlayerStats : MonoBehaviour, IDamageable
         return gold;
     }
 
-    public void AddGold(int g)
+    public void AddGold(int amount)
     {
-        gold += g;
+        gold += Mathf.Max(0, amount);
+        OnGoldChanged?.Invoke(gold);
     }
-    
+
+    public bool CanAfford(int amount)
+    {
+        return gold >= Mathf.Max(0, amount);
+    }
+
+    public bool TrySpendGold(int amount)
+    {
+        int clampedAmount = Mathf.Max(0, amount);
+        if (gold < clampedAmount)
+            return false;
+
+        gold -= clampedAmount;
+        OnGoldChanged?.Invoke(gold);
+        return true;
+    }
+
     public int GetPotionCount()
     {
         return potionCount;
     }
+
     public int GetMaxPotionCount()
     {
         return maxPotion;
     }
+
     public void ChargePotion(int amount)
     {
-        if (potionCount + amount >= maxPotion)
-            potionCount = maxPotion;
-        else
-            potionCount += amount;
+        potionCount = Mathf.Min(maxPotion, potionCount + amount);
     }
 
     public void Dash()
@@ -219,17 +227,16 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
     public void Buff(int idx, float amount, float duration)
     {
-        // 공격력 증가
-        if(idx == 0)
-        {
-            damage += amount;
-            StartCoroutine(DamageBuff(amount, duration));
-        }
+        if (idx != 0)
+            return;
+
+        damage += amount;
+        StartCoroutine(DamageBuff(amount, duration));
     }
 
-    private IEnumerator DamageBuff(float amount, float dur)
+    private IEnumerator DamageBuff(float amount, float duration)
     {
-        yield return new WaitForSeconds(dur);
+        yield return new WaitForSeconds(duration);
         damage -= amount;
     }
 
@@ -237,15 +244,15 @@ public class PlayerStats : MonoBehaviour, IDamageable
     {
         if (crowdControl != null && !crowdControl.CanHeal)
             return;
-        // 체력이 최대면 예외처리
+
         if (currentHp >= maxHp)
             return;
 
-        if(potionCount > 0 && healTimer > healCooltime)
-        {
-            healTimer = 0;
-            potionCount--;
-            Heal(healAmount);
-        }
+        if (potionCount <= 0 || healTimer <= healCooltime)
+            return;
+
+        healTimer = 0f;
+        potionCount--;
+        Heal(healAmount);
     }
 }

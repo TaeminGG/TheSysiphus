@@ -1,6 +1,6 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+
 public class GoldUI : MonoBehaviour
 {
     private TextMeshProUGUI text;
@@ -13,12 +13,27 @@ public class GoldUI : MonoBehaviour
 
     private void Start()
     {
-        playerStats = GameObject.Find("Player").GetComponent<PlayerStats>();
+        GameObject player = GameObject.Find("Player");
+        if (player == null)
+            return;
+
+        playerStats = player.GetComponent<PlayerStats>();
+        if (playerStats == null)
+            return;
+
+        playerStats.OnGoldChanged += UpdateGoldText;
+        UpdateGoldText(playerStats.GetGold());
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnDestroy()
     {
-        text.text = playerStats.GetGold().ToString();
+        if (playerStats != null)
+            playerStats.OnGoldChanged -= UpdateGoldText;
+    }
+
+    private void UpdateGoldText(int gold)
+    {
+        if (text != null)
+            text.text = gold.ToString();
     }
 }
