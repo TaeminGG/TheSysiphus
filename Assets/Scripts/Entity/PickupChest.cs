@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class PickupChest : MonoBehaviour
+public class PickupChest : MonoBehaviour, IPlayerInteractable
 {
     [Header("Layer")]
     public LayerMask hitLayer;
@@ -10,6 +10,7 @@ public class PickupChest : MonoBehaviour
     public SpriteRenderer spriteRenderer;
     public Sprite openedSprite;
     public Canvas canvas;
+    [SerializeField] private int interactionPriority = 20;
 
     [Header("Loot")]
     public GameObject pickupItemPrefab;
@@ -17,7 +18,7 @@ public class PickupChest : MonoBehaviour
     public ActiveItem[] activeItems;
 
     [Header("Drop")]
-    public Vector2 dropDirection = new Vector2(-1, -1).normalized;
+    public Vector2 dropDirection = new Vector2(-1f, -1f).normalized;
     public float dropDistance = 0.8f;
     public float popHeight = 0.6f;
     public float popDuration = 0.35f;
@@ -27,6 +28,9 @@ public class PickupChest : MonoBehaviour
     private bool isPlayerInRange = false;
     private bool isOpened = false;
 
+    public int InteractionPriority => interactionPriority;
+    public Vector3 InteractionPosition => transform.position;
+
     private void Awake()
     {
         if (spriteRenderer == null)
@@ -35,41 +39,83 @@ public class PickupChest : MonoBehaviour
 
     private void Start()
     {
-        canvas.enabled = false;
+        if (canvas != null)
+            canvas.enabled = false;
+
         transform.position = new Vector3(transform.position.x, transform.position.y, floorZ + 1);
     }
 
     private void OnDisable()
     {
-        PlayerMove.OnPickup -= TryOpen;
+        UnregisterInteractable();
+    }
+
+    public bool CanInteract(PlayerMove player)
+    {
+        return !isOpened && isPlayerInRange && playerMove == player && player != null && player.floorZ == floorZ;
+    }
+
+    public void Interact(PlayerMove player)
+    {
+        if (!CanInteract(player) || pickupItemPrefab == null)
+            return;
+
+        if (canvas != null)
+            canvas.enabled = false;
+
+        isOpened = true;
+        UnregisterInteractable();
+
+        if (openedSprite != null && spriteRenderer != null)
+            spriteRenderer.sprite = openedSprite;
+
+        StartCoroutine(SpawnPickupItem());
+    }
+
+    public void SetInteractionFocus(PlayerMove player, bool isFocused)
+    {
+        RefreshCanvas();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (isOpened) return;
-        if (((1 << other.gameObject.layer) & hitLayer) == 0) return;
-        if (!other.TryGetComponent<PlayerMove>(out var enteringPlayer)) return;
+        if (isOpened || ((1 << other.gameObject.layer) & hitLayer) == 0)
+            return;
 
-        canvas.enabled = true;
+        if (!other.TryGetComponent(out PlayerMove enteringPlayer))
+            return;
 
-        playerMove = enteringPlayer;
-        isPlayerInRange = true;
+        RefreshInteractionState(enteringPlayer);
+    }
 
-        PlayerMove.OnPickup -= TryOpen;
-        PlayerMove.OnPickup += TryOpen;
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        if (isOpened || ((1 << other.gameObject.layer) & hitLayer) == 0)
+            return;
+
+        if (!other.TryGetComponent(out PlayerMove stayingPlayer))
+            return;
+
+        RefreshInteractionState(stayingPlayer);
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (((1 << other.gameObject.layer) & hitLayer) == 0) return;
-        if (!other.TryGetComponent<PlayerMove>(out var exitingPlayer)) return;
-        if (playerMove != exitingPlayer) return;
+        if (((1 << other.gameObject.layer) & hitLayer) == 0)
+            return;
 
-        canvas.enabled = false;
+        if (!other.TryGetComponent(out PlayerMove exitingPlayer))
+            return;
+
+        if (playerMove != exitingPlayer)
+            return;
 
         isPlayerInRange = false;
-        playerMove = null;
-        PlayerMove.OnPickup -= TryOpen;
+
+        if (canvas != null)
+            canvas.enabled = false;
+
+        UnregisterInteractable();
     }
 
     public void SetZ(int z)
@@ -80,32 +126,16 @@ public class PickupChest : MonoBehaviour
         transform.position = pos;
     }
 
-    private void TryOpen()
-    {
-        if (isOpened) return;
-        if (!isPlayerInRange || playerMove == null) return;
-        if (playerMove.floorZ != floorZ) return;
-        if (pickupItemPrefab == null) return;
-
-        canvas.enabled = false;
-        isOpened = true;
-        PlayerMove.OnPickup -= TryOpen;
-
-        if (openedSprite != null && spriteRenderer != null)
-            spriteRenderer.sprite = openedSprite;
-
-        StartCoroutine(SpawnPickupItem());
-    }
-
     private IEnumerator SpawnPickupItem()
     {
         Vector3 start = transform.position;
         start.z = floorZ;
 
         Vector3 end = GetLandingPosition(start);
-        GameObject spawned = Instantiate(pickupItemPrefab, start, Quaternion.identity);
+        GameObject spawnedObject = Instantiate(pickupItemPrefab, start, Quaternion.identity);
+        PickupItem pickupItem = spawnedObject.GetComponent<PickupItem>();
 
-        if (spawned.TryGetComponent(out PickupItem pickupItem))
+        if (pickupItem != null)
         {
             ApplyLoot(pickupItem);
             pickupItem.SetZ(floorZ);
@@ -120,11 +150,11 @@ public class PickupChest : MonoBehaviour
             Vector3 pos = Vector3.Lerp(start, end, t);
             pos.y += arc;
             pos.z = floorZ;
-            spawned.transform.position = pos;
+            spawnedObject.transform.position = pos;
             yield return null;
         }
 
-        spawned.transform.position = end;
+        spawnedObject.transform.position = end;
     }
 
     private Vector3 GetLandingPosition(Vector3 start)
@@ -162,10 +192,39 @@ public class PickupChest : MonoBehaviour
         {
             pickupItem.isPassive = true;
             pickupItem.item = passiveItems[Random.Range(0, passiveItems.Length)];
+        }
+        else
+        {
+            pickupItem.isPassive = false;
+            pickupItem.activeItem = activeItems[Random.Range(0, activeItems.Length)];
+        }
+    }
+
+    private void RefreshInteractionState(PlayerMove targetPlayer)
+    {
+        playerMove = targetPlayer;
+        isPlayerInRange = true;
+
+        RefreshCanvas();
+
+        if (CanInteract(targetPlayer))
+        {
+            targetPlayer.RegisterInteractable(this);
             return;
         }
 
-        pickupItem.isPassive = false;
-        pickupItem.activeItem = activeItems[Random.Range(0, activeItems.Length)];
+        targetPlayer.UnregisterInteractable(this);
+    }
+
+    private void RefreshCanvas()
+    {
+        if (canvas != null)
+            canvas.enabled = !isOpened && isPlayerInRange && playerMove != null && playerMove.floorZ == floorZ;
+    }
+
+    private void UnregisterInteractable()
+    {
+        if (playerMove != null)
+            playerMove.UnregisterInteractable(this);
     }
 }

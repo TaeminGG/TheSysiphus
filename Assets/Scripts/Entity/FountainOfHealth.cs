@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class FountainOfHealth : MonoBehaviour
+public class FountainOfHealth : MonoBehaviour, IPlayerInteractable
 {
     [Header("Layer")]
     public LayerMask hitLayer;
@@ -10,11 +10,14 @@ public class FountainOfHealth : MonoBehaviour
     public Sprite depletedSprite;
     public Canvas canvas;
     public int floorZ = 0;
-
+    [SerializeField] private int interactionPriority = 15;
 
     private PlayerMove playerMove;
     private bool isPlayerInRange = false;
     private bool isUsed = false;
+
+    public int InteractionPriority => interactionPriority;
+    public Vector3 InteractionPosition => transform.position;
 
     private void Awake()
     {
@@ -24,65 +27,123 @@ public class FountainOfHealth : MonoBehaviour
 
     private void Start()
     {
-        canvas.enabled = false;
+        if (canvas != null)
+            canvas.enabled = false;
+
         transform.position = new Vector3(transform.position.x, transform.position.y, floorZ + 1);
     }
 
     private void OnDisable()
     {
-        PlayerMove.OnPickup -= TryUse;
+        UnregisterInteractable();
     }
 
-    private void TryUse()
+    public bool CanInteract(PlayerMove player)
     {
-        if (isUsed) return;
-        if (!isPlayerInRange || playerMove == null) return;
-        if (playerMove.floorZ != floorZ) return;
+        return !isUsed && isPlayerInRange && playerMove == player && player != null && player.floorZ == floorZ;
+    }
 
-        canvas.enabled = false;
+    public void Interact(PlayerMove player)
+    {
+        if (!CanInteract(player))
+            return;
+
+        if (canvas != null)
+            canvas.enabled = false;
+
         isUsed = true;
-        PlayerMove.OnPickup -= TryUse;
+        UnregisterInteractable();
 
         if (depletedSprite != null && spriteRenderer != null)
             spriteRenderer.sprite = depletedSprite;
 
-        if (!playerMove.TryGetComponent<PlayerStats>(out var stat)) return;
+        PlayerStats stat = player.GetComponent<PlayerStats>();
+        if (stat == null)
+            return;
+
         stat.ChargePotion(stat.GetMaxPotionCount());
         stat.Heal(stat.GetMaxHp());
     }
 
+    public void SetInteractionFocus(PlayerMove player, bool isFocused)
+    {
+        RefreshCanvas();
+    }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (isUsed) return;
-        if (((1 << other.gameObject.layer) & hitLayer) == 0) return;
-        if (!other.TryGetComponent<PlayerMove>(out var enteringPlayer)) return;
+        if (isUsed || ((1 << other.gameObject.layer) & hitLayer) == 0)
+            return;
 
-        canvas.enabled = true;
+        if (!other.TryGetComponent(out PlayerMove enteringPlayer))
+            return;
 
-        playerMove = enteringPlayer;
-        isPlayerInRange = true;
+        RefreshInteractionState(enteringPlayer);
+    }
 
-        PlayerMove.OnPickup -= TryUse;
-        PlayerMove.OnPickup += TryUse;
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        if (isUsed || ((1 << other.gameObject.layer) & hitLayer) == 0)
+            return;
+
+        if (!other.TryGetComponent(out PlayerMove stayingPlayer))
+            return;
+
+        RefreshInteractionState(stayingPlayer);
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (((1 << other.gameObject.layer) & hitLayer) == 0) return;
-        if (!other.TryGetComponent<PlayerMove>(out var exitingPlayer)) return;
-        if (playerMove != exitingPlayer) return;
+        if (((1 << other.gameObject.layer) & hitLayer) == 0)
+            return;
 
-        canvas.enabled = false;
+        if (!other.TryGetComponent(out PlayerMove exitingPlayer))
+            return;
+
+        if (playerMove != exitingPlayer)
+            return;
 
         isPlayerInRange = false;
-        playerMove = null;
-        PlayerMove.OnPickup -= TryUse;
+
+        if (canvas != null)
+            canvas.enabled = false;
+
+        UnregisterInteractable();
     }
+
     public void SetZ(int z)
     {
         floorZ = z;
         Vector3 pos = transform.position;
         pos.z = z;
         transform.position = pos;
+    }
+
+    private void RefreshInteractionState(PlayerMove targetPlayer)
+    {
+        playerMove = targetPlayer;
+        isPlayerInRange = true;
+
+        RefreshCanvas();
+
+        if (CanInteract(targetPlayer))
+        {
+            targetPlayer.RegisterInteractable(this);
+            return;
+        }
+
+        targetPlayer.UnregisterInteractable(this);
+    }
+
+    private void RefreshCanvas()
+    {
+        if (canvas != null)
+            canvas.enabled = !isUsed && isPlayerInRange && playerMove != null && playerMove.floorZ == floorZ;
+    }
+
+    private void UnregisterInteractable()
+    {
+        if (playerMove != null)
+            playerMove.UnregisterInteractable(this);
     }
 }
