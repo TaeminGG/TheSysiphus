@@ -33,6 +33,9 @@ MonoBehaviour:
     spreadAngle: 30
     lifetime: 0.2
     direction: {x: 0, y: 0}
+  onHitStopDuration: 0.02
+  onHitStopTimeScale: 0
+  onHitStopPriority: 0
   visual: {fileID: 2574547470419931623, guid: d885a0f5b68c5464982082be13f5af12, type: 3}
   flipX: 0
   flipY: 0

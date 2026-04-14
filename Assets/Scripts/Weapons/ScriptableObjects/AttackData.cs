@@ -19,6 +19,9 @@ public class AttackData : ScriptableObject
     public CameraFeedbackPreset onHitCameraPreset;
     public ParticleSystem onHitSparkPrefab;
     public HitSparkSettings onHitSparkSettings;
+    public float onHitStopDuration = 0f;
+    [Range(0f, 1f)] public float onHitStopTimeScale = 0f;
+    public int onHitStopPriority = 0;
 
     [Header("Visual")]
     public GameObject visual;
