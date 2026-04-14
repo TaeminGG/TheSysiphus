@@ -164,6 +164,7 @@ public class AttackHitBox : MonoBehaviour
                         target.TakeDamage(finalDamage, knockback);
                         PlayHitSpark(other, knockback);
                         PlayHitCameraFeedback();
+                        PlayHitStop();
                     }
                 }
             }
@@ -192,6 +193,7 @@ public class AttackHitBox : MonoBehaviour
                         target.TakeDamage(finalDamage, knockback);
                         PlayHitSpark(other, knockback);
                         PlayHitCameraFeedback();
+                        PlayHitStop();
                     }
                 }
             }
@@ -226,6 +228,19 @@ public class AttackHitBox : MonoBehaviour
         }
 
         CameraFeedbackService.Instance?.Play(currentData.onHitCameraPreset);
+    }
+
+    private void PlayHitStop()
+    {
+        if (currentData == null || currentData.onHitStopDuration <= 0f)
+        {
+            return;
+        }
+
+        HitStopController.Instance?.Play(
+            currentData.onHitStopDuration,
+            currentData.onHitStopTimeScale,
+            currentData.onHitStopPriority);
     }
 
     private void PlayHitSpark(Collider2D other, Vector2 knockback)
