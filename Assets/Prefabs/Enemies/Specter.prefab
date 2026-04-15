@@ -383,8 +383,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
   maxHp: 50
   knockBackResist: 1
-  isKnockback: 0
-  knockbackVector: {x: 0, y: 0}
   canvas: {fileID: 7115197825974064350}
   hpbar: {fileID: 5188829508925080104}
   damageText: {fileID: 1157539638455765083, guid: f0354d01fe6238c4e90fdd1520c5060f, type: 3}
