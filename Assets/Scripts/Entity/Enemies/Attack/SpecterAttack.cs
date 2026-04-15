@@ -19,10 +19,13 @@ public class SpecterAttack : MonoBehaviour, IEnemyAttack
 
     public bool isAttacking = false;
     private bool isAttacked = false;
+    private Vector2 lockedAttackDirection = Vector2.down;
+    private float lockedAttackAngle = 180f;
 
     public GameObject projectile;
     private AttackHitBox hitBox;
     public AttackData attackData;
+    private EnemyAttackTelegraph telegraph;
 
     void Start()
     {
@@ -30,26 +33,40 @@ public class SpecterAttack : MonoBehaviour, IEnemyAttack
         crowdControl = GetComponent<EnemyCrowdControl>();
         playerMove = GameObject.Find("Player").GetComponent<PlayerMove>();
         floorZ = movement.floorZ;
+        telegraph = GetComponent<EnemyAttackTelegraph>();
+        if (telegraph == null)
+            telegraph = gameObject.AddComponent<EnemyAttackTelegraph>();
     }
 
     void Update()
     {
-        if (crowdControl != null && !crowdControl.CanAttack)
+        if (crowdControl != null && crowdControl.ShouldCancelCurrentAttack)
         {
             ResetAttackState();
             return;
         }
 
+        if (!isAttacking && crowdControl != null && !crowdControl.CanAttack)
+            return;
+
         if (CanAttack && !isAttacking)
+        {
+            CacheAttackDirection();
             isAttacking = true;
+        }
 
         if (isAttacking)
         {
             timer += Time.deltaTime;
+            floorZ = movement.floorZ;
+
+            if (!isAttacked)
+                UpdateTelegraph();
 
             if ((timer >= readyTime) && !isAttacked)
             {
                 isAttacked = true;
+                telegraph.Hide();
                 Attack();
             }
 
@@ -64,16 +81,23 @@ public class SpecterAttack : MonoBehaviour, IEnemyAttack
     {
         duration = attackData.attackDuration;
         damage = attackData.damage;
-
-        Vector3 direction = (playerMove.transform.position - transform.position).normalized;
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        angle -= 90.0f;
-
-        hitBox = Instantiate(projectile, transform.position, Quaternion.Euler(0, 0, angle)).GetComponent<AttackHitBox>();
-        hitBox.EnemySetup(attackData, damage, duration, transform.position, angle, floorZ);
+        hitBox = Instantiate(projectile, transform.position, Quaternion.Euler(0, 0, lockedAttackAngle)).GetComponent<AttackHitBox>();
+        hitBox.EnemySetup(attackData, damage, duration, transform.position, lockedAttackAngle, floorZ);
     }
 
     public bool CanAttack => AttackRange();
+
+    private void UpdateTelegraph()
+    {
+        if (telegraph == null || projectile == null || playerMove == null)
+            return;
+
+        Projectile projectileComponent = projectile.GetComponent<Projectile>();
+        if (projectileComponent == null)
+            return;
+
+        telegraph.ShowProjectileTelegraph(transform.position, lockedAttackDirection, Mathf.RoundToInt(floorZ), projectileComponent);
+    }
 
     private bool AttackRange()
     {
@@ -95,8 +119,24 @@ public class SpecterAttack : MonoBehaviour, IEnemyAttack
 
     private void ResetAttackState()
     {
+        telegraph?.Hide();
         timer = 0f;
         isAttacking = false;
         isAttacked = false;
+        lockedAttackDirection = Vector2.down;
+        lockedAttackAngle = 180f;
+    }
+
+    private void CacheAttackDirection()
+    {
+        if (playerMove == null)
+            return;
+
+        Vector2 direction = playerMove.transform.position - transform.position;
+        if (direction.sqrMagnitude <= 0.001f)
+            direction = Vector2.down;
+
+        lockedAttackDirection = direction.normalized;
+        lockedAttackAngle = Mathf.Atan2(lockedAttackDirection.y, lockedAttackDirection.x) * Mathf.Rad2Deg - 90f;
     }
 }

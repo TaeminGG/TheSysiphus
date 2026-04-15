@@ -4,6 +4,12 @@ using UnityEngine.InputSystem;
 
 public class PlayerMove : MonoBehaviour
 {
+    private enum MovementMode
+    {
+        Normal,
+        Knockback
+    }
+
     private Vector2 inputAxis = Vector2.zero;
     private Vector3 axis;
     public Vector2Int targetAxis = Vector2Int.zero;
@@ -105,7 +111,7 @@ public class PlayerMove : MonoBehaviour
             dashTime = dashDuration;
             isAttacking = false;
             axis = crowdControl.GetKnockbackDirection();
-            float movedDistance = MoveCharacter(crowdControl.GetKnockbackDirection(), crowdControl.GetKnockbackMoveSpeed());
+            float movedDistance = HandleKnockbackMovement(crowdControl.GetKnockbackDirection(), crowdControl.GetKnockbackMoveSpeed());
             crowdControl.ConsumeKnockbackDistance(movedDistance);
         }
         else
@@ -243,18 +249,32 @@ public class PlayerMove : MonoBehaviour
 
     private float MoveCharacter(Vector2 moveAxis, float currentMoveSpeed)
     {
-        if (moveAxis.sqrMagnitude <= 0.001f)
+        return MoveCharacterDistance(moveAxis, currentMoveSpeed * Time.deltaTime, MovementMode.Normal);
+    }
+
+    private float MoveCharacterDistance(Vector2 moveAxis, float moveDistance, MovementMode movementMode)
+    {
+        if (moveAxis.sqrMagnitude <= 0.001f || moveDistance <= 0.001f)
             return 0f;
 
+        stc.SyncToPosition(shadow.transform.position);
+
+        Vector2 normalizedAxis = moveAxis.normalized;
         Vector3 startPos = shadow.transform.position;
         Vector3Int prevCell = stc.GetGridPosition(shadow.transform.position);
         int prevZ = floorZ;
         int targetZLevel = 0;
-        Vector3 targetPos = shadow.transform.position + (Vector3)(moveAxis * currentMoveSpeed * Time.deltaTime);
+        Vector3 targetPos = shadow.transform.position + (Vector3)(normalizedAxis * moveDistance);
+        int targetGroundZLevel = stc.GetGroundZLevel(targetPos);
 
-        if (!stc.GetTileValid(moveAxis, currentMoveSpeed * Time.deltaTime))
+        bool isTileValid = stc.GetTileValid(normalizedAxis, moveDistance);
+
+        if (movementMode == MovementMode.Knockback && IsKnockbackMovementBlocked(normalizedAxis, moveDistance, prevZ))
+            return 0f;
+
+        if (!isTileValid)
         {
-            targetZLevel = stc.GetTileZLevelAnother(moveAxis, currentMoveSpeed * Time.deltaTime);
+            targetZLevel = stc.GetTileZLevelAnother(normalizedAxis, moveDistance);
 
             if (targetZLevel < 0)
                 targetZLevel = 0;
@@ -265,12 +285,6 @@ public class PlayerMove : MonoBehaviour
             {
                 transform.position = targetPos;
                 isOnValidTile = false;
-
-                int targetGroundZLevel = stc.GetGroundZLevel(targetPos);
-                if (targetGroundZLevel < 0)
-                    targetGroundZLevel = 0;
-                else
-                    targetGroundZLevel += 2;
 
                 if (prevZ > targetGroundZLevel)
                 {
@@ -351,6 +365,72 @@ public class PlayerMove : MonoBehaviour
         return Vector2.Distance(new Vector2(startPos.x, startPos.y), new Vector2(transform.position.x, transform.position.y));
     }
 
+    private float HandleKnockbackMovement(Vector2 knockbackDirection, float knockbackMoveSpeed)
+    {
+        if (knockbackDirection.sqrMagnitude <= 0.001f)
+            return 0f;
+
+        float remainingDistance = knockbackMoveSpeed * Time.deltaTime;
+        float movedDistance = 0f;
+        const float stepDistance = 0.05f;
+
+        while (remainingDistance > 0.001f)
+        {
+            float currentStepDistance = Mathf.Min(stepDistance, remainingDistance);
+            float movedStepDistance = MoveCharacterDistance(knockbackDirection, currentStepDistance, MovementMode.Knockback);
+
+            if (movedStepDistance <= 0.0001f)
+            {
+                crowdControl?.ClearKnockback();
+                break;
+            }
+
+            movedDistance += movedStepDistance;
+            remainingDistance -= currentStepDistance;
+        }
+
+        return movedDistance;
+    }
+
+    private bool IsKnockbackMovementBlocked(Vector2 moveAxis, float moveDistance, int currentFloorZ)
+    {
+        stc.SyncToPosition(shadow.transform.position);
+
+        bool isTileValid = stc.GetTileValid(moveAxis, moveDistance);
+        Vector3 targetPos = shadow.transform.position + (Vector3)(moveAxis.normalized * moveDistance);
+
+        if (isTileValid)
+        {
+            int reachableFloorZ = GetReachableFloorZ(targetPos, currentFloorZ);
+            return reachableFloorZ > currentFloorZ;
+        }
+
+        int blockingTileFloorZ = NormalizeFloorZ(stc.GetTileZLevelAnother(moveAxis, moveDistance));
+        if (blockingTileFloorZ >= currentFloorZ)
+            return true;
+
+        int fallFloorZ = NormalizeFloorZ(stc.GetFallGroundZLevel(targetPos));
+        return fallFloorZ > currentFloorZ;
+    }
+
+    private int GetReachableFloorZ(Vector3 targetPos, int currentFloorZ)
+    {
+        int targetFloorZ = NormalizeFloorZ(stc.GetGroundZLevel(targetPos));
+
+        if (targetFloorZ > currentFloorZ)
+            targetFloorZ = NormalizeFloorZ(stc.GetGroundZLevel(targetPos, currentFloorZ));
+
+        return targetFloorZ;
+    }
+
+    private static int NormalizeFloorZ(int tileZLevel)
+    {
+        if (tileZLevel < 0)
+            return 0;
+
+        return tileZLevel + 2;
+    }
+
     private void UpdatePosition()
     {
         spriteZ += verticalVelocity * Time.deltaTime;
@@ -423,6 +503,31 @@ public class PlayerMove : MonoBehaviour
     public bool IsPlayerOnGround()
     {
         return isGrounded;
+    }
+
+    public Vector2 GetFacingDirection()
+    {
+        return lookAt switch
+        {
+            LookAt.E => Vector2.right,
+            LookAt.W => Vector2.left,
+            LookAt.S => Vector2.down,
+            LookAt.N => Vector2.up,
+            LookAt.NE => new Vector2(1f, 1f).normalized,
+            LookAt.NW => new Vector2(-1f, 1f).normalized,
+            LookAt.SE => new Vector2(1f, -1f).normalized,
+            LookAt.SW => new Vector2(-1f, -1f).normalized,
+            _ => Vector2.down
+        };
+    }
+
+    public bool IsFacingPosition(Vector3 worldPosition, float dotThreshold = 0.55f)
+    {
+        Vector2 toTarget = worldPosition - transform.position;
+        if (toTarget.sqrMagnitude <= 0.001f)
+            return true;
+
+        return Vector2.Dot(GetFacingDirection(), toTarget.normalized) >= dotThreshold;
     }
 
     public void AddSpeed(float speed)

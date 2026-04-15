@@ -215,6 +215,11 @@ public class PlayerStats : MonoBehaviour, IDamageable
         ApplyCrowdControl(PlayerCrowdControlRequest.CreateStun(duration));
     }
 
+    public void ApplyPetrify(float duration)
+    {
+        ApplyCrowdControl(PlayerCrowdControlRequest.CreatePetrify(duration));
+    }
+
     public void ApplySlow(float duration, float moveSpeedMultiplier)
     {
         ApplyCrowdControl(PlayerCrowdControlRequest.CreateSlow(duration, moveSpeedMultiplier));
