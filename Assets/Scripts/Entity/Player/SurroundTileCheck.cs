@@ -149,6 +149,12 @@ public class SurroundTileCheck : MonoBehaviour
         prevPos = grid.WorldToCell(pos);
     }
 
+    public void SyncToPosition(Vector3 pos)
+    {
+        pivotPos = pos;
+        UpdateSurroundTiles(pivotPos);
+    }
+
     // 해당 타일 위에 아무 타일도 없는지 (해당 타일이 가장 윗 타일인지) 체크
     public bool CheckIsUpperTile(Vector3 pos, int height)
     {
@@ -354,8 +360,7 @@ public class SurroundTileCheck : MonoBehaviour
 
     private void FixedUpdate()
     {
-        pivotPos = pivot.transform.position;
-        UpdateSurroundTiles(pivotPos);
+        SyncToPosition(pivot.transform.position);
 
     }
 

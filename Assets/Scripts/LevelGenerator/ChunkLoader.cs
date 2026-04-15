@@ -178,6 +178,9 @@ public class ChunkLoader : MonoBehaviour
         if (spawnedObject.TryGetComponent(out SpecterMovement specterMovement))
             specterMovement.floorZ = floorZ;
 
+        if (spawnedObject.TryGetComponent(out GorgonMovement gorgonMovement))
+            gorgonMovement.floorZ = floorZ;
+
         if (spawnedObject.TryGetComponent(out GroundedEnemy groundedEnemy))
             groundedEnemy.floorZ = floorZ;
 

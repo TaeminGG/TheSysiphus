@@ -102,6 +102,11 @@ public class AttackHitBox : MonoBehaviour
         StartCoroutine(AutoDisable(duration));
     }
 
+    public void SetFloorZ(float z)
+    {
+        floorZ = z;
+    }
+
     private IEnumerator AutoDisable(float delay)
     {
         yield return new WaitForSeconds(delay);

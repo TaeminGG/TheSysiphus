@@ -77,6 +77,7 @@ public class EnemyCrowdControl : MonoBehaviour
 
     public bool CanMove => !HasLock(EnemyControlLock.Move);
     public bool CanAttack => !HasLock(EnemyControlLock.Attack);
+    public bool ShouldCancelCurrentAttack => HasTimedLock(EnemyControlLock.Attack);
     public bool IsKnockbackActive => knockbackRemainingDistance > 0f && knockbackDirection.sqrMagnitude > 0.001f;
     public float LegacySlowMultiplier => legacySlowMultiplier;
 
@@ -213,6 +214,19 @@ public class EnemyCrowdControl : MonoBehaviour
             return true;
         }
 
+        for (int i = 0; i < activeEffects.Count; i++)
+        {
+            if ((activeEffects[i].Locks & targetLock) != 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool HasTimedLock(EnemyControlLock targetLock)
+    {
         for (int i = 0; i < activeEffects.Count; i++)
         {
             if ((activeEffects[i].Locks & targetLock) != 0)

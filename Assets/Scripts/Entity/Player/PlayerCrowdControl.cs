@@ -19,6 +19,7 @@ public enum PlayerCrowdControlType
 {
     Custom,
     Stun,
+    Petrify,
     Slow,
     Knockback
 }
@@ -38,6 +39,18 @@ public struct PlayerCrowdControlRequest
             Type = PlayerCrowdControlType.Stun,
             Duration = duration,
             MoveSpeedMultiplier = 1f,
+            Locks = PlayerControlLock.All,
+            Knockback = Vector2.zero
+        };
+    }
+
+    public static PlayerCrowdControlRequest CreatePetrify(float duration)
+    {
+        return new PlayerCrowdControlRequest
+        {
+            Type = PlayerCrowdControlType.Petrify,
+            Duration = duration,
+            MoveSpeedMultiplier = 0f,
             Locks = PlayerControlLock.All,
             Knockback = Vector2.zero
         };
@@ -125,6 +138,9 @@ public class PlayerCrowdControl : MonoBehaviour
             case PlayerCrowdControlType.Stun:
                 ApplyStun(request.Duration);
                 break;
+            case PlayerCrowdControlType.Petrify:
+                ApplyPetrify(request.Duration);
+                break;
             case PlayerCrowdControlType.Slow:
                 ApplySlow(request.Duration, request.MoveSpeedMultiplier);
                 break;
@@ -140,6 +156,11 @@ public class PlayerCrowdControl : MonoBehaviour
     public void ApplyStun(float duration)
     {
         ApplyTimedEffect(PlayerCrowdControlType.Stun, duration, PlayerControlLock.All, 1f);
+    }
+
+    public void ApplyPetrify(float duration)
+    {
+        ApplyTimedEffect(PlayerCrowdControlType.Petrify, duration, PlayerControlLock.All, 0f);
     }
 
     public void ApplySlow(float duration, float moveSpeedMultiplier)

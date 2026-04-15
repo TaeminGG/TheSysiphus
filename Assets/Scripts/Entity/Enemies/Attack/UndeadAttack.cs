@@ -19,9 +19,12 @@ public class UndeadAttack : MonoBehaviour, IEnemyAttack
 
     public bool isAttacking = false;
     private bool isAttacked = false;
+    private Vector2 lockedAttackDirection = Vector2.down;
+    private float lockedAttackAngle = 180f;
 
     public AttackHitBox hitBox;
     public AttackData attackData;
+    private EnemyAttackTelegraph telegraph;
 
     void Start()
     {
@@ -29,26 +32,39 @@ public class UndeadAttack : MonoBehaviour, IEnemyAttack
         crowdControl = GetComponent<EnemyCrowdControl>();
         playerMove = GameObject.Find("Player").GetComponent<PlayerMove>();
         floorZ = movement.floorZ;
+        telegraph = GetComponent<EnemyAttackTelegraph>();
+        if (telegraph == null)
+            telegraph = gameObject.AddComponent<EnemyAttackTelegraph>();
     }
 
     void Update()
     {
-        if (crowdControl != null && !crowdControl.CanAttack)
+        if (crowdControl != null && crowdControl.ShouldCancelCurrentAttack)
         {
             ResetAttackState();
             return;
         }
 
+        if (!isAttacking && crowdControl != null && !crowdControl.CanAttack)
+            return;
+
         if (CanAttack && !isAttacking)
+        {
+            CacheAttackDirection();
             isAttacking = true;
+        }
 
         if (isAttacking)
         {
             timer += Time.deltaTime;
 
+            if (!isAttacked)
+                UpdateTelegraph();
+
             if ((timer >= readyTime) && !isAttacked)
             {
                 isAttacked = true;
+                telegraph.Hide();
                 Attack();
             }
 
@@ -63,15 +79,18 @@ public class UndeadAttack : MonoBehaviour, IEnemyAttack
     {
         duration = attackData.attackDuration;
         damage = attackData.damage;
-
-        Vector3 direction = (playerMove.transform.position - transform.position).normalized;
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        angle -= 90.0f;
-
-        hitBox.EnemySetup(attackData, damage, duration, transform.position, angle, floorZ);
+        hitBox.EnemySetup(attackData, damage, duration, transform.position, lockedAttackAngle, floorZ);
     }
 
     public bool CanAttack => AttackRange();
+
+    private void UpdateTelegraph()
+    {
+        if (telegraph == null || attackData == null || playerMove == null)
+            return;
+
+        telegraph.ShowHitBoxTelegraph(transform.position, attackData, lockedAttackAngle, Mathf.RoundToInt(floorZ));
+    }
 
     private bool AttackRange()
     {
@@ -93,8 +112,24 @@ public class UndeadAttack : MonoBehaviour, IEnemyAttack
 
     private void ResetAttackState()
     {
+        telegraph?.Hide();
         timer = 0f;
         isAttacking = false;
         isAttacked = false;
+        lockedAttackDirection = Vector2.down;
+        lockedAttackAngle = 180f;
+    }
+
+    private void CacheAttackDirection()
+    {
+        if (playerMove == null)
+            return;
+
+        Vector2 direction = playerMove.transform.position - transform.position;
+        if (direction.sqrMagnitude <= 0.001f)
+            direction = Vector2.down;
+
+        lockedAttackDirection = direction.normalized;
+        lockedAttackAngle = Mathf.Atan2(lockedAttackDirection.y, lockedAttackDirection.x) * Mathf.Rad2Deg - 90f;
     }
 }

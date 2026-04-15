@@ -67336,6 +67336,63 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1743165979}
   m_CullTransparentMesh: 1
+--- !u!1001 &1803368815
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3513714798304566990, guid: ebed9361a7594d3c8cf3b6aa584ec9fc, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 3.8558104
+      objectReference: {fileID: 0}
+    - target: {fileID: 3513714798304566990, guid: ebed9361a7594d3c8cf3b6aa584ec9fc, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -2.5341206
+      objectReference: {fileID: 0}
+    - target: {fileID: 3513714798304566990, guid: ebed9361a7594d3c8cf3b6aa584ec9fc, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3513714798304566990, guid: ebed9361a7594d3c8cf3b6aa584ec9fc, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3513714798304566990, guid: ebed9361a7594d3c8cf3b6aa584ec9fc, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3513714798304566990, guid: ebed9361a7594d3c8cf3b6aa584ec9fc, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3513714798304566990, guid: ebed9361a7594d3c8cf3b6aa584ec9fc, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3513714798304566990, guid: ebed9361a7594d3c8cf3b6aa584ec9fc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3513714798304566990, guid: ebed9361a7594d3c8cf3b6aa584ec9fc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3513714798304566990, guid: ebed9361a7594d3c8cf3b6aa584ec9fc, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5480518171943689137, guid: ebed9361a7594d3c8cf3b6aa584ec9fc, type: 3}
+      propertyPath: m_Name
+      value: Gorgon
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: ebed9361a7594d3c8cf3b6aa584ec9fc, type: 3}
 --- !u!1 &1803652990
 GameObject:
   m_ObjectHideFlags: 0
@@ -68058,6 +68115,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Undead
       objectReference: {fileID: 0}
+    - target: {fileID: 5480518171943689137, guid: 7fe2aa76d8c58f847b4a3c7c5bbfa71a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7115197825974064350, guid: 7fe2aa76d8c58f847b4a3c7c5bbfa71a, type: 3}
       propertyPath: m_Camera
       value: 
@@ -68375,3 +68436,4 @@ SceneRoots:
   - {fileID: 6358504289749166875}
   - {fileID: 921874773}
   - {fileID: 3371246443387115534}
+  - {fileID: 1803368815}
