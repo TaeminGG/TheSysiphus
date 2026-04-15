@@ -38,6 +38,13 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
     public GameObject healEffect;
     private PlayerCrowdControl crowdControl;
+    private bool hasHandledDeath;
+
+    private void Awake()
+    {
+        if (GetComponent<PlayerDeathSequenceController>() == null)
+            gameObject.AddComponent<PlayerDeathSequenceController>();
+    }
 
     private void Start()
     {
@@ -49,6 +56,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
         OnDamaged += ShowDamage;
         OnHealEvent += ShowHealEffect;
+        OnDeath += HandleDeath;
         OnGoldChanged?.Invoke(gold);
     }
 
@@ -78,7 +86,17 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
     public void HitByRock()
     {
-        Debug.Log("Die");
+        Kill();
+    }
+
+    public void Kill()
+    {
+        if (IsDead)
+            return;
+
+        currentHp = 0f;
+        invTimer = 0f;
+        OnDeath?.Invoke();
     }
 
     private void ShowDamage(float amount)
@@ -245,6 +263,44 @@ public class PlayerStats : MonoBehaviour, IDamageable
         damage -= amount;
     }
 
+    private void HandleDeath()
+    {
+        if (hasHandledDeath)
+            return;
+
+        hasHandledDeath = true;
+
+        if (crowdControl != null)
+            crowdControl.ClearKnockback();
+
+        if (TryGetComponent(out PlayerInput playerInput))
+            playerInput.DeactivateInput();
+
+        if (TryGetComponent(out PlayerMove playerMove))
+            playerMove.enabled = false;
+
+        if (TryGetComponent(out AttackController attackController))
+            attackController.enabled = false;
+
+        if (TryGetComponent(out ActiveInventory activeInventory))
+            activeInventory.enabled = false;
+
+        if (TryGetComponent(out Rigidbody2D rigidbody2D))
+        {
+            rigidbody2D.linearVelocity = Vector2.zero;
+            rigidbody2D.angularVelocity = 0f;
+            rigidbody2D.simulated = false;
+        }
+
+        Collider2D[] colliders = GetComponents<Collider2D>();
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = false;
+        }
+
+        Debug.Log("Player died.");
+    }
+
     private void OnHeal(InputValue value)
     {
         if (crowdControl != null && !crowdControl.CanHeal)
@@ -259,5 +315,15 @@ public class PlayerStats : MonoBehaviour, IDamageable
         healTimer = 0f;
         potionCount--;
         Heal(healAmount);
+    }
+
+    private void OnDestroy()
+    {
+        OnDamaged = null;
+        OnDeath = null;
+        OnKill = null;
+        OnDash = null;
+        OnHealEvent = null;
+        OnGoldChanged = null;
     }
 }

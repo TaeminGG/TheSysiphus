@@ -29,6 +29,7 @@ public class CameraChase : MonoBehaviour
     [SerializeField] private Camera targetCamera;
     [SerializeField] private float defaultZoom = 5f;
     [SerializeField] private float zoomLerpSpeed = 10f;
+    [SerializeField] private bool useUnscaledDeltaTime = false;
 
     [Header("Preset")]
     [SerializeField] private CameraFeedbackPreset defaultImpactPreset;
@@ -75,32 +76,78 @@ public class CameraChase : MonoBehaviour
             }
         }
 
-        Vector3 desiredPosition = followTarget.position;
-        desiredPosition.z = 0f;
-        desiredPosition += cameraDepth;
-        desiredPosition += UpdateMouseLookOffset();
-        desiredPosition += shakeOffset;
+        Vector3 desiredPosition = GetDesiredPosition(includeShakeOffset: true);
+        float deltaTime = GetDeltaTime();
 
-        if (useBounds)
-        {
-            desiredPosition.x = Mathf.Clamp(desiredPosition.x, minX, maxX);
-            desiredPosition.y = Mathf.Clamp(desiredPosition.y, minY, maxY);
-        }
-
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime * cameraSpeed);
+        transform.position = Vector3.Lerp(transform.position, desiredPosition, deltaTime * cameraSpeed);
 
         if (targetCamera != null && targetCamera.orthographic)
         {
             targetCamera.orthographicSize = Mathf.Lerp(
                 targetCamera.orthographicSize,
                 targetZoom,
-                Time.deltaTime * zoomLerpSpeed);
+                deltaTime * zoomLerpSpeed);
         }
     }
 
     public void SetFollowTarget(Transform target)
     {
         followTarget = target;
+    }
+
+    public void SetMouseLookOffsetEnabled(bool enabled, bool clearOffsetImmediately = false)
+    {
+        useMouseLookOffset = enabled;
+
+        if (clearOffsetImmediately)
+            mouseLookOffset = Vector3.zero;
+    }
+
+    public void SetCameraSpeed(float newSpeed)
+    {
+        cameraSpeed = Mathf.Max(0f, newSpeed);
+    }
+
+    public void SetUseUnscaledTime(bool enabled)
+    {
+        useUnscaledDeltaTime = enabled;
+    }
+
+    public void SetZoomImmediate(float zoomSize)
+    {
+        if (zoomRoutine != null)
+        {
+            StopCoroutine(zoomRoutine);
+            zoomRoutine = null;
+        }
+
+        targetZoom = zoomSize;
+
+        if (targetCamera != null && targetCamera.orthographic)
+            targetCamera.orthographicSize = zoomSize;
+    }
+
+    public void SnapToFollowTarget()
+    {
+        if (followTarget == null)
+        {
+            ResolveTarget();
+            if (followTarget == null)
+                return;
+        }
+
+        transform.position = GetDesiredPosition(includeShakeOffset: false);
+    }
+
+    public void ZoomTo(float zoomSize, float duration, bool useUnscaledTime = true)
+    {
+        if (targetCamera == null || !targetCamera.orthographic)
+            return;
+
+        if (zoomRoutine != null)
+            StopCoroutine(zoomRoutine);
+
+        zoomRoutine = StartCoroutine(ZoomToRoutine(zoomSize, duration, useUnscaledTime));
     }
 
     public void PlayPreset(CameraFeedbackPreset presetOverride = null)
@@ -162,7 +209,7 @@ public class CameraChase : MonoBehaviour
     {
         if (!useMouseLookOffset || Mouse.current == null || Screen.width <= 0 || Screen.height <= 0)
         {
-            mouseLookOffset = Vector3.Lerp(mouseLookOffset, Vector3.zero, Time.deltaTime * mouseLookSmoothSpeed);
+            mouseLookOffset = Vector3.Lerp(mouseLookOffset, Vector3.zero, GetDeltaTime() * mouseLookSmoothSpeed);
             return mouseLookOffset;
         }
 
@@ -181,8 +228,27 @@ public class CameraChase : MonoBehaviour
         Vector2 direction = rawDistance > 0.001f ? normalizedFromCenter.normalized : Vector2.zero;
         Vector3 targetOffset = new Vector3(direction.x, direction.y, 0f) * maxMouseLookDistance * intensity;
 
-        mouseLookOffset = Vector3.Lerp(mouseLookOffset, targetOffset, Time.deltaTime * mouseLookSmoothSpeed);
+        mouseLookOffset = Vector3.Lerp(mouseLookOffset, targetOffset, GetDeltaTime() * mouseLookSmoothSpeed);
         return mouseLookOffset;
+    }
+
+    private Vector3 GetDesiredPosition(bool includeShakeOffset)
+    {
+        Vector3 desiredPosition = followTarget.position;
+        desiredPosition.z = 0f;
+        desiredPosition += cameraDepth;
+        desiredPosition += UpdateMouseLookOffset();
+
+        if (includeShakeOffset)
+            desiredPosition += shakeOffset;
+
+        if (useBounds)
+        {
+            desiredPosition.x = Mathf.Clamp(desiredPosition.x, minX, maxX);
+            desiredPosition.y = Mathf.Clamp(desiredPosition.y, minY, maxY);
+        }
+
+        return desiredPosition;
     }
 
     private IEnumerator ShakeRoutine(float duration, float magnitude, float frequency, AnimationCurve curve)
@@ -198,7 +264,7 @@ public class CameraChase : MonoBehaviour
 
         while (elapsed < duration)
         {
-            elapsed += Time.deltaTime;
+            elapsed += GetDeltaTime();
             float normalizedTime = Mathf.Clamp01(elapsed / duration);
             float strength = curve != null ? curve.Evaluate(normalizedTime) : 1f - normalizedTime;
 
@@ -225,11 +291,43 @@ public class CameraChase : MonoBehaviour
 
         while (Mathf.Abs(targetZoom - defaultZoom) > 0.02f)
         {
-            targetZoom = Mathf.Lerp(targetZoom, defaultZoom, Time.deltaTime * recoverSpeed);
+            targetZoom = Mathf.Lerp(targetZoom, defaultZoom, GetDeltaTime() * recoverSpeed);
             yield return null;
         }
 
         targetZoom = defaultZoom;
         zoomRoutine = null;
+    }
+
+    private IEnumerator ZoomToRoutine(float zoomSize, float duration, bool useUnscaledTime)
+    {
+        float startZoom = targetCamera.orthographicSize;
+
+        if (duration <= 0f)
+        {
+            SetZoomImmediate(zoomSize);
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float currentZoom = Mathf.Lerp(startZoom, zoomSize, t);
+
+            targetZoom = currentZoom;
+            targetCamera.orthographicSize = currentZoom;
+            yield return null;
+        }
+
+        targetZoom = zoomSize;
+        targetCamera.orthographicSize = zoomSize;
+        zoomRoutine = null;
+    }
+
+    private float GetDeltaTime()
+    {
+        return useUnscaledDeltaTime ? Time.unscaledDeltaTime : Time.deltaTime;
     }
 }
