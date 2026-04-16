@@ -33,6 +33,7 @@ public class GamePauseController : MonoBehaviour
         Instance = this;
         ResolveReferences();
         ResolvePauseBackdrop();
+        EnsurePauseMenuExtensions();
         SetPauseVisuals(false);
     }
 
@@ -146,5 +147,13 @@ public class GamePauseController : MonoBehaviour
         int menuSiblingIndex = pauseMenuRoot.transform.GetSiblingIndex();
         backdropObject.transform.SetSiblingIndex(Mathf.Max(0, menuSiblingIndex));
         pauseMenuRoot.transform.SetSiblingIndex(backdropObject.transform.GetSiblingIndex() + 1);
+    }
+
+    private void EnsurePauseMenuExtensions()
+    {
+        if (pauseMenuRoot == null || pauseMenuRoot.GetComponent<PauseItemCollectionMenu>() != null)
+            return;
+
+        pauseMenuRoot.AddComponent<PauseItemCollectionMenu>();
     }
 }
