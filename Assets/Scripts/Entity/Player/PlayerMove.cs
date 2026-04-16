@@ -265,7 +265,7 @@ public class PlayerMove : MonoBehaviour
         int prevZ = floorZ;
         int targetZLevel = 0;
         Vector3 targetPos = shadow.transform.position + (Vector3)(normalizedAxis * moveDistance);
-        int targetGroundZLevel = stc.GetGroundZLevel(targetPos);
+        int targetGroundZLevel = NormalizeFloorZ(stc.GetGroundZLevel(targetPos));
 
         bool isTileValid = stc.GetTileValid(normalizedAxis, moveDistance);
 
