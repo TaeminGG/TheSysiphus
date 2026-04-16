@@ -610,6 +610,7 @@ MonoBehaviour:
   displayPoints:
   - {fileID: 284976246849518260}
   - {fileID: 1831621552483472795}
+  stockPool: {fileID: 11400000, guid: 2a7cb11d746f442c8bb2aac95fcd960f, type: 2}
   stockEntries:
   - isPassive: 1
     passiveItem: {fileID: 11400000, guid: a0c86b3472f5ea644944a582526d34b7, type: 2}

@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45b55c35706a1da4e8b1d2bb507bc5f0, type: 3}
   m_Name: AresRemnant
   m_EditorClassIdentifier: Assembly-CSharp::AttackUp
+  itemId: passive_ares_remnant
   itemName: AresRemnant
   icon: {fileID: 0}
   description: Attack + 10

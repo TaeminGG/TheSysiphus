@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be94a724e7eff06408e41ed715bd1106, type: 3}
   m_Name: TisiphoneBloodTear
   m_EditorClassIdentifier: Assembly-CSharp::TisiphoneTear
+  itemId: active_tisiphone_blood_tear
   itemName: "\uD2F0\uC2DC\uD3EC\uB124\uC758 \uD53C\uB208\uBB3C"
   icon: {fileID: -8954672858196175425, guid: 418b1a32e3830c74aab20d5d21809c7b, type: 3}
   description: "\uACF5\uACA9\uB825\uC744 \uC77C\uC2DC\uC801\uC73C\uB85C \uB300\uD3ED
