@@ -76,6 +76,15 @@ public class GamePauseController : MonoBehaviour
         SetPaused(false);
     }
 
+    public void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+
     private void OnPause(InputValue value)
     {
         if (!value.isPressed)
