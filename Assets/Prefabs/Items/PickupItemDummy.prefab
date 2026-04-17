@@ -539,7 +539,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 2
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  m_Sprite: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -601,13 +601,18 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   canvas: {fileID: 6212626330939850144}
+  interactionPriority: 20
   icon: {fileID: 6473913910753899301}
   itemName: {fileID: 1080195949853339568}
   itemDescription: {fileID: 8214594980116093219}
+  priceText: {fileID: 0}
   item: {fileID: 0}
   activeItem: {fileID: 0}
-  floorZ: 0
   isPassive: 0
+  floorZ: 0
+  requiresPurchase: 0
+  price: 0
+  merchant: {fileID: 0}
 --- !u!1 &5546880327620640345
 GameObject:
   m_ObjectHideFlags: 0

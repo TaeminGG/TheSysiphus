@@ -285,6 +285,7 @@ MonoBehaviour:
   spriteRenderer: {fileID: 0}
   openedSprite: {fileID: -894590311, guid: ee28885bcd4b16c4b865932a47e08cdb, type: 3}
   canvas: {fileID: 4060870068887630228}
+  lootPool: {fileID: 11400000, guid: 1df0a58f5fa14d43a4eb4a7562dd76d5, type: 2}
   pickupItemPrefab: {fileID: 4415174877770125339, guid: 60203b2694dd59a4896551f4260b9810, type: 3}
   passiveItems:
   - {fileID: 11400000, guid: 4d3084ea2c785ed4a874a12d9fa75f60, type: 2}

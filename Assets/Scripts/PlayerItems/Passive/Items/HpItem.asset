@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 828925b6c05bddd439e99d3a3bf8300a, type: 3}
   m_Name: HpItem
   m_EditorClassIdentifier: Assembly-CSharp::MaxHpUp
+  itemId: passive_max_hp_up
   itemName: "\uCCB4\uB825 \uC99D\uAC00"
   icon: {fileID: -7062486114238938467, guid: c7008d5880a9b1d41ac0fcd21ec1988d, type: 3}
   description: "Max HP + 10\n\uC544\uC774\uD15C \uC124\uBA85 \uD55C\uAE00 \uD14C\uC2A4\uD2B8"

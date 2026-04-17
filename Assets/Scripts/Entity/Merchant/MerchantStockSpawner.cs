@@ -21,11 +21,21 @@ public class MerchantStockSpawner : MonoBehaviour
     public MerchantNPC merchant;
     public PickupItem pickupItemPrefab;
     public Transform[] displayPoints;
+    public ItemSpawnPool stockPool;
     public MerchantStockEntry[] stockEntries;
     public bool allowDuplicates = false;
     public int floorZ = 0;
 
     private readonly List<PickupItem> spawnedItems = new List<PickupItem>();
+
+    private struct RuntimeStockEntry
+    {
+        public bool IsPassive;
+        public PassiveItem PassiveItem;
+        public ActiveItem ActiveItem;
+        public int Price;
+        public float Weight;
+    }
 
     private void Start()
     {
@@ -37,44 +47,82 @@ public class MerchantStockSpawner : MonoBehaviour
     {
         ClearSpawnedItems();
 
-        if (pickupItemPrefab == null || displayPoints == null || displayPoints.Length == 0 || stockEntries == null || stockEntries.Length == 0)
+        if (pickupItemPrefab == null || displayPoints == null || displayPoints.Length == 0)
             return;
 
-        List<int> availableIndices = new List<int>();
-        for (int i = 0; i < stockEntries.Length; i++)
-        {
-            if (stockEntries[i] != null && stockEntries[i].IsValid())
-                availableIndices.Add(i);
-        }
-
-        if (availableIndices.Count == 0)
+        List<RuntimeStockEntry> availableEntries = BuildAvailableEntries();
+        if (availableEntries.Count == 0)
             return;
 
         for (int i = 0; i < displayPoints.Length; i++)
         {
             Transform displayPoint = displayPoints[i];
-            if (displayPoint == null || availableIndices.Count == 0)
+            if (displayPoint == null || availableEntries.Count == 0)
                 continue;
 
-            int selectedIndex = SelectWeightedIndex(availableIndices);
+            int selectedIndex = SelectWeightedIndex(availableEntries);
             if (selectedIndex < 0)
                 continue;
 
-            MerchantStockEntry entry = stockEntries[selectedIndex];
+            RuntimeStockEntry entry = availableEntries[selectedIndex];
             PickupItem spawnedItem = Instantiate(pickupItemPrefab, displayPoint.position, displayPoint.rotation);
-            spawnedItem.ConfigureAsMerchantItem(entry.isPassive, entry.passiveItem, entry.activeItem, entry.price, merchant, floorZ);
+            spawnedItem.ConfigureAsMerchantItem(entry.IsPassive, entry.PassiveItem, entry.ActiveItem, entry.Price, merchant, floorZ);
             spawnedItems.Add(spawnedItem);
 
             if (!allowDuplicates)
-                availableIndices.Remove(selectedIndex);
+                availableEntries.RemoveAt(selectedIndex);
         }
     }
 
-    private int SelectWeightedIndex(List<int> availableIndices)
+    private List<RuntimeStockEntry> BuildAvailableEntries()
+    {
+        List<RuntimeStockEntry> availableEntries = new List<RuntimeStockEntry>();
+
+        if (stockPool != null)
+        {
+            List<ItemSpawnPool.RollResult> poolEntries = stockPool.GetUnlockedEntries(ItemUnlockRegistry.FindInstance());
+            for (int i = 0; i < poolEntries.Count; i++)
+            {
+                availableEntries.Add(new RuntimeStockEntry
+                {
+                    IsPassive = poolEntries[i].IsPassive,
+                    PassiveItem = poolEntries[i].PassiveItem,
+                    ActiveItem = poolEntries[i].ActiveItem,
+                    Price = poolEntries[i].Price,
+                    Weight = poolEntries[i].Weight
+                });
+            }
+
+            return availableEntries;
+        }
+
+        if (stockEntries == null)
+            return availableEntries;
+
+        for (int i = 0; i < stockEntries.Length; i++)
+        {
+            MerchantStockEntry stockEntry = stockEntries[i];
+            if (stockEntry == null || !stockEntry.IsValid())
+                continue;
+
+            availableEntries.Add(new RuntimeStockEntry
+            {
+                IsPassive = stockEntry.isPassive,
+                PassiveItem = stockEntry.passiveItem,
+                ActiveItem = stockEntry.activeItem,
+                Price = stockEntry.price,
+                Weight = Mathf.Max(0.01f, stockEntry.weight)
+            });
+        }
+
+        return availableEntries;
+    }
+
+    private int SelectWeightedIndex(List<RuntimeStockEntry> availableEntries)
     {
         float totalWeight = 0f;
-        for (int i = 0; i < availableIndices.Count; i++)
-            totalWeight += Mathf.Max(0.01f, stockEntries[availableIndices[i]].weight);
+        for (int i = 0; i < availableEntries.Count; i++)
+            totalWeight += Mathf.Max(0.01f, availableEntries[i].Weight);
 
         if (totalWeight <= 0f)
             return -1;
@@ -82,16 +130,15 @@ public class MerchantStockSpawner : MonoBehaviour
         float roll = Random.value * totalWeight;
         float cumulativeWeight = 0f;
 
-        for (int i = 0; i < availableIndices.Count; i++)
+        for (int i = 0; i < availableEntries.Count; i++)
         {
-            int index = availableIndices[i];
-            cumulativeWeight += Mathf.Max(0.01f, stockEntries[index].weight);
+            cumulativeWeight += Mathf.Max(0.01f, availableEntries[i].Weight);
 
             if (roll <= cumulativeWeight)
-                return index;
+                return i;
         }
 
-        return availableIndices[availableIndices.Count - 1];
+        return availableEntries.Count - 1;
     }
 
     private void ClearSpawnedItems()

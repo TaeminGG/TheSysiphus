@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f77eb2ae3c764ec3afb4eef8dbd5f4c8, type: 3}
+  m_Name: MerchantDefaultItemSpawnPool
+  m_EditorClassIdentifier: Assembly-CSharp::ItemSpawnPool
+  passiveItems:
+  - item: {fileID: 11400000, guid: a0c86b3472f5ea644944a582526d34b7, type: 2}
+    rarity: 0
+    weightMultiplier: 1.5
+    price: 3
+  - item: {fileID: 11400000, guid: e3cf19f05cf3d3b4ba53476b3d8f3e23, type: 2}
+    rarity: 0
+    weightMultiplier: 1.5
+    price: 3
+  - item: {fileID: 11400000, guid: 4d3084ea2c785ed4a874a12d9fa75f60, type: 2}
+    rarity: 1
+    weightMultiplier: 1
+    price: 3
+  - item: {fileID: 11400000, guid: 0519dc9b692551b4a9c582b0c6317777, type: 2}
+    rarity: 2
+    weightMultiplier: 1
+    price: 4
+  activeItems:
+  - item: {fileID: 11400000, guid: db27c7aaca375db4080cbe80b3f2e9f8, type: 2}
+    rarity: 1
+    weightMultiplier: 1
+    price: 5
+  - item: {fileID: 11400000, guid: 244161eb188503541986f307880234b2, type: 2}
+    rarity: 2
+    weightMultiplier: 1
+    price: 5
+  - item: {fileID: 11400000, guid: 84bd0f6a5d79a104db9a1031c4defd92, type: 2}
+    rarity: 3
+    weightMultiplier: 1
+    price: 6

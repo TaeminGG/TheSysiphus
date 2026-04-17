@@ -13,6 +13,7 @@ public class PickupChest : MonoBehaviour, IPlayerInteractable
     [SerializeField] private int interactionPriority = 20;
 
     [Header("Loot")]
+    public ItemSpawnPool lootPool;
     public GameObject pickupItemPrefab;
     public PassiveItem[] passiveItems;
     public ActiveItem[] activeItems;
@@ -181,6 +182,14 @@ public class PickupChest : MonoBehaviour, IPlayerInteractable
 
     private void ApplyLoot(PickupItem pickupItem)
     {
+        if (lootPool != null && lootPool.TryRollChestLoot(ItemUnlockRegistry.FindInstance(), out ItemSpawnPool.RollResult rollResult))
+        {
+            pickupItem.isPassive = rollResult.IsPassive;
+            pickupItem.item = rollResult.PassiveItem;
+            pickupItem.activeItem = rollResult.ActiveItem;
+            return;
+        }
+
         bool hasPassive = passiveItems != null && passiveItems.Length > 0;
         bool hasActive = activeItems != null && activeItems.Length > 0;
 

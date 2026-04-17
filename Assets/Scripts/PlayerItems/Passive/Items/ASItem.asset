@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51ef4da97bb883541bbd9de9b0ebeeab, type: 3}
   m_Name: ASItem
   m_EditorClassIdentifier: Assembly-CSharp::ASUp
+  itemId: passive_attack_speed_up
   itemName: 
   icon: {fileID: 0}
   description: 
