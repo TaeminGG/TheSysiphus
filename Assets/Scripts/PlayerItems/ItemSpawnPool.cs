@@ -9,22 +9,20 @@ public class ItemSpawnPool : ScriptableObject
     public class PassiveEntry
     {
         public PassiveItem item;
-        public ItemRarity rarity = ItemRarity.Common;
         [Min(0.01f)] public float weightMultiplier = 1f;
         [Min(0)] public int price = 0;
 
-        public float Weight => Mathf.Max(0.01f, ItemRarityUtility.GetWeight(rarity) * Mathf.Max(0.01f, weightMultiplier));
+        public float Weight => Mathf.Max(0.01f, ItemRarityUtility.GetWeight(item != null ? item.Rarity : ItemRarity.Common) * Mathf.Max(0.01f, weightMultiplier));
     }
 
     [Serializable]
     public class ActiveEntry
     {
         public ActiveItem item;
-        public ItemRarity rarity = ItemRarity.Common;
         [Min(0.01f)] public float weightMultiplier = 1f;
         [Min(0)] public int price = 0;
 
-        public float Weight => Mathf.Max(0.01f, ItemRarityUtility.GetWeight(rarity) * Mathf.Max(0.01f, weightMultiplier));
+        public float Weight => Mathf.Max(0.01f, ItemRarityUtility.GetWeight(item != null ? item.Rarity : ItemRarity.Common) * Mathf.Max(0.01f, weightMultiplier));
     }
 
     public struct RollResult

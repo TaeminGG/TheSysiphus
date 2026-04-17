@@ -184,9 +184,7 @@ public class PickupChest : MonoBehaviour, IPlayerInteractable
     {
         if (lootPool != null && lootPool.TryRollChestLoot(ItemUnlockRegistry.FindInstance(), out ItemSpawnPool.RollResult rollResult))
         {
-            pickupItem.isPassive = rollResult.IsPassive;
-            pickupItem.item = rollResult.PassiveItem;
-            pickupItem.activeItem = rollResult.ActiveItem;
+            pickupItem.ConfigureDropItem(rollResult.IsPassive, rollResult.PassiveItem, rollResult.ActiveItem);
             return;
         }
 
@@ -199,13 +197,11 @@ public class PickupChest : MonoBehaviour, IPlayerInteractable
         bool dropPassive = hasPassive && (!hasActive || Random.value < 0.5f);
         if (dropPassive)
         {
-            pickupItem.isPassive = true;
-            pickupItem.item = passiveItems[Random.Range(0, passiveItems.Length)];
+            pickupItem.ConfigureDropItem(true, passiveItems[Random.Range(0, passiveItems.Length)], null);
         }
         else
         {
-            pickupItem.isPassive = false;
-            pickupItem.activeItem = activeItems[Random.Range(0, activeItems.Length)];
+            pickupItem.ConfigureDropItem(false, null, activeItems[Random.Range(0, activeItems.Length)]);
         }
     }
 

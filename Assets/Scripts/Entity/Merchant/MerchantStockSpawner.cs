@@ -16,6 +16,15 @@ public class MerchantStockSpawner : MonoBehaviour
         {
             return isPassive ? passiveItem != null : activeItem != null;
         }
+
+        public float GetEffectiveWeight()
+        {
+            ItemRarity rarity = isPassive
+                ? (passiveItem != null ? passiveItem.Rarity : ItemRarity.Common)
+                : (activeItem != null ? activeItem.Rarity : ItemRarity.Common);
+
+            return Mathf.Max(0.01f, ItemRarityUtility.GetWeight(rarity) * Mathf.Max(0.01f, weight));
+        }
     }
 
     public MerchantNPC merchant;
@@ -111,7 +120,7 @@ public class MerchantStockSpawner : MonoBehaviour
                 PassiveItem = stockEntry.passiveItem,
                 ActiveItem = stockEntry.activeItem,
                 Price = stockEntry.price,
-                Weight = Mathf.Max(0.01f, stockEntry.weight)
+                Weight = stockEntry.GetEffectiveWeight()
             });
         }
 
