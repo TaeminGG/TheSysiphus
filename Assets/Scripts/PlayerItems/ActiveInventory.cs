@@ -45,7 +45,7 @@ public class ActiveInventory : MonoBehaviour
             Vector3 dropPosition = transform.position + (Vector3)offset;
             PickupItem dropped = Instantiate(dropItem, dropPosition, Quaternion.identity).GetComponent<PickupItem>();
 
-            dropped.activeItem = items[0];
+            dropped.ConfigureDropItem(false, null, items[0]);
             dropped.SetZ(GetComponent<PlayerMove>().floorZ);
             RemoveItem(items[0]);
         }

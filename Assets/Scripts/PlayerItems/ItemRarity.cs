@@ -29,4 +29,23 @@ public static class ItemRarityUtility
                 return 1f;
         }
     }
+
+    public static Color GetDisplayColor(ItemRarity rarity)
+    {
+        switch (rarity)
+        {
+            case ItemRarity.Common:
+                return Color.white;
+            case ItemRarity.Uncommon:
+                return new Color(0.45f, 0.95f, 0.55f, 1f);
+            case ItemRarity.Rare:
+                return new Color(0.35f, 0.65f, 1f, 1f);
+            case ItemRarity.Epic:
+                return new Color(0.78f, 0.45f, 1f, 1f);
+            case ItemRarity.Legendary:
+                return new Color(1f, 0.72f, 0.2f, 1f);
+            default:
+                return Color.white;
+        }
+    }
 }
