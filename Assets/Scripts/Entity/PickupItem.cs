@@ -135,6 +135,8 @@ public class PickupItem : MonoBehaviour, IPlayerInteractable
     private SpriteRenderer cachedDefaultRendererSource;
     private TrailRenderer[] cachedTrailRendererSources = Array.Empty<TrailRenderer>();
     private SpriteRenderer runtimeMaterialOwner;
+    private ItemUnlockRegistry itemUnlockRegistry;
+    private bool passiveReservationClaimed = false;
 
     public int InteractionPriority => interactionPriority;
     public Vector3 InteractionPosition => transform.position;
@@ -146,9 +148,17 @@ public class PickupItem : MonoBehaviour, IPlayerInteractable
         EnsureVisualProfiles();
     }
 
+    private void OnEnable()
+    {
+        RegisterRegistryListener();
+    }
+
     private void Start()
     {
+        RegisterRegistryListener();
         RefreshItemView();
+        if (!EnsurePassiveAvailability())
+            return;
 
         if (canvas != null)
             canvas.enabled = false;
@@ -170,6 +180,12 @@ public class PickupItem : MonoBehaviour, IPlayerInteractable
     private void OnDisable()
     {
         UnregisterInteractable();
+        UnregisterRegistryListener();
+    }
+
+    private void OnDestroy()
+    {
+        ReleasePassiveReservation();
     }
 
     public bool CanInteract(PlayerMove player)
@@ -197,6 +213,8 @@ public class PickupItem : MonoBehaviour, IPlayerInteractable
 
         if (isPassive)
         {
+            itemUnlockRegistry ??= ItemUnlockRegistry.FindInstance();
+            itemUnlockRegistry?.Collect(item);
             PassiveItemList passiveItemList = player.GetComponent<PassiveItemList>();
             passiveItemList?.AddItem(item);
         }
@@ -214,29 +232,43 @@ public class PickupItem : MonoBehaviour, IPlayerInteractable
         RefreshCanvas();
     }
 
-    public void ConfigureDropItem(bool passive, PassiveItem passiveItem, ActiveItem activeItemData)
+    public void ConfigureDropItem(bool passive, PassiveItem passiveItem, ActiveItem activeItemData, bool reservationAlreadyClaimed = false)
     {
+        ReleasePassiveReservation();
         isPassive = passive;
         item = passiveItem;
         activeItem = activeItemData;
+        passiveReservationClaimed = reservationAlreadyClaimed && passive && passiveItem != null;
         requiresPurchase = false;
         price = 0;
         merchant = null;
         useExplicitRarity = false;
         RefreshItemView();
+        EnsurePassiveAvailability();
     }
 
-    public void ConfigureAsMerchantItem(bool passive, PassiveItem passiveItem, ActiveItem activeItemData, int itemPrice, MerchantNPC merchantOwner, int z)
+    public void MarkPassiveReservationClaimed()
     {
+        if (!isPassive || item == null)
+            return;
+
+        passiveReservationClaimed = true;
+    }
+
+    public void ConfigureAsMerchantItem(bool passive, PassiveItem passiveItem, ActiveItem activeItemData, int itemPrice, MerchantNPC merchantOwner, int z, bool reservationAlreadyClaimed = false)
+    {
+        ReleasePassiveReservation();
         isPassive = passive;
         item = passiveItem;
         activeItem = activeItemData;
+        passiveReservationClaimed = reservationAlreadyClaimed && passive && passiveItem != null;
         requiresPurchase = true;
         price = Mathf.Max(0, itemPrice);
         merchant = merchantOwner;
         SetZ(z);
         useExplicitRarity = false;
         RefreshItemView();
+        EnsurePassiveAvailability();
     }
 
     public void SetRarity(ItemRarity rarity)
@@ -650,6 +682,95 @@ public class PickupItem : MonoBehaviour, IPlayerInteractable
 
         merchant?.HandleItemPurchased(this);
         return true;
+    }
+
+    private void RegisterRegistryListener()
+    {
+        if (itemUnlockRegistry != null)
+            return;
+
+        itemUnlockRegistry = ItemUnlockRegistry.FindInstance();
+        if (itemUnlockRegistry != null)
+            itemUnlockRegistry.UnlocksChanged += HandleRegistryChanged;
+    }
+
+    private void UnregisterRegistryListener()
+    {
+        if (itemUnlockRegistry == null)
+            return;
+
+        itemUnlockRegistry.UnlocksChanged -= HandleRegistryChanged;
+        itemUnlockRegistry = null;
+    }
+
+    private void HandleRegistryChanged()
+    {
+        if (isPickedUp)
+            return;
+
+        if (!EnsurePassiveAvailability())
+            return;
+
+        HideIfCollectedPassive();
+    }
+
+    private void HideIfCollectedPassive()
+    {
+        if (!Application.isPlaying || !isPassive || item == null)
+            return;
+
+        RegisterRegistryListener();
+        if (itemUnlockRegistry == null || !itemUnlockRegistry.IsCollected(item))
+            return;
+
+        isPickedUp = true;
+        if (canvas != null)
+            canvas.enabled = false;
+
+        UnregisterInteractable();
+        Destroy(gameObject);
+    }
+
+    private bool EnsurePassiveAvailability()
+    {
+        if (!Application.isPlaying || !isPassive || item == null)
+            return true;
+
+        RegisterRegistryListener();
+        if (itemUnlockRegistry == null)
+            return true;
+
+        if (passiveReservationClaimed)
+        {
+            HideIfCollectedPassive();
+            return !isPickedUp;
+        }
+
+        if (itemUnlockRegistry.TryReservePassive(item))
+        {
+            passiveReservationClaimed = true;
+            return true;
+        }
+
+        isPickedUp = true;
+        if (canvas != null)
+            canvas.enabled = false;
+
+        UnregisterInteractable();
+        Destroy(gameObject);
+        return false;
+    }
+
+    private void ReleasePassiveReservation()
+    {
+        if (!Application.isPlaying || !passiveReservationClaimed || isPickedUp || !isPassive || item == null)
+            return;
+
+        if (itemUnlockRegistry == null)
+            itemUnlockRegistry = ItemUnlockRegistry.FindInstance();
+
+        itemUnlockRegistry?.ReleasePassiveReservation(item);
+        passiveReservationClaimed = false;
     }
 
     private void OnTriggerEnter2D(Collider2D other)

@@ -152,10 +152,17 @@ public class EnemyAttackTelegraph : MonoBehaviour
             return squareSprite;
 
         Texture2D texture = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+        texture.wrapMode = TextureWrapMode.Clamp;
         texture.SetPixel(0, 0, Color.white);
         texture.Apply();
 
-        squareSprite = Sprite.Create(texture, new Rect(0f, 0f, 1f, 1f), new Vector2(0.5f, 0.5f), 1f);
+        squareSprite = Sprite.Create(
+            texture,
+            new Rect(0f, 0f, 1f, 1f),
+            new Vector2(0.5f, 0.5f),
+            1f,
+            0u,
+            SpriteMeshType.FullRect);
         return squareSprite;
     }
 
@@ -167,6 +174,7 @@ public class EnemyAttackTelegraph : MonoBehaviour
         const int size = 128;
         Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
         texture.filterMode = FilterMode.Bilinear;
+        texture.wrapMode = TextureWrapMode.Clamp;
 
         Vector2 center = new Vector2((size - 1) * 0.5f, (size - 1) * 0.5f);
         float maxRadius = size * 0.5f;
@@ -188,7 +196,13 @@ public class EnemyAttackTelegraph : MonoBehaviour
         }
 
         texture.Apply();
-        circleSprite = Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), size);
+        circleSprite = Sprite.Create(
+            texture,
+            new Rect(0f, 0f, size, size),
+            new Vector2(0.5f, 0.5f),
+            size,
+            0u,
+            SpriteMeshType.FullRect);
         return circleSprite;
     }
 }

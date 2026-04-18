@@ -21,6 +21,9 @@ public class PassiveItemList : MonoBehaviour
     }
     public void AddItem(PassiveItem item)
     {
+        if (item == null || items.Contains(item))
+            return;
+
         items.Add(item);
         item.OnEquip(stats);
     }

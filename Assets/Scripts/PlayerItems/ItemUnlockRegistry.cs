@@ -13,6 +13,8 @@ public class ItemUnlockRegistry : MonoBehaviour
 
     private readonly HashSet<string> unlockedPassiveItemIds = new HashSet<string>();
     private readonly HashSet<string> unlockedActiveItemIds = new HashSet<string>();
+    private readonly HashSet<string> collectedPassiveItemIds = new HashSet<string>();
+    private readonly HashSet<string> reservedPassiveItemIds = new HashSet<string>();
     private readonly List<PassiveItem> unlockedPassiveItems = new List<PassiveItem>();
     private readonly List<ActiveItem> unlockedActiveItems = new List<ActiveItem>();
 
@@ -57,6 +59,8 @@ public class ItemUnlockRegistry : MonoBehaviour
     {
         unlockedPassiveItemIds.Clear();
         unlockedActiveItemIds.Clear();
+        collectedPassiveItemIds.Clear();
+        reservedPassiveItemIds.Clear();
         unlockedPassiveItems.Clear();
         unlockedActiveItems.Clear();
 
@@ -87,6 +91,45 @@ public class ItemUnlockRegistry : MonoBehaviour
         return added;
     }
 
+    public bool Collect(PassiveItem item)
+    {
+        bool unlockAdded = RegisterUnlockedPassive(item?.ItemId, item);
+        bool collectedAdded = RegisterCollectedPassive(item?.ItemId, item);
+        if (unlockAdded || collectedAdded)
+            UnlocksChanged?.Invoke();
+
+        return collectedAdded;
+    }
+
+    public bool TryReservePassive(PassiveItem item)
+    {
+        if (item == null || string.IsNullOrWhiteSpace(item.ItemId))
+            return false;
+
+        if (IsCollected(item) || reservedPassiveItemIds.Contains(item.ItemId))
+            return false;
+
+        reservedPassiveItemIds.Add(item.ItemId);
+        EnsurePassiveReference(item);
+        UnlocksChanged?.Invoke();
+        return true;
+    }
+
+    public bool ReleasePassiveReservation(PassiveItem item)
+    {
+        if (item == null || string.IsNullOrWhiteSpace(item.ItemId))
+            return false;
+
+        if (collectedPassiveItemIds.Contains(item.ItemId))
+            return false;
+
+        if (!reservedPassiveItemIds.Remove(item.ItemId))
+            return false;
+
+        UnlocksChanged?.Invoke();
+        return true;
+    }
+
     public bool IsUnlocked(PassiveItem item)
     {
         if (item == null || string.IsNullOrWhiteSpace(item.ItemId))
@@ -115,11 +158,45 @@ public class ItemUnlockRegistry : MonoBehaviour
         return false;
     }
 
+    public bool IsCollected(PassiveItem item)
+    {
+        if (item == null || string.IsNullOrWhiteSpace(item.ItemId))
+            return false;
+
+        if (collectedPassiveItemIds.Contains(item.ItemId))
+        {
+            EnsurePassiveReference(item);
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool IsReserved(PassiveItem item)
+    {
+        if (item == null || string.IsNullOrWhiteSpace(item.ItemId))
+            return false;
+
+        if (reservedPassiveItemIds.Contains(item.ItemId))
+        {
+            EnsurePassiveReference(item);
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool IsUnavailable(PassiveItem item)
+    {
+        return IsCollected(item) || IsReserved(item);
+    }
+
     public ItemUnlockSnapshot CaptureSnapshot()
     {
         ItemUnlockSnapshot snapshot = new ItemUnlockSnapshot();
         snapshot.SetUnlockedPassiveItemIds(unlockedPassiveItemIds);
         snapshot.SetUnlockedActiveItemIds(unlockedActiveItemIds);
+        snapshot.SetCollectedPassiveItemIds(collectedPassiveItemIds);
         return snapshot;
     }
 
@@ -144,6 +221,15 @@ public class ItemUnlockRegistry : MonoBehaviour
             string itemId = activeIds[i];
             ActiveItem item = ResolveActiveItem(itemId);
             RegisterUnlockedActive(itemId, item);
+        }
+
+        IReadOnlyList<string> collectedPassiveIds = snapshot.CollectedPassiveItemIds;
+        for (int i = 0; i < collectedPassiveIds.Count; i++)
+        {
+            string itemId = collectedPassiveIds[i];
+            PassiveItem item = ResolvePassiveItem(itemId);
+            RegisterUnlockedPassive(itemId, item);
+            RegisterCollectedPassive(itemId, item);
         }
 
         UnlocksChanged?.Invoke();
@@ -202,6 +288,16 @@ public class ItemUnlockRegistry : MonoBehaviour
         if (item != null && !unlockedActiveItems.Contains(item))
             unlockedActiveItems.Add(item);
 
+        return true;
+    }
+
+    private bool RegisterCollectedPassive(string itemId, PassiveItem item)
+    {
+        if (string.IsNullOrWhiteSpace(itemId) || !collectedPassiveItemIds.Add(itemId))
+            return false;
+
+        reservedPassiveItemIds.Add(itemId);
+        EnsurePassiveReference(item);
         return true;
     }
 

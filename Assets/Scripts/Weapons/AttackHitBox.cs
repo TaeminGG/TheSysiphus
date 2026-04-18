@@ -19,23 +19,21 @@ public class AttackHitBox : MonoBehaviour
 
     private float damage;
     private float floorZ = 0;
+    private PlayerStats ownerStats;
+
+    public event System.Action OnEnemyHitConfirmed;
 
 
     private void Awake()
     {
-        col = GetComponent<Collider2D>();
-
-        if (visual != null)
-        {
-            spriteRenderer = visual.GetComponent<SpriteRenderer>();
-            anim = visual.GetComponent<Animator>();
-        }
+        EnsureReferences();
     }
 
 
     // 기본 공격속도 1.0f
     public void Setup(AttackData data, float attackSpeed, float playerAttackDamage, Vector2 direction, float z)
     {
+        EnsureReferences();
         currentData = data;
         hitTargets.Clear();
         damage = playerAttackDamage;
@@ -56,6 +54,11 @@ public class AttackHitBox : MonoBehaviour
             box.size = data.hitboxSize;
             box.offset = data.hitboxOffset;
         }
+        else if (col is CircleCollider2D circle)
+        {
+            circle.radius = Mathf.Max(data.hitboxSize.x, data.hitboxSize.y) * 0.5f;
+            circle.offset = data.hitboxOffset;
+        }
 
         // 입력받은 마우스 방향에 맞춰 회전
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
@@ -73,6 +76,7 @@ public class AttackHitBox : MonoBehaviour
 
     public void EnemySetup(AttackData data, float attackDamage, float duration, Vector3 pos, float angle, float z)
     {
+        EnsureReferences();
         currentData = data;
         hitTargets.Clear();
         damage = attackDamage;
@@ -82,6 +86,11 @@ public class AttackHitBox : MonoBehaviour
         {
             box.size = data.hitboxSize;
             box.offset = data.hitboxOffset;
+        }
+        else if (col is CircleCollider2D circle)
+        {
+            circle.radius = Mathf.Max(data.hitboxSize.x, data.hitboxSize.y) * 0.5f;
+            circle.offset = data.hitboxOffset;
         }
 
         Vector3 targetPos = pos;
@@ -98,6 +107,11 @@ public class AttackHitBox : MonoBehaviour
         floorZ = z;
     }
 
+    public void SetPlayerOwner(PlayerStats stats)
+    {
+        ownerStats = stats;
+    }
+
     private IEnumerator AutoDisable(float delay)
     {
         yield return new WaitForSeconds(delay);
@@ -106,15 +120,44 @@ public class AttackHitBox : MonoBehaviour
 
     public void EnableHitBox()
     {
-        col.enabled = true;
+        EnsureReferences();
+        if (col != null)
+            col.enabled = true;
     }
 
     public void DisableHitBox()
     {
-        col.enabled = false;
+        EnsureReferences();
+        if (col != null)
+            col.enabled = false;
+    }
+
+    private void EnsureReferences()
+    {
+        if (col == null)
+            col = GetComponent<Collider2D>();
+
+        if (visual == null)
+            return;
+
+        if (spriteRenderer == null)
+            spriteRenderer = visual.GetComponent<SpriteRenderer>();
+
+        if (anim == null)
+            anim = visual.GetComponent<Animator>();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
+    {
+        HandleTriggerContact(other);
+    }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        HandleTriggerContact(other);
+    }
+
+    private void HandleTriggerContact(Collider2D other)
     {
         if (((1 << other.gameObject.layer) & hitLayer) == 0) return;
         if (hitTargets.Contains(other)) return;
@@ -143,7 +186,12 @@ public class AttackHitBox : MonoBehaviour
 
                         Vector2 knockback = (other.transform.position - transform.position).normalized
                                             * currentData.knockbackForce;
+                        bool wasDead = target.IsDead;
                         target.TakeDamage(finalDamage, knockback);
+                        if (!wasDead && target.IsDead)
+                            ownerStats?.NotifyKill();
+
+                        OnEnemyHitConfirmed?.Invoke();
                         PlayHitSpark(other, knockback);
                         PlayHitCameraFeedback();
                         PlayHitStop();
@@ -160,6 +208,8 @@ public class AttackHitBox : MonoBehaviour
                 float zLower = currentData.zLowerRange;
 
                 other.TryGetComponent<IEnemyMovement>(out var targetEnemy);
+                if (targetEnemy == null)
+                    return;
 
                 float enemyFloorZ = targetEnemy.FloorZ;
 
@@ -172,7 +222,11 @@ public class AttackHitBox : MonoBehaviour
 
                         Vector2 knockback = (other.transform.position - transform.position).normalized
                                             * currentData.knockbackForce;
+                        bool wasDead = target.IsDead;
                         target.TakeDamage(finalDamage, knockback);
+                        if (!wasDead && target.IsDead)
+                            ownerStats?.NotifyKill();
+                        OnEnemyHitConfirmed?.Invoke();
                         PlayHitSpark(other, knockback);
                         PlayHitCameraFeedback();
                         PlayHitStop();
@@ -259,6 +313,11 @@ public class AttackHitBox : MonoBehaviour
         tex.SetPixel(0, 0, Color.white);
         tex.Apply();
         return Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+    }
+
+    private void OnDestroy()
+    {
+        OnEnemyHitConfirmed = null;
     }
 
 }

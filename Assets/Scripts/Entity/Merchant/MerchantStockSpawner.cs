@@ -59,6 +59,7 @@ public class MerchantStockSpawner : MonoBehaviour
         if (pickupItemPrefab == null || displayPoints == null || displayPoints.Length == 0)
             return;
 
+        ItemUnlockRegistry registry = ItemUnlockRegistry.FindInstance();
         List<RuntimeStockEntry> availableEntries = BuildAvailableEntries();
         if (availableEntries.Count == 0)
             return;
@@ -74,8 +75,23 @@ public class MerchantStockSpawner : MonoBehaviour
                 continue;
 
             RuntimeStockEntry entry = availableEntries[selectedIndex];
+            if (entry.IsPassive && registry != null && !registry.TryReservePassive(entry.PassiveItem))
+            {
+                availableEntries.RemoveAt(selectedIndex);
+                i--;
+                continue;
+            }
+
             PickupItem spawnedItem = Instantiate(pickupItemPrefab, displayPoint.position, displayPoint.rotation);
-            spawnedItem.ConfigureAsMerchantItem(entry.IsPassive, entry.PassiveItem, entry.ActiveItem, entry.Price, merchant, floorZ);
+            if (spawnedItem == null)
+            {
+                if (entry.IsPassive)
+                    registry?.ReleasePassiveReservation(entry.PassiveItem);
+
+                continue;
+            }
+
+            spawnedItem.ConfigureAsMerchantItem(entry.IsPassive, entry.PassiveItem, entry.ActiveItem, entry.Price, merchant, floorZ, entry.IsPassive);
             spawnedItems.Add(spawnedItem);
 
             if (!allowDuplicates)
@@ -86,10 +102,11 @@ public class MerchantStockSpawner : MonoBehaviour
     private List<RuntimeStockEntry> BuildAvailableEntries()
     {
         List<RuntimeStockEntry> availableEntries = new List<RuntimeStockEntry>();
+        ItemUnlockRegistry registry = ItemUnlockRegistry.FindInstance();
 
         if (stockPool != null)
         {
-            List<ItemSpawnPool.RollResult> poolEntries = stockPool.GetUnlockedEntries(ItemUnlockRegistry.FindInstance());
+            List<ItemSpawnPool.RollResult> poolEntries = stockPool.GetUnlockedEntries(registry);
             for (int i = 0; i < poolEntries.Count; i++)
             {
                 availableEntries.Add(new RuntimeStockEntry
@@ -112,6 +129,9 @@ public class MerchantStockSpawner : MonoBehaviour
         {
             MerchantStockEntry stockEntry = stockEntries[i];
             if (stockEntry == null || !stockEntry.IsValid())
+                continue;
+
+            if (stockEntry.isPassive && registry != null && registry.IsUnavailable(stockEntry.passiveItem))
                 continue;
 
             availableEntries.Add(new RuntimeStockEntry

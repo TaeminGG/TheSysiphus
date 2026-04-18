@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PickupChest : MonoBehaviour, IPlayerInteractable
@@ -129,6 +130,9 @@ public class PickupChest : MonoBehaviour, IPlayerInteractable
 
     private IEnumerator SpawnPickupItem()
     {
+        if (!TryResolveLoot(out bool isPassive, out PassiveItem passiveItem, out ActiveItem activeItem))
+            yield break;
+
         Vector3 start = transform.position;
         start.z = floorZ;
 
@@ -136,15 +140,25 @@ public class PickupChest : MonoBehaviour, IPlayerInteractable
         GameObject spawnedObject = Instantiate(pickupItemPrefab, start, Quaternion.identity);
         PickupItem pickupItem = spawnedObject.GetComponent<PickupItem>();
 
-        if (pickupItem != null)
+        if (pickupItem == null)
         {
-            ApplyLoot(pickupItem);
-            pickupItem.SetZ(floorZ);
+            ReleasePassiveReservation(isPassive, passiveItem);
+
+            if (spawnedObject != null)
+                Destroy(spawnedObject);
+
+            yield break;
         }
+
+        pickupItem.ConfigureDropItem(isPassive, passiveItem, activeItem, isPassive);
+        pickupItem.SetZ(floorZ);
 
         float elapsed = 0f;
         while (elapsed < popDuration)
         {
+            if (spawnedObject == null)
+                yield break;
+
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / popDuration);
             float arc = Mathf.Sin(t * Mathf.PI) * popHeight;
@@ -155,7 +169,8 @@ public class PickupChest : MonoBehaviour, IPlayerInteractable
             yield return null;
         }
 
-        spawnedObject.transform.position = end;
+        if (spawnedObject != null)
+            spawnedObject.transform.position = end;
     }
 
     private Vector3 GetLandingPosition(Vector3 start)
@@ -180,29 +195,166 @@ public class PickupChest : MonoBehaviour, IPlayerInteractable
         return landingFloorZ == floorZ;
     }
 
-    private void ApplyLoot(PickupItem pickupItem)
+    private bool TryResolveLoot(out bool isPassive, out PassiveItem passiveItem, out ActiveItem activeItem)
     {
-        if (lootPool != null && lootPool.TryRollChestLoot(ItemUnlockRegistry.FindInstance(), out ItemSpawnPool.RollResult rollResult))
+        ItemUnlockRegistry registry = ItemUnlockRegistry.FindInstance();
+        if (TryResolveLootFromPool(registry, out isPassive, out passiveItem, out activeItem))
+            return true;
+
+        List<ItemSpawnPool.RollResult> fallbackEntries = GetFallbackEntries(registry);
+        while (fallbackEntries.Count > 0)
         {
-            pickupItem.ConfigureDropItem(rollResult.IsPassive, rollResult.PassiveItem, rollResult.ActiveItem);
+            int selectedIndex = SelectWeightedIndex(fallbackEntries);
+            if (selectedIndex < 0)
+                break;
+
+            ItemSpawnPool.RollResult selectedResult = fallbackEntries[selectedIndex];
+            if (!selectedResult.IsPassive)
+            {
+                isPassive = false;
+                passiveItem = null;
+                activeItem = selectedResult.ActiveItem;
+                return activeItem != null;
+            }
+
+            if (TryReservePassive(registry, selectedResult.PassiveItem))
+            {
+                isPassive = true;
+                passiveItem = selectedResult.PassiveItem;
+                activeItem = null;
+                return true;
+            }
+
+            fallbackEntries.RemoveAt(selectedIndex);
+        }
+
+        isPassive = false;
+        passiveItem = null;
+        activeItem = null;
+        return false;
+    }
+
+    private bool TryResolveLootFromPool(ItemUnlockRegistry registry, out bool isPassive, out PassiveItem passiveItem, out ActiveItem activeItem)
+    {
+        isPassive = false;
+        passiveItem = null;
+        activeItem = null;
+
+        if (lootPool == null)
+            return false;
+
+        List<ItemSpawnPool.RollResult> unlockedEntries = lootPool.GetUnlockedEntries(registry);
+        while (unlockedEntries.Count > 0)
+        {
+            int selectedIndex = SelectWeightedIndex(unlockedEntries);
+            if (selectedIndex < 0)
+                break;
+
+            ItemSpawnPool.RollResult selectedResult = unlockedEntries[selectedIndex];
+            if (!selectedResult.IsPassive)
+            {
+                isPassive = false;
+                passiveItem = null;
+                activeItem = selectedResult.ActiveItem;
+                return activeItem != null;
+            }
+
+            if (TryReservePassive(registry, selectedResult.PassiveItem))
+            {
+                isPassive = true;
+                passiveItem = selectedResult.PassiveItem;
+                activeItem = null;
+                return true;
+            }
+
+            unlockedEntries.RemoveAt(selectedIndex);
+        }
+
+        return false;
+    }
+
+    private static int SelectWeightedIndex(List<ItemSpawnPool.RollResult> entries)
+    {
+        float totalWeight = 0f;
+        for (int i = 0; i < entries.Count; i++)
+            totalWeight += Mathf.Max(0.01f, entries[i].Weight);
+
+        if (totalWeight <= 0f)
+            return -1;
+
+        float roll = Random.value * totalWeight;
+        float cumulativeWeight = 0f;
+
+        for (int i = 0; i < entries.Count; i++)
+        {
+            cumulativeWeight += Mathf.Max(0.01f, entries[i].Weight);
+            if (roll <= cumulativeWeight)
+                return i;
+        }
+
+        return entries.Count - 1;
+    }
+
+    private static bool TryReservePassive(ItemUnlockRegistry registry, PassiveItem passiveItem)
+    {
+        return passiveItem != null && (registry == null || registry.TryReservePassive(passiveItem));
+    }
+
+    private static void ReleasePassiveReservation(bool isPassive, PassiveItem passiveItem)
+    {
+        if (!isPassive || passiveItem == null)
             return;
-        }
 
-        bool hasPassive = passiveItems != null && passiveItems.Length > 0;
-        bool hasActive = activeItems != null && activeItems.Length > 0;
+        ItemUnlockRegistry registry = ItemUnlockRegistry.FindInstance();
+        registry?.ReleasePassiveReservation(passiveItem);
+    }
 
-        if (!hasPassive && !hasActive)
-            return;
+    private List<ItemSpawnPool.RollResult> GetFallbackEntries(ItemUnlockRegistry registry)
+    {
+        List<ItemSpawnPool.RollResult> entries = new List<ItemSpawnPool.RollResult>();
 
-        bool dropPassive = hasPassive && (!hasActive || Random.value < 0.5f);
-        if (dropPassive)
+        if (passiveItems != null)
         {
-            pickupItem.ConfigureDropItem(true, passiveItems[Random.Range(0, passiveItems.Length)], null);
+            for (int i = 0; i < passiveItems.Length; i++)
+            {
+                PassiveItem passiveItem = passiveItems[i];
+                if (passiveItem == null)
+                    continue;
+
+                if (registry != null && registry.IsUnavailable(passiveItem))
+                    continue;
+
+                entries.Add(new ItemSpawnPool.RollResult
+                {
+                    IsPassive = true,
+                    PassiveItem = passiveItem,
+                    ActiveItem = null,
+                    Price = 0,
+                    Weight = 1f
+                });
+            }
         }
-        else
+
+        if (activeItems != null)
         {
-            pickupItem.ConfigureDropItem(false, null, activeItems[Random.Range(0, activeItems.Length)]);
+            for (int i = 0; i < activeItems.Length; i++)
+            {
+                ActiveItem activeItem = activeItems[i];
+                if (activeItem == null)
+                    continue;
+
+                entries.Add(new ItemSpawnPool.RollResult
+                {
+                    IsPassive = false,
+                    PassiveItem = null,
+                    ActiveItem = activeItem,
+                    Price = 0,
+                    Weight = 1f
+                });
+            }
         }
+
+        return entries;
     }
 
     private void RefreshInteractionState(PlayerMove targetPlayer)

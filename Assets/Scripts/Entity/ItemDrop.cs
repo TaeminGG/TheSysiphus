@@ -16,19 +16,28 @@ public class ItemDrop : MonoBehaviour
 
     private void SpawnItem()
     {
-        if (item != null)
-        {
-            GameObject prefab = Instantiate(item, transform.position, Quaternion.identity);
-            if (isGold)
-            {
-                prefab.GetComponent<DroppedItem>().gold = dropGold;
-            }
-            else
-            {
-                
-            }
+        if (item == null || ShouldSuppressPassivePickupDrop())
+            return;
 
-            prefab.GetComponent<DroppedItem>().SetZ(GetComponent<IEnemyMovement>().FloorZ);
+        GameObject prefab = Instantiate(item, transform.position, Quaternion.identity);
+        PickupItem pickupItem = prefab.GetComponent<PickupItem>();
+        pickupItem?.MarkPassiveReservationClaimed();
+
+        if (isGold)
+        {
+            prefab.GetComponent<DroppedItem>().gold = dropGold;
         }
+
+        prefab.GetComponent<DroppedItem>().SetZ(GetComponent<IEnemyMovement>().FloorZ);
+    }
+
+    private bool ShouldSuppressPassivePickupDrop()
+    {
+        PickupItem pickupItem = item.GetComponent<PickupItem>();
+        if (pickupItem == null || !pickupItem.isPassive || pickupItem.item == null)
+            return false;
+
+        ItemUnlockRegistry registry = ItemUnlockRegistry.FindInstance();
+        return registry != null && !registry.TryReservePassive(pickupItem.item);
     }
 }

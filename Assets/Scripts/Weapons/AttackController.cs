@@ -4,27 +4,35 @@ using UnityEngine.InputSystem;
 
 public class AttackController : MonoBehaviour
 {
-    public float attackSpeed = 1.0f;        // 공격속도 ( 곱하기 : 1.0은 x1,  1.5는 x1.5 )
+    public float attackSpeed = 1.0f;
 
     private AttackData[] combos;
 
     private int currentCombo = 0;
     public bool isAttacking = false;
-    public bool inputBuffered = false;     // 다음 공격 가능
+    public bool inputBuffered = false;
     private float comboTimer = 0f;
     private float attackTimer = 0f;
+    private bool hasReportedHitThisAttack = false;
 
     public AttackHitBox hitbox;
     public Animator anim;
     private PlayerMove playerMove;
     private PlayerCrowdControl crowdControl;
+    private PlayerStats playerStats;
+
+    public event System.Action OnAttackHit;
 
     private void Awake()
     {
         playerMove = GetComponent<PlayerMove>();
+        playerStats = GetComponent<PlayerStats>();
         crowdControl = GetComponent<PlayerCrowdControl>();
         if (crowdControl == null)
             crowdControl = gameObject.AddComponent<PlayerCrowdControl>();
+
+        if (hitbox != null)
+            hitbox.OnEnemyHitConfirmed += HandleHitboxEnemyHit;
     }
 
     private void Start()
@@ -42,23 +50,22 @@ public class AttackController : MonoBehaviour
                 anim.SetTrigger("AttackEnded");
                 ResetCombo();
             }
+
             return;
         }
+
         HandleTimer();
     }
 
-    // 무기 장착 (변경)
     public void EquipWeapon(WeaponData weapon)
     {
         ResetCombo();
         combos = weapon.combos;
     }
 
-    //
     public void OnAttackInput()
     {
         Debug.Log("is Left Clicked");
-        // 무기 없으면 공격 불가
         if (combos == null || combos.Length == 0)
             return;
 
@@ -66,38 +73,36 @@ public class AttackController : MonoBehaviour
         {
             StartAttack(0);
         }
-        else
+        else if (comboTimer > 0f && currentCombo < combos.Length - 1)
         {
-            if (comboTimer > 0f && currentCombo < combos.Length - 1)
-            {
-                inputBuffered = true;
-            }
+            inputBuffered = true;
         }
     }
 
     private void StartAttack(int combo)
     {
-        playerMove.AttackLookAt();      // 플레이어가 바라보는 방향 설정
+        playerMove.AttackLookAt();
 
         currentCombo = combo;
         inputBuffered = false;
-        isAttacking = true;         // 공격 중으로 상태 변경
+        isAttacking = true;
+        hasReportedHitThisAttack = false;
 
         AttackData data = combos[currentCombo];
-
-        // 공격 속도에 비례해서 attackDuration, comboInputwindow 감소
-        float asDuration = data.attackDuration / attackSpeed;
-        float asComboWindow = data.comboInputWindow / attackSpeed;
-
-        attackTimer = asDuration;
+        attackTimer = data.attackDuration / attackSpeed;
         comboTimer = 0f;
 
-        // 애니메이션 속도 공격속도에 비례해서 적용
         anim.SetFloat("AttackSpeed", attackSpeed);
         anim.SetTrigger(data.animTrigger);
+
         Vector2 attackDir = GetComponent<PlayerAttackDirection>().GetAttackDirection();
-        float playerDamage = GetComponent<PlayerStats>().damage;
-        hitbox.Setup(data, attackSpeed, playerDamage, attackDir, GetComponent<PlayerMove>().floorZ);
+        float playerDamage = playerStats != null ? playerStats.damage : 0f;
+
+        if (hitbox != null)
+        {
+            hitbox.SetPlayerOwner(playerStats);
+            hitbox.Setup(data, attackSpeed, playerDamage, attackDir, playerMove.floorZ);
+        }
     }
 
     private void HandleTimer()
@@ -106,36 +111,28 @@ public class AttackController : MonoBehaviour
             return;
 
         AttackData data = combos[currentCombo];
-        float asComboWindow = data.comboInputWindow / attackSpeed;
+        float comboWindow = data.comboInputWindow / attackSpeed;
 
         attackTimer -= Time.deltaTime;
 
-        // 다음 공격 허용 시간 계산
-        if (attackTimer <= asComboWindow && comboTimer == 0f)
-        { 
-            comboTimer = asComboWindow; 
-        }
+        if (attackTimer <= comboWindow && comboTimer == 0f)
+            comboTimer = comboWindow;
 
-        if(comboTimer > 0f)
-        {
+        if (comboTimer > 0f)
             comboTimer -= Time.deltaTime;
+
+        if (attackTimer > 0f)
+            return;
+
+        if (inputBuffered && currentCombo < combos.Length - 1)
+        {
+            StartAttack(currentCombo + 1);
+            return;
         }
 
-        // 공격 종료
-        if(attackTimer <= 0f)
-        {
-            if (inputBuffered && currentCombo < combos.Length - 1)
-            {
-                // 입력이 들어왔으면 다음 공격으로
-                StartAttack(currentCombo + 1);
-            }
-            else
-            {
-                anim.SetTrigger("AttackEnded");
-                anim.ResetTrigger(data.animTrigger);
-                ResetCombo();
-            }
-        }
+        anim.SetTrigger("AttackEnded");
+        anim.ResetTrigger(data.animTrigger);
+        ResetCombo();
     }
 
     private void ResetCombo()
@@ -145,15 +142,35 @@ public class AttackController : MonoBehaviour
         currentCombo = 0;
         comboTimer = 0f;
         attackTimer = 0f;
-        hitbox.DisableHitBox();
+        hasReportedHitThisAttack = false;
+
+        if (hitbox != null)
+            hitbox.DisableHitBox();
     }
 
-    void OnAttack(InputValue value)
+    private void HandleHitboxEnemyHit()
+    {
+        if (!isAttacking || hasReportedHitThisAttack)
+            return;
+
+        hasReportedHitThisAttack = true;
+        OnAttackHit?.Invoke();
+    }
+
+    private void OnDestroy()
+    {
+        if (hitbox != null)
+            hitbox.OnEnemyHitConfirmed -= HandleHitboxEnemyHit;
+
+        OnAttackHit = null;
+    }
+
+    private void OnAttack(InputValue value)
     {
         if (crowdControl != null && !crowdControl.CanAttack)
             return;
 
-        if(GetComponent<PlayerMove>().IsPlayerOnGround())
+        if (GetComponent<PlayerMove>().IsPlayerOnGround())
             OnAttackInput();
     }
 }
