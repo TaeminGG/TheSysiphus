@@ -75,6 +75,12 @@ public class PauseItemCollectionMenu : MonoBehaviour
         public TextMeshProUGUI Label;
     }
 
+    private const int ItemGridColumnCount = 5;
+    private const int ItemGridPadding = 8;
+    private const float ItemGridSpacing = 8f;
+    private static readonly Vector2 PreferredItemGridCellSize = new Vector2(60f, 60f);
+    private const float ItemGridIconInset = 10f;
+
     [SerializeField] private Vector2 windowSize = new Vector2(980f, 560f);
     [SerializeField] private PauseMenuStyle style = new PauseMenuStyle();
 
@@ -347,7 +353,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
         LayoutElement passiveLayoutElement = passiveFrame.gameObject.AddComponent<LayoutElement>();
         passiveLayoutElement.flexibleHeight = 1f;
 
-        currentPassiveContentRoot = CreateGridScrollArea(passiveFrame, out _, 5, new Vector2(74f, 74f), 10f);
+        currentPassiveContentRoot = CreateGridScrollArea(passiveFrame, out _, ItemGridColumnCount, PreferredItemGridCellSize, 10f);
     }
 
     private void BuildCollectionPanel()
@@ -386,7 +392,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
         LayoutElement gridLayoutElement = gridFrame.gameObject.AddComponent<LayoutElement>();
         gridLayoutElement.flexibleHeight = 1f;
 
-        collectionGridContentRoot = CreateGridScrollArea(gridFrame, out _, 5, new Vector2(74f, 74f), 10f);
+        collectionGridContentRoot = CreateGridScrollArea(gridFrame, out _, ItemGridColumnCount, PreferredItemGridCellSize, 10f);
     }
 
     private void BuildSettingsPanel()
@@ -659,7 +665,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
     {
         GameObject slotObject = CreateUiObject(entry.IsPassive ? "PassiveCollectionSlot" : "ActiveCollectionSlot", parent);
         RectTransform slotRect = slotObject.GetComponent<RectTransform>();
-        slotRect.sizeDelta = new Vector2(74f, 74f);
+        slotRect.sizeDelta = PreferredItemGridCellSize;
 
         bool isUnlocked = entry.IsUnlocked;
         Image background = slotObject.AddComponent<Image>();
@@ -675,11 +681,11 @@ public class PauseItemCollectionMenu : MonoBehaviour
 
         GameObject iconObject = CreateUiObject("Icon", slotRect);
         RectTransform iconRect = iconObject.GetComponent<RectTransform>();
-        iconRect.anchorMin = new Vector2(0.5f, 0.5f);
-        iconRect.anchorMax = new Vector2(0.5f, 0.5f);
+        iconRect.anchorMin = Vector2.zero;
+        iconRect.anchorMax = Vector2.one;
         iconRect.pivot = new Vector2(0.5f, 0.5f);
-        iconRect.anchoredPosition = Vector2.zero;
-        iconRect.sizeDelta = new Vector2(52f, 52f);
+        iconRect.offsetMin = new Vector2(ItemGridIconInset, ItemGridIconInset);
+        iconRect.offsetMax = new Vector2(-ItemGridIconInset, -ItemGridIconInset);
 
         Image iconImage = iconObject.AddComponent<Image>();
         iconImage.sprite = entry.Icon;
@@ -871,11 +877,14 @@ public class PauseItemCollectionMenu : MonoBehaviour
 
         GridLayoutGroup gridLayout = contentObject.AddComponent<GridLayoutGroup>();
         gridLayout.cellSize = cellSize;
-        gridLayout.spacing = new Vector2(10f, 10f);
-        gridLayout.padding = new RectOffset(10, 10, 10, 10);
+        gridLayout.spacing = new Vector2(ItemGridSpacing, ItemGridSpacing);
+        gridLayout.padding = new RectOffset(ItemGridPadding, ItemGridPadding, ItemGridPadding, ItemGridPadding);
         gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
         gridLayout.constraintCount = Mathf.Max(1, columnCount);
         gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
+
+        GridCellSizeFitter cellSizeFitter = contentObject.AddComponent<GridCellSizeFitter>();
+        cellSizeFitter.Initialize(gridLayout, viewport, columnCount, cellSize);
 
         ContentSizeFitter fitter = contentObject.AddComponent<ContentSizeFitter>();
         fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
@@ -1044,5 +1053,53 @@ public class PauseItemCollectionMenu : MonoBehaviour
         public bool IsUnlocked;
         public bool IsPassive;
         public bool IsSelectable;
+    }
+}
+
+[DisallowMultipleComponent]
+public sealed class GridCellSizeFitter : MonoBehaviour
+{
+    private GridLayoutGroup gridLayout;
+    private RectTransform viewport;
+    private int columnCount;
+    private Vector2 preferredCellSize;
+
+    public void Initialize(GridLayoutGroup targetGridLayout, RectTransform targetViewport, int targetColumnCount, Vector2 targetPreferredCellSize)
+    {
+        gridLayout = targetGridLayout;
+        viewport = targetViewport;
+        columnCount = Mathf.Max(1, targetColumnCount);
+        preferredCellSize = targetPreferredCellSize;
+        Apply();
+    }
+
+    private void OnEnable()
+    {
+        Apply();
+    }
+
+    private void OnRectTransformDimensionsChange()
+    {
+        Apply();
+    }
+
+    private void Apply()
+    {
+        if (gridLayout == null || viewport == null)
+            return;
+
+        float availableWidth = viewport.rect.width - gridLayout.padding.left - gridLayout.padding.right - (gridLayout.spacing.x * (columnCount - 1));
+        if (availableWidth <= 0f)
+            return;
+
+        float resolvedCellWidth = Mathf.Max(1f, availableWidth / columnCount);
+        float aspectRatio = preferredCellSize.y / Mathf.Max(1f, preferredCellSize.x);
+        Vector2 resolvedCellSize = new Vector2(resolvedCellWidth, resolvedCellWidth * aspectRatio);
+
+        if (gridLayout.cellSize == resolvedCellSize)
+            return;
+
+        gridLayout.cellSize = resolvedCellSize;
+        LayoutRebuilder.MarkLayoutForRebuild(gridLayout.transform as RectTransform);
     }
 }

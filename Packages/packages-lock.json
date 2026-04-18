@@ -70,9 +70,9 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.2d.tilemap": {
-      "version": "1.0.0",
+      "version": "file:com.unity.2d.tilemap",
       "depth": 0,
-      "source": "builtin",
+      "source": "embedded",
       "dependencies": {
         "com.unity.modules.tilemap": "1.0.0",
         "com.unity.modules.uielements": "1.0.0"

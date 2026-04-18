@@ -47,25 +47,8 @@ public class ItemSpawnPool : ScriptableObject
 
     public bool TryRollChestLoot(ItemUnlockRegistry registry, out RollResult result)
     {
-        List<RollResult> unlockedPassives = new List<RollResult>();
-        List<RollResult> unlockedActives = new List<RollResult>();
-
-        AppendUnlockedPassiveEntries(unlockedPassives, registry);
-        AppendUnlockedActiveEntries(unlockedActives, registry);
-
-        bool hasPassive = unlockedPassives.Count > 0;
-        bool hasActive = unlockedActives.Count > 0;
-
-        if (!hasPassive && !hasActive)
-        {
-            result = default;
-            return false;
-        }
-
-        if (hasPassive && (!hasActive || UnityEngine.Random.value < 0.5f))
-            return TryRollFromEntries(unlockedPassives, out result);
-
-        return TryRollFromEntries(unlockedActives, out result);
+        List<RollResult> unlockedEntries = GetUnlockedEntries(registry);
+        return TryRollFromEntries(unlockedEntries, out result);
     }
 
     private void AppendUnlockedPassiveEntries(List<RollResult> results, ItemUnlockRegistry registry)
@@ -77,6 +60,9 @@ public class ItemSpawnPool : ScriptableObject
                 continue;
 
             if (registry != null && !registry.IsUnlocked(entry.item))
+                continue;
+
+            if (registry != null && registry.IsUnavailable(entry.item))
                 continue;
 
             results.Add(new RollResult

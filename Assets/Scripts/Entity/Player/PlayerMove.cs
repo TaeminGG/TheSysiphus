@@ -71,9 +71,17 @@ public class PlayerMove : MonoBehaviour
     public Transform playerSprite;
 
     private bool isAttacking = false;
+    private float dashCooldownMultiplier = 1f;
+    private float jumpForceMultiplier = 1f;
 
     private readonly List<IPlayerInteractable> interactables = new List<IPlayerInteractable>();
     private IPlayerInteractable currentInteractable;
+
+    public event System.Action OnDashStarted;
+    public event System.Action OnDashEnded;
+
+    public bool IsDashing => dashTime < dashDuration;
+    public Vector2 LastDashDirection { get; private set; } = Vector2.down;
 
     private void Awake()
     {
@@ -94,7 +102,7 @@ public class PlayerMove : MonoBehaviour
 
         floorZ = 0;
         dashTime = dashDuration;
-        dashCooltimeCheck = dashCooltime;
+        dashCooltimeCheck = GetResolvedDashCooldown();
     }
 
     private void Update()
@@ -108,7 +116,7 @@ public class PlayerMove : MonoBehaviour
 
         if (crowdControl != null && crowdControl.IsKnockbackActive)
         {
-            dashTime = dashDuration;
+            EndDashIfActive();
             isAttacking = false;
             axis = crowdControl.GetKnockbackDirection();
             float movedDistance = HandleKnockbackMovement(crowdControl.GetKnockbackDirection(), crowdControl.GetKnockbackMoveSpeed());
@@ -167,6 +175,8 @@ public class PlayerMove : MonoBehaviour
         {
             dashTime += Time.deltaTime;
             dashCooltimeCheck += Time.deltaTime;
+            if (dashTime >= dashDuration)
+                EndDashIfActive();
         }
         else
         {
@@ -230,7 +240,7 @@ public class PlayerMove : MonoBehaviour
 
         if (crowdControl != null && !crowdControl.CanMove)
         {
-            dashTime = dashDuration;
+            EndDashIfActive();
             return;
         }
 
@@ -454,7 +464,7 @@ public class PlayerMove : MonoBehaviour
 
         if (isJumping && isGrounded)
         {
-            verticalVelocity = jumpForce;
+            verticalVelocity = GetResolvedJumpForce();
             isGrounded = false;
             isJumping = false;
         }
@@ -540,6 +550,36 @@ public class PlayerMove : MonoBehaviour
     {
         moveSpeed -= speed;
         moveSpeedSet -= speed;
+    }
+
+    public void AddDashCooldownReduction(float percent)
+    {
+        dashCooldownMultiplier *= Mathf.Max(0.01f, 1f - percent);
+    }
+
+    public void RemoveDashCooldownReduction(float percent)
+    {
+        dashCooldownMultiplier /= Mathf.Max(0.01f, 1f - percent);
+    }
+
+    public float GetResolvedDashCooldown()
+    {
+        return dashCooltime * dashCooldownMultiplier;
+    }
+
+    public void AddJumpForceMultiplier(float percent)
+    {
+        jumpForceMultiplier = Mathf.Max(0.01f, jumpForceMultiplier + percent);
+    }
+
+    public void RemoveJumpForceMultiplier(float percent)
+    {
+        jumpForceMultiplier = Mathf.Max(0.01f, jumpForceMultiplier - percent);
+    }
+
+    public float GetResolvedJumpForce()
+    {
+        return jumpForce * jumpForceMultiplier;
     }
 
     public void RegisterInteractable(IPlayerInteractable interactable)
@@ -655,11 +695,29 @@ public class PlayerMove : MonoBehaviour
         if (crowdControl != null && !crowdControl.CanDash)
             return;
 
-        if (dashCooltimeCheck >= dashCooltime && !GetComponent<AttackController>().isAttacking)
+        if (dashCooltimeCheck >= GetResolvedDashCooldown() && !GetComponent<AttackController>().isAttacking)
         {
+            LastDashDirection = inputAxis.sqrMagnitude > 0.001f ? inputAxis.normalized : GetFacingDirection();
+            axis = LastDashDirection;
             stats.Dash();
             dashCooltimeCheck = 0;
             dashTime = 0;
+            OnDashStarted?.Invoke();
         }
+    }
+
+    private void EndDashIfActive()
+    {
+        if (dashTime >= dashDuration && Mathf.Approximately(dashTime, dashDuration))
+            return;
+
+        dashTime = dashDuration;
+        OnDashEnded?.Invoke();
+    }
+
+    private void OnDestroy()
+    {
+        OnDashStarted = null;
+        OnDashEnded = null;
     }
 }

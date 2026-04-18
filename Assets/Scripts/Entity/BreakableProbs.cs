@@ -16,7 +16,15 @@ public class BreakableProbs : MonoBehaviour
     public int floorZ = 0;
     public void Attacked()
     {
+        if (dropItem == null || ShouldSuppressPassivePickupDrop())
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         GameObject item = Instantiate(dropItem, transform.position, Quaternion.identity);
+        PickupItem pickupItem = item.GetComponent<PickupItem>();
+        pickupItem?.MarkPassiveReservationClaimed();
 
         if (isGold)
         {
@@ -26,5 +34,15 @@ public class BreakableProbs : MonoBehaviour
         item.GetComponent<DroppedItem>().SetZ(floorZ);
 
         Destroy(gameObject);
+    }
+
+    private bool ShouldSuppressPassivePickupDrop()
+    {
+        PickupItem pickupItem = dropItem.GetComponent<PickupItem>();
+        if (pickupItem == null || !pickupItem.isPassive || pickupItem.item == null)
+            return false;
+
+        ItemUnlockRegistry registry = ItemUnlockRegistry.FindInstance();
+        return registry != null && !registry.TryReservePassive(pickupItem.item);
     }
 }

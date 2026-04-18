@@ -7,9 +7,11 @@ public class ItemUnlockSnapshot
 {
     [SerializeField] private List<string> unlockedPassiveItemIds = new List<string>();
     [SerializeField] private List<string> unlockedActiveItemIds = new List<string>();
+    [SerializeField] private List<string> collectedPassiveItemIds = new List<string>();
 
     public IReadOnlyList<string> UnlockedPassiveItemIds => unlockedPassiveItemIds;
     public IReadOnlyList<string> UnlockedActiveItemIds => unlockedActiveItemIds;
+    public IReadOnlyList<string> CollectedPassiveItemIds => collectedPassiveItemIds;
 
     public void SetUnlockedPassiveItemIds(IEnumerable<string> itemIds)
     {
@@ -19,6 +21,11 @@ public class ItemUnlockSnapshot
     public void SetUnlockedActiveItemIds(IEnumerable<string> itemIds)
     {
         Replace(unlockedActiveItemIds, itemIds);
+    }
+
+    public void SetCollectedPassiveItemIds(IEnumerable<string> itemIds)
+    {
+        Replace(collectedPassiveItemIds, itemIds);
     }
 
     private static void Replace(List<string> target, IEnumerable<string> source)

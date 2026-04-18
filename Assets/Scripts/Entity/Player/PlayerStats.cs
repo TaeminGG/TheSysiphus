@@ -22,6 +22,8 @@ public class PlayerStats : MonoBehaviour, IDamageable
     public float healAmount = 30f;
     public float healCooltime = 1f;
     private float healTimer = 0f;
+    private float potionHealMultiplier = 1f;
+    private int externalInvulnerabilitySources = 0;
 
     public bool IsDead => currentHp <= 0f;
 
@@ -31,6 +33,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
     public event Action OnDash;
     public event Action OnHealEvent;
     public event Action<int> OnGoldChanged;
+    public event Func<float, Vector2, bool> BeforeDamageTaken;
 
     public Canvas canvas;
     public GameObject damageText;
@@ -70,7 +73,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
     public void TakeDamage(float amount, Vector2 knockback)
     {
-        if (IsDead || isInv)
+        if (IsDead || isInv || externalInvulnerabilitySources > 0 || TryPreventDamage(amount, knockback))
             return;
 
         invTimer = invDuration;
@@ -154,8 +157,28 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
     public void Heal(float amount)
     {
+        if (amount <= 0f)
+            return;
+
+        float previousHp = currentHp;
         currentHp = Mathf.Min(maxHp, currentHp + amount);
-        OnHealEvent?.Invoke();
+        if (currentHp > previousHp)
+            OnHealEvent?.Invoke();
+    }
+
+    public float GetResolvedPotionHealAmount()
+    {
+        return healAmount * potionHealMultiplier;
+    }
+
+    public void AddPotionHealMultiplier(float multiplierIncrease)
+    {
+        potionHealMultiplier = Mathf.Max(0f, potionHealMultiplier + multiplierIncrease);
+    }
+
+    public void RemovePotionHealMultiplier(float multiplierIncrease)
+    {
+        potionHealMultiplier = Mathf.Max(0f, potionHealMultiplier - multiplierIncrease);
     }
 
     public void AddMoveSpeed(float speed)
@@ -215,6 +238,21 @@ public class PlayerStats : MonoBehaviour, IDamageable
     public void Dash()
     {
         OnDash?.Invoke();
+    }
+
+    public void NotifyKill()
+    {
+        OnKill?.Invoke();
+    }
+
+    public void AddExternalInvulnerabilitySource()
+    {
+        externalInvulnerabilitySources++;
+    }
+
+    public void RemoveExternalInvulnerabilitySource()
+    {
+        externalInvulnerabilitySources = Mathf.Max(0, externalInvulnerabilitySources - 1);
     }
 
     public void ApplyCrowdControl(PlayerCrowdControlRequest request)
@@ -314,7 +352,22 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
         healTimer = 0f;
         potionCount--;
-        Heal(healAmount);
+        Heal(GetResolvedPotionHealAmount());
+    }
+
+    private bool TryPreventDamage(float amount, Vector2 knockback)
+    {
+        if (BeforeDamageTaken == null)
+            return false;
+
+        Delegate[] callbacks = BeforeDamageTaken.GetInvocationList();
+        for (int i = 0; i < callbacks.Length; i++)
+        {
+            if (callbacks[i] is Func<float, Vector2, bool> handler && handler(amount, knockback))
+                return true;
+        }
+
+        return false;
     }
 
     private void OnDestroy()
@@ -325,5 +378,6 @@ public class PlayerStats : MonoBehaviour, IDamageable
         OnDash = null;
         OnHealEvent = null;
         OnGoldChanged = null;
+        BeforeDamageTaken = null;
     }
 }

@@ -29,6 +29,46 @@ MonoBehaviour:
     rarity: 2
     weightMultiplier: 1
     price: 4
+  - item: {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a201, type: 2}
+    rarity: 3
+    weightMultiplier: 0.8
+    price: 8
+  - item: {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a202, type: 2}
+    rarity: 1
+    weightMultiplier: 1.2
+    price: 4
+  - item: {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a203, type: 2}
+    rarity: 1
+    weightMultiplier: 1.2
+    price: 4
+  - item: {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a204, type: 2}
+    rarity: 2
+    weightMultiplier: 1
+    price: 6
+  - item: {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a205, type: 2}
+    rarity: 3
+    weightMultiplier: 0.8
+    price: 8
+  - item: {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a206, type: 2}
+    rarity: 0
+    weightMultiplier: 1.5
+    price: 3
+  - item: {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a207, type: 2}
+    rarity: 1
+    weightMultiplier: 1.3
+    price: 4
+  - item: {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a208, type: 2}
+    rarity: 2
+    weightMultiplier: 1
+    price: 6
+  - item: {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a209, type: 2}
+    rarity: 0
+    weightMultiplier: 1.4
+    price: 3
+  - item: {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a20a, type: 2}
+    rarity: 2
+    weightMultiplier: 1
+    price: 6
   activeItems:
   - item: {fileID: 11400000, guid: db27c7aaca375db4080cbe80b3f2e9f8, type: 2}
     rarity: 1
