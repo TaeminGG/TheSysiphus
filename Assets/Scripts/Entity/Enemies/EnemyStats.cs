@@ -13,6 +13,7 @@ public class EnemyStats : MonoBehaviour, IDamageable
     private IEnemyAttack attack;
     private IEnemyMovement movement;
     private EnemyCrowdControl crowdControl;
+    private StatusAilmentController statusAilmentController;
 
     public Canvas canvas;
     public EnemyHpBar hpbar;
@@ -29,6 +30,9 @@ public class EnemyStats : MonoBehaviour, IDamageable
         crowdControl = GetComponent<EnemyCrowdControl>();
         if (crowdControl == null)
             crowdControl = gameObject.AddComponent<EnemyCrowdControl>();
+        statusAilmentController = GetComponent<StatusAilmentController>();
+        if (statusAilmentController == null)
+            statusAilmentController = gameObject.AddComponent<StatusAilmentController>();
     }
 
     void Start()
@@ -90,8 +94,25 @@ public class EnemyStats : MonoBehaviour, IDamageable
         ApplyCrowdControl(EnemyCrowdControlRequest.CreateKnockback(knockback));
     }
 
+    public void ApplyPoison(float duration, float damagePerSecond)
+    {
+        if (statusAilmentController == null)
+            statusAilmentController = GetComponent<StatusAilmentController>() ?? gameObject.AddComponent<StatusAilmentController>();
+
+        statusAilmentController.ApplyPoison(duration, damagePerSecond);
+    }
+
+    public void ApplyBurn(float duration, float tickInterval, float damagePerTick)
+    {
+        if (statusAilmentController == null)
+            statusAilmentController = GetComponent<StatusAilmentController>() ?? gameObject.AddComponent<StatusAilmentController>();
+
+        statusAilmentController.ApplyBurn(duration, tickInterval, damagePerTick);
+    }
+
     private void EnemyDead()
     {
+        statusAilmentController?.ClearAllAilments();
         OnDamaged = null;
         OnDeath = null;
         Destroy(gameObject);

@@ -15,6 +15,7 @@ public class PlayerTileEventDetector : MonoBehaviour
     public bool logMissingBindings = true;
     public float playerZTolerance = 0.01f;
 
+    private PlayerStats playerStats;
     private Vector3Int lastTriggeredCell = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
     private TileBase lastTriggeredTile;
     private EventTileBinding lastTriggeredBinding;
@@ -23,6 +24,8 @@ public class PlayerTileEventDetector : MonoBehaviour
     {
         if (playerMove == null)
             playerMove = GetComponent<PlayerMove>();
+
+        playerStats = GetComponent<PlayerStats>();
 
         if (tileCheckOrigin == null && playerMove != null && playerMove.shadow != null)
             tileCheckOrigin = playerMove.shadow;
@@ -74,7 +77,7 @@ public class PlayerTileEventDetector : MonoBehaviour
         if (!binding.repeatWhileConditionMatches && isSameTriggerContext)
             return;
 
-        binding.onTriggered?.Invoke();
+        ExecuteBinding(binding);
         lastTriggeredTile = markerTile;
         lastTriggeredCell = currentCell;
         lastTriggeredBinding = binding;
@@ -112,6 +115,30 @@ public class PlayerTileEventDetector : MonoBehaviour
 
             default:
                 return false;
+        }
+    }
+
+    private void ExecuteBinding(EventTileBinding binding)
+    {
+        switch (binding.effectType)
+        {
+            case EventTileEffectType.ApplyPoisonToPlayer:
+                if (playerStats != null)
+                    playerStats.ApplyPoison(binding.poisonDuration, binding.poisonDamagePerSecond);
+                break;
+
+            case EventTileEffectType.ApplyBurnToPlayer:
+                if (playerStats != null)
+                    playerStats.ApplyBurn(binding.burnDuration, binding.burnTickInterval, binding.burnDamagePerTick);
+                break;
+
+            case EventTileEffectType.TriggerCustomEvent:
+                binding.onTriggered?.Invoke();
+                break;
+
+            case EventTileEffectType.None:
+            default:
+                break;
         }
     }
 

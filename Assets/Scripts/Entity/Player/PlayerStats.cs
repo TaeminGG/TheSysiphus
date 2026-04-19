@@ -41,6 +41,7 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
     public GameObject healEffect;
     private PlayerCrowdControl crowdControl;
+    private StatusAilmentController statusAilmentController;
     private bool hasHandledDeath;
 
     private void Awake()
@@ -56,6 +57,9 @@ public class PlayerStats : MonoBehaviour, IDamageable
         crowdControl = GetComponent<PlayerCrowdControl>();
         if (crowdControl == null)
             crowdControl = gameObject.AddComponent<PlayerCrowdControl>();
+        statusAilmentController = GetComponent<StatusAilmentController>();
+        if (statusAilmentController == null)
+            statusAilmentController = gameObject.AddComponent<StatusAilmentController>();
 
         OnDamaged += ShowDamage;
         OnHealEvent += ShowHealEffect;
@@ -286,6 +290,22 @@ public class PlayerStats : MonoBehaviour, IDamageable
         ApplyCrowdControl(PlayerCrowdControlRequest.CreateKnockback(knockback));
     }
 
+    public void ApplyPoison(float duration, float damagePerSecond)
+    {
+        if (statusAilmentController == null)
+            statusAilmentController = GetComponent<StatusAilmentController>() ?? gameObject.AddComponent<StatusAilmentController>();
+
+        statusAilmentController.ApplyPoison(duration, damagePerSecond);
+    }
+
+    public void ApplyBurn(float duration, float tickInterval, float damagePerTick)
+    {
+        if (statusAilmentController == null)
+            statusAilmentController = GetComponent<StatusAilmentController>() ?? gameObject.AddComponent<StatusAilmentController>();
+
+        statusAilmentController.ApplyBurn(duration, tickInterval, damagePerTick);
+    }
+
     public void Buff(int idx, float amount, float duration)
     {
         if (idx != 0)
@@ -335,6 +355,8 @@ public class PlayerStats : MonoBehaviour, IDamageable
         {
             colliders[i].enabled = false;
         }
+
+        statusAilmentController?.ClearAllAilments();
 
         Debug.Log("Player died.");
     }
