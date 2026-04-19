@@ -17,11 +17,13 @@ public class ChunkLoader : MonoBehaviour
     [Header("Target Tilemaps")]
     public Tilemap tmap;
     public Tilemap bmap;
+    public Tilemap eventMap;
 
     [Header("Chunk Tilemaps")]
     public GameObject[] tileChunkPrefabs;
     public GameObject[] boxChunkPrefabs;
     public GameObject[] spawnChunkPrefabs;
+    public GameObject[] eventChunkPrefabs;
 
     [Header("Chunk Spawns")]
     public Transform spawnedChunkObjectsRoot;
@@ -44,6 +46,7 @@ public class ChunkLoader : MonoBehaviour
         }
 
         UpdateChunk(GetChunkPrefab(tileChunkPrefabs, index), offset, tmap);
+        UpdateChunk(GetChunkPrefab(eventChunkPrefabs, index), offset, eventMap);
         SpawnChunkObjects(index, offset, currentChunkCount);
     }
 
@@ -213,11 +216,16 @@ public class ChunkLoader : MonoBehaviour
 
         foreach (Tilemap map in maps)
         {
-            if (map.gameObject.name == "tmap")
+            string mapName = map.gameObject.name.ToLowerInvariant();
+
+            if (mapName == "tmap")
                 tmap = map;
 
-            if (map.gameObject.name == "bmap")
+            if (mapName == "bmap")
                 bmap = map;
+
+            if (mapName == "eventmap")
+                eventMap = map;
         }
     }
 }
