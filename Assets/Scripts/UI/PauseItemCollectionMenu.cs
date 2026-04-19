@@ -42,8 +42,8 @@ public class PauseItemCollectionMenu : MonoBehaviour
         public Sprite selectedTabSprite = null;
         public Color tabColor = new Color(0.2f, 0.2f, 0.2f, 1f);
         public Color selectedTabColor = new Color(0.78f, 0.69f, 0.42f, 1f);
-        public Color tabTextColor = Color.white;
-        public Color selectedTabTextColor = Color.black;
+        public Color tabIconColor = Color.white;
+        public Color selectedTabIconColor = Color.white;
 
         [Header("Action Buttons")]
         public Sprite actionButtonSprite = null;
@@ -59,12 +59,21 @@ public class PauseItemCollectionMenu : MonoBehaviour
         public Color selectedOutlineColor = new Color(0.88f, 0.79f, 0.49f, 1f);
     }
 
+    [Serializable]
+    private class PauseSectionTitles
+    {
+        public string currentItems = "Current Items";
+        public string collection = "Collection";
+        public string settings = "Settings";
+    }
+
     private sealed class PauseTabView
     {
         public PauseSection Section;
         public Button Button;
         public Image Background;
-        public TextMeshProUGUI Label;
+        public Image Icon;
+        public PauseNavigationButtonVisual Visual;
     }
 
     private sealed class CollectionTabView
@@ -72,17 +81,22 @@ public class PauseItemCollectionMenu : MonoBehaviour
         public CollectionCategory Category;
         public Button Button;
         public Image Background;
-        public TextMeshProUGUI Label;
+        public Image Icon;
+        public PauseNavigationButtonVisual Visual;
     }
 
     private const int ItemGridColumnCount = 5;
     private const int ItemGridPadding = 8;
     private const float ItemGridSpacing = 8f;
+    private const float CollectionPanelTopSectionHeight = 92f;
+    private const float CollectionPanelSectionGap = 12f;
     private static readonly Vector2 PreferredItemGridCellSize = new Vector2(60f, 60f);
     private const float ItemGridIconInset = 10f;
+    private const string ManagedLayoutRootName = "ManagedPauseLayout";
 
     [SerializeField] private Vector2 windowSize = new Vector2(980f, 560f);
     [SerializeField] private PauseMenuStyle style = new PauseMenuStyle();
+    [SerializeField] private PauseSectionTitles sectionTitles = new PauseSectionTitles();
 
     private readonly List<GameObject> legacyRootObjects = new List<GameObject>();
     private readonly List<PauseTabView> navigationTabs = new List<PauseTabView>();
@@ -149,7 +163,17 @@ public class PauseItemCollectionMenu : MonoBehaviour
         CacheLegacyRootObjects();
         ResolveDependencies();
         ResolveFontAsset();
-        BuildRuntimeLayout();
+        ClearManagedReferences();
+
+        if (!TryBindManagedLayout())
+        {
+            ClearManagedReferences();
+            BuildRuntimeLayout();
+        }
+
+        SanitizeManagedLayoutForInput();
+        WireInteractionHandlers();
+        RefreshManagedLayoutSizing();
         SetLegacyRootObjectsActive(false);
 
         isInitialized = true;
@@ -160,7 +184,13 @@ public class PauseItemCollectionMenu : MonoBehaviour
         legacyRootObjects.Clear();
 
         for (int i = 0; i < transform.childCount; i++)
-            legacyRootObjects.Add(transform.GetChild(i).gameObject);
+        {
+            GameObject child = transform.GetChild(i).gameObject;
+            if (child.name == ManagedLayoutRootName)
+                continue;
+
+            legacyRootObjects.Add(child);
+        }
     }
 
     private void ResolveDependencies()
@@ -201,9 +231,227 @@ public class PauseItemCollectionMenu : MonoBehaviour
             fontAsset = anyText.font;
     }
 
+    [ContextMenu("Rebuild Editable Canvas Layout")]
+    public void RebuildEditableLayout()
+    {
+        rootRectTransform = transform as RectTransform;
+        if (rootRectTransform == null)
+            return;
+
+        Transform existingLayout = transform.Find(ManagedLayoutRootName);
+        if (existingLayout != null)
+            DestroyObject(existingLayout.gameObject);
+
+        ClearManagedReferences();
+        CacheLegacyRootObjects();
+        ResolveDependencies();
+        ResolveFontAsset();
+        BuildRuntimeLayout();
+        SanitizeManagedLayoutForInput();
+        WireInteractionHandlers();
+        RefreshManagedLayoutSizing();
+        SetLegacyRootObjectsActive(false);
+        isInitialized = true;
+    }
+
+    private void ClearManagedReferences()
+    {
+        runtimeRoot = null;
+        leftContentHost = null;
+        currentPassiveContentRoot = null;
+        collectionGridContentRoot = null;
+        currentItemsPanel = null;
+        collectionPanel = null;
+        settingsPanel = null;
+        resumeButton = null;
+        quitButton = null;
+        contentTitleLabel = null;
+        detailNameLabel = null;
+        detailDescriptionLabel = null;
+        detailIcon = null;
+
+        navigationTabs.Clear();
+        collectionTabs.Clear();
+        dynamicSlots.Clear();
+    }
+
+    private bool TryBindManagedLayout()
+    {
+        navigationTabs.Clear();
+        collectionTabs.Clear();
+
+        Transform managedLayoutTransform = transform.Find(ManagedLayoutRootName);
+        if (managedLayoutTransform == null)
+            return false;
+
+        runtimeRoot = managedLayoutTransform as RectTransform;
+        leftContentHost = FindManagedRectTransform("LeftContentHost");
+        currentPassiveContentRoot = FindManagedRectTransform("CurrentItemsContent");
+        collectionGridContentRoot = FindManagedRectTransform("CollectionContent");
+        currentItemsPanel = FindManagedObject("CurrentItemsPanel");
+        collectionPanel = FindManagedObject("CollectionPanel");
+        settingsPanel = FindManagedObject("SettingsPanel");
+        resumeButton = FindManagedComponent<Button>("ResumeButton");
+        quitButton = FindManagedComponent<Button>("QuitButton");
+        contentTitleLabel = FindManagedComponent<TextMeshProUGUI>("ContentTitle");
+        detailNameLabel = FindManagedComponent<TextMeshProUGUI>("DetailName");
+        detailDescriptionLabel = FindManagedComponent<TextMeshProUGUI>("DetailDescription");
+        detailIcon = FindManagedComponent<Image>("DetailIcon");
+
+        RegisterNavigationTab(PauseSection.CurrentItems, "Tab_CurrentItems");
+        RegisterNavigationTab(PauseSection.Collection, "Tab_Collection");
+        RegisterNavigationTab(PauseSection.Settings, "Tab_Settings");
+        RegisterCollectionTab(CollectionCategory.Passive, "Collection_Passive");
+        RegisterCollectionTab(CollectionCategory.Active, "Collection_Active");
+
+        return runtimeRoot != null
+            && leftContentHost != null
+            && currentPassiveContentRoot != null
+            && collectionGridContentRoot != null
+            && currentItemsPanel != null
+            && collectionPanel != null
+            && settingsPanel != null
+            && resumeButton != null
+            && contentTitleLabel != null
+            && detailNameLabel != null
+            && detailDescriptionLabel != null
+            && detailIcon != null
+            && navigationTabs.Count == 3
+            && collectionTabs.Count == 2;
+    }
+
+    private void RegisterNavigationTab(PauseSection section, string objectName)
+    {
+        Button button = FindManagedComponent<Button>(objectName);
+        if (button == null)
+            return;
+
+        PauseNavigationButtonVisual visual = EnsureButtonVisual(button, true);
+
+        navigationTabs.Add(new PauseTabView
+        {
+            Section = section,
+            Button = button,
+            Background = button.GetComponent<Image>(),
+            Icon = FindButtonIcon(button),
+            Visual = visual
+        });
+    }
+
+    private void RegisterCollectionTab(CollectionCategory category, string objectName)
+    {
+        Button button = FindManagedComponent<Button>(objectName);
+        if (button == null)
+            return;
+
+        PauseNavigationButtonVisual visual = EnsureButtonVisual(button, true);
+
+        collectionTabs.Add(new CollectionTabView
+        {
+            Category = category,
+            Button = button,
+            Background = button.GetComponent<Image>(),
+            Icon = FindButtonIcon(button),
+            Visual = visual
+        });
+    }
+
+    private void SanitizeManagedLayoutForInput()
+    {
+        if (runtimeRoot == null)
+            return;
+
+        Canvas[] nestedCanvases = runtimeRoot.GetComponentsInChildren<Canvas>(true);
+        for (int i = 0; i < nestedCanvases.Length; i++)
+        {
+            Canvas canvas = nestedCanvases[i];
+            if (canvas == null)
+                continue;
+
+            if (canvas.transform == runtimeRoot)
+                continue;
+
+            DestroyComponentImmediateOrDeferred(canvas);
+        }
+    }
+
+    private void WireInteractionHandlers()
+    {
+        if (resumeButton != null)
+        {
+            EnsureButtonVisual(resumeButton, true);
+            resumeButton.onClick.RemoveAllListeners();
+            resumeButton.onClick.AddListener(HandleResumeClicked);
+            ApplyButtonColors(resumeButton);
+        }
+
+        if (quitButton != null)
+        {
+            EnsureButtonVisual(quitButton, true);
+            quitButton.onClick.RemoveAllListeners();
+            quitButton.onClick.AddListener(HandleQuitClicked);
+            ApplyButtonColors(quitButton);
+        }
+
+        for (int i = 0; i < navigationTabs.Count; i++)
+        {
+            PauseTabView tab = navigationTabs[i];
+            if (tab?.Button == null)
+                continue;
+
+            tab.Button.onClick.RemoveAllListeners();
+            ApplyButtonColors(tab.Button);
+            PauseSection section = tab.Section;
+            tab.Button.onClick.AddListener(() => ShowSection(section));
+        }
+
+        for (int i = 0; i < collectionTabs.Count; i++)
+        {
+            CollectionTabView tab = collectionTabs[i];
+            if (tab?.Button == null)
+                continue;
+
+            tab.Button.onClick.RemoveAllListeners();
+            ApplyButtonColors(tab.Button);
+            CollectionCategory category = tab.Category;
+            tab.Button.onClick.AddListener(() =>
+            {
+                currentCollectionCategory = category;
+                RefreshCollectionPanel();
+            });
+        }
+    }
+
+    private void RefreshManagedLayoutSizing()
+    {
+        if (runtimeRoot == null)
+            return;
+
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(runtimeRoot);
+
+        RefreshGridContentSizing(currentPassiveContentRoot);
+        RefreshGridContentSizing(collectionGridContentRoot);
+    }
+
+    private void RefreshGridContentSizing(RectTransform contentRoot)
+    {
+        if (contentRoot == null)
+            return;
+
+        GridLayoutGroup gridLayout = contentRoot.GetComponent<GridLayoutGroup>();
+        GridCellSizeFitter cellSizeFitter = contentRoot.GetComponent<GridCellSizeFitter>();
+        ScrollRect parentScrollRect = contentRoot.GetComponentInParent<ScrollRect>();
+        if (gridLayout == null || cellSizeFitter == null || !cellSizeFitter.AutoFitCellSize || parentScrollRect == null || parentScrollRect.viewport == null)
+            return;
+
+        cellSizeFitter.Initialize(gridLayout, parentScrollRect.viewport, ItemGridColumnCount, PreferredItemGridCellSize);
+        LayoutRebuilder.MarkLayoutForRebuild(contentRoot);
+    }
+
     private void BuildRuntimeLayout()
     {
-        runtimeRoot = CreateUiObject("RuntimePauseLayout", rootRectTransform).GetComponent<RectTransform>();
+        runtimeRoot = CreateUiObject(ManagedLayoutRootName, rootRectTransform).GetComponent<RectTransform>();
         runtimeRoot.anchorMin = new Vector2(0.5f, 0.5f);
         runtimeRoot.anchorMax = new Vector2(0.5f, 0.5f);
         runtimeRoot.pivot = new Vector2(0.5f, 0.5f);
@@ -218,7 +466,6 @@ public class PauseItemCollectionMenu : MonoBehaviour
         navigationPanel.anchorMax = new Vector2(0f, 1f);
         navigationPanel.offsetMin = new Vector2(16f, 16f);
         navigationPanel.offsetMax = new Vector2(246f, -16f);
-        ApplyImageStyle(navigationPanel.gameObject.AddComponent<Image>(), style.navigationPanelSprite, style.navigationPanelColor);
 
         RectTransform contentPanel = CreateUiObject("ContentPanel", runtimeRoot).GetComponent<RectTransform>();
         contentPanel.anchorMin = new Vector2(0f, 0f);
@@ -233,51 +480,39 @@ public class PauseItemCollectionMenu : MonoBehaviour
 
     private void BuildNavigationPanel(RectTransform navigationPanel)
     {
-        CreateText("PauseTitle", navigationPanel, new Vector2(24f, -26f), new Vector2(-24f, 44f), "Pause", 34f, FontStyles.Bold, TextAlignmentOptions.Left);
-
         RectTransform tabContainer = CreateUiObject("NavigationTabs", navigationPanel).GetComponent<RectTransform>();
         tabContainer.anchorMin = new Vector2(0f, 1f);
         tabContainer.anchorMax = new Vector2(1f, 1f);
         tabContainer.pivot = new Vector2(0.5f, 1f);
-        tabContainer.anchoredPosition = new Vector2(0f, -88f);
-        tabContainer.sizeDelta = new Vector2(0f, 220f);
-
-        VerticalLayoutGroup tabLayout = tabContainer.gameObject.AddComponent<VerticalLayoutGroup>();
-        tabLayout.padding = new RectOffset(16, 16, 0, 0);
-        tabLayout.spacing = 10f;
-        tabLayout.childAlignment = TextAnchor.UpperCenter;
-        tabLayout.childControlHeight = false;
-        tabLayout.childControlWidth = true;
-        tabLayout.childForceExpandHeight = false;
-        tabLayout.childForceExpandWidth = true;
-
-        navigationTabs.Add(CreateNavigationTab(tabContainer, PauseSection.CurrentItems, "Current Items"));
-        navigationTabs.Add(CreateNavigationTab(tabContainer, PauseSection.Collection, "Collection"));
-        navigationTabs.Add(CreateNavigationTab(tabContainer, PauseSection.Settings, "Settings"));
+        tabContainer.anchoredPosition = new Vector2(0f, -16f);
+        tabContainer.sizeDelta = new Vector2(0f, 96f);
 
         RectTransform actionContainer = CreateUiObject("ActionButtons", navigationPanel).GetComponent<RectTransform>();
         actionContainer.anchorMin = new Vector2(0f, 0f);
         actionContainer.anchorMax = new Vector2(1f, 0f);
         actionContainer.pivot = new Vector2(0.5f, 0f);
         actionContainer.anchoredPosition = new Vector2(0f, 18f);
-        actionContainer.sizeDelta = new Vector2(0f, 112f);
+        actionContainer.sizeDelta = new Vector2(0f, 52f);
 
-        VerticalLayoutGroup actionLayout = actionContainer.gameObject.AddComponent<VerticalLayoutGroup>();
-        actionLayout.padding = new RectOffset(16, 16, 0, 0);
-        actionLayout.spacing = 12f;
-        actionLayout.childAlignment = TextAnchor.LowerCenter;
-        actionLayout.childControlHeight = false;
-        actionLayout.childControlWidth = true;
-        actionLayout.childForceExpandHeight = false;
-        actionLayout.childForceExpandWidth = true;
+        PauseTabView currentItemsTab = CreateNavigationTab(tabContainer, PauseSection.CurrentItems);
+        PauseTabView collectionTab = CreateNavigationTab(tabContainer, PauseSection.Collection);
+        PauseTabView settingsTab = CreateNavigationTab(tabContainer, PauseSection.Settings);
+        navigationTabs.Add(currentItemsTab);
+        navigationTabs.Add(collectionTab);
+        navigationTabs.Add(settingsTab);
+
+        SetTopAnchoredButtonLayout(currentItemsTab.Button.GetComponent<RectTransform>(), 16f, 52f);
+        SetTopAnchoredButtonLayout(collectionTab.Button.GetComponent<RectTransform>(), 78f, 52f);
+        SetTopAnchoredButtonLayout(settingsTab.Button.GetComponent<RectTransform>(), 140f, 52f);
 
         resumeButton = CreateActionButton(actionContainer, "ResumeButton", "Resume", style.actionButtonColor, HandleResumeClicked);
-        quitButton = CreateActionButton(actionContainer, "QuitButton", "Quit", style.quitButtonColor, HandleQuitClicked);
+        quitButton = null;
+        SetBottomAnchoredButtonLayout(resumeButton.GetComponent<RectTransform>(), 0f, 48f);
     }
 
     private void BuildContentPanel(RectTransform contentPanel)
     {
-        contentTitleLabel = CreateText("ContentTitle", contentPanel, new Vector2(28f, -26f), new Vector2(-28f, 42f), "Current Items", 30f, FontStyles.Bold, TextAlignmentOptions.Left);
+        contentTitleLabel = CreateText("ContentTitle", contentPanel, new Vector2(28f, -26f), new Vector2(-28f, 42f), GetSectionTitle(PauseSection.CurrentItems), 30f, FontStyles.Bold, TextAlignmentOptions.Left);
 
         RectTransform bodyRect = CreateUiObject("Body", contentPanel).GetComponent<RectTransform>();
         bodyRect.anchorMin = new Vector2(0f, 0f);
@@ -342,18 +577,12 @@ public class PauseItemCollectionMenu : MonoBehaviour
         RectTransform panelRect = currentItemsPanel.GetComponent<RectTransform>();
         StretchToParent(panelRect);
 
-        VerticalLayoutGroup layout = currentItemsPanel.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 12f;
-        layout.childControlHeight = true;
-        layout.childControlWidth = true;
-        layout.childForceExpandWidth = true;
-        layout.childForceExpandHeight = false;
-
         RectTransform passiveFrame = CreateSubSection(currentItemsPanel.transform, null, -1f);
-        LayoutElement passiveLayoutElement = passiveFrame.gameObject.AddComponent<LayoutElement>();
-        passiveLayoutElement.flexibleHeight = 1f;
+        passiveFrame.name = "CurrentItemsFrame";
+        StretchToParent(passiveFrame);
 
-        currentPassiveContentRoot = CreateGridScrollArea(passiveFrame, out _, ItemGridColumnCount, PreferredItemGridCellSize, 10f);
+        currentPassiveContentRoot = CreateGridScrollArea(passiveFrame, out _, ItemGridColumnCount, PreferredItemGridCellSize, 10f, true);
+        currentPassiveContentRoot.name = "CurrentItemsContent";
     }
 
     private void BuildCollectionPanel()
@@ -363,36 +592,27 @@ public class PauseItemCollectionMenu : MonoBehaviour
         StretchToParent(panelRect);
         collectionPanel.SetActive(false);
 
-        VerticalLayoutGroup layout = collectionPanel.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 12f;
-        layout.childControlHeight = true;
-        layout.childControlWidth = true;
-        layout.childForceExpandWidth = true;
-        layout.childForceExpandHeight = false;
-
         RectTransform categoryBar = CreateSubSection(collectionPanel.transform, "Archive", 92f);
+        SetTopStretchLayout(categoryBar, 0f, CollectionPanelTopSectionHeight);
         RectTransform categoryButtons = CreateUiObject("CategoryButtons", categoryBar).GetComponent<RectTransform>();
         categoryButtons.anchorMin = new Vector2(0f, 0f);
         categoryButtons.anchorMax = new Vector2(1f, 1f);
         categoryButtons.offsetMin = new Vector2(16f, 14f);
         categoryButtons.offsetMax = new Vector2(-16f, -36f);
-
-        HorizontalLayoutGroup categoryLayout = categoryButtons.gameObject.AddComponent<HorizontalLayoutGroup>();
-        categoryLayout.spacing = 10f;
-        categoryLayout.childAlignment = TextAnchor.MiddleLeft;
-        categoryLayout.childControlWidth = false;
-        categoryLayout.childControlHeight = false;
-        categoryLayout.childForceExpandWidth = false;
-        categoryLayout.childForceExpandHeight = false;
-
-        collectionTabs.Add(CreateCollectionCategoryTab(categoryButtons, CollectionCategory.Passive, "Passive"));
-        collectionTabs.Add(CreateCollectionCategoryTab(categoryButtons, CollectionCategory.Active, "Active"));
+        collectionTabs.Clear();
+        CollectionTabView passiveTab = CreateCollectionCategoryTab(categoryButtons, CollectionCategory.Passive, "Passive");
+        CollectionTabView activeTab = CreateCollectionCategoryTab(categoryButtons, CollectionCategory.Active, "Active");
+        collectionTabs.Add(passiveTab);
+        collectionTabs.Add(activeTab);
+        SetLeftAnchoredButtonLayout(passiveTab.Button.GetComponent<RectTransform>(), 0f, 0f, 136f, 34f);
+        SetLeftAnchoredButtonLayout(activeTab.Button.GetComponent<RectTransform>(), 146f, 0f, 136f, 34f);
 
         RectTransform gridFrame = CreateSubSection(collectionPanel.transform, null, -1f);
-        LayoutElement gridLayoutElement = gridFrame.gameObject.AddComponent<LayoutElement>();
-        gridLayoutElement.flexibleHeight = 1f;
+        gridFrame.name = "CollectionGridFrame";
+        SetStretchLayout(gridFrame, 0f, 0f, 0f, CollectionPanelTopSectionHeight + CollectionPanelSectionGap);
 
-        collectionGridContentRoot = CreateGridScrollArea(gridFrame, out _, ItemGridColumnCount, PreferredItemGridCellSize, 10f);
+        collectionGridContentRoot = CreateGridScrollArea(gridFrame, out _, ItemGridColumnCount, PreferredItemGridCellSize, 10f, false);
+        collectionGridContentRoot.name = "CollectionContent";
     }
 
     private void BuildSettingsPanel()
@@ -402,15 +622,8 @@ public class PauseItemCollectionMenu : MonoBehaviour
         StretchToParent(panelRect);
         settingsPanel.SetActive(false);
 
-        VerticalLayoutGroup layout = settingsPanel.AddComponent<VerticalLayoutGroup>();
-        layout.childControlHeight = true;
-        layout.childControlWidth = true;
-        layout.childForceExpandHeight = true;
-        layout.childForceExpandWidth = true;
-
         RectTransform placeholderFrame = CreateSubSection(settingsPanel.transform, "Settings", -1f);
-        LayoutElement layoutElement = placeholderFrame.gameObject.AddComponent<LayoutElement>();
-        layoutElement.flexibleHeight = 1f;
+        StretchToParent(placeholderFrame);
 
         TextMeshProUGUI placeholder = CreateText(
             "SettingsPlaceholder",
@@ -425,11 +638,22 @@ public class PauseItemCollectionMenu : MonoBehaviour
         placeholder.textWrappingMode = TextWrappingModes.Normal;
     }
 
-    private PauseTabView CreateNavigationTab(Transform parent, PauseSection section, string label)
+    private string GetSectionTitle(PauseSection section)
     {
-        Button button = CreateButton(parent, $"Tab_{section}", label, out TextMeshProUGUI labelText, out Image backgroundImage);
+        return section switch
+        {
+            PauseSection.CurrentItems => string.IsNullOrWhiteSpace(sectionTitles.currentItems) ? "Current Items" : sectionTitles.currentItems,
+            PauseSection.Collection => string.IsNullOrWhiteSpace(sectionTitles.collection) ? "Collection" : sectionTitles.collection,
+            _ => string.IsNullOrWhiteSpace(sectionTitles.settings) ? "Settings" : sectionTitles.settings
+        };
+    }
+
+    private PauseTabView CreateNavigationTab(Transform parent, PauseSection section)
+    {
+        Button button = CreateIconButton(parent, $"Tab_{section}", out Image backgroundImage);
         RectTransform rect = button.GetComponent<RectTransform>();
         rect.sizeDelta = new Vector2(0f, 52f);
+        PauseNavigationButtonVisual visual = EnsureButtonVisual(button, true);
 
         button.onClick.AddListener(() => ShowSection(section));
 
@@ -438,7 +662,8 @@ public class PauseItemCollectionMenu : MonoBehaviour
             Section = section,
             Button = button,
             Background = backgroundImage,
-            Label = labelText
+            Icon = FindButtonIcon(button),
+            Visual = visual
         };
     }
 
@@ -447,6 +672,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
         Button button = CreateButton(parent, $"Collection_{category}", label, out TextMeshProUGUI labelText, out Image backgroundImage);
         RectTransform rect = button.GetComponent<RectTransform>();
         rect.sizeDelta = new Vector2(136f, 34f);
+        PauseNavigationButtonVisual visual = EnsureButtonVisual(button, true);
 
         button.onClick.AddListener(() =>
         {
@@ -459,7 +685,8 @@ public class PauseItemCollectionMenu : MonoBehaviour
             Category = category,
             Button = button,
             Background = backgroundImage,
-            Label = labelText
+            Icon = FindButtonIcon(button),
+            Visual = visual
         };
     }
 
@@ -469,7 +696,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
         RectTransform rect = button.GetComponent<RectTransform>();
         rect.sizeDelta = new Vector2(0f, 48f);
         ApplyImageStyle(backgroundImage, style.actionButtonSprite, color);
-        labelText.color = style.actionButtonTextColor;
+        EnsureButtonVisual(button, true);
         button.onClick.AddListener(clicked);
         return button;
     }
@@ -504,15 +731,15 @@ public class PauseItemCollectionMenu : MonoBehaviour
         switch (section)
         {
             case PauseSection.CurrentItems:
-                contentTitleLabel.text = "Current Items";
+                contentTitleLabel.text = GetSectionTitle(PauseSection.CurrentItems);
                 RefreshCurrentItemsPanel();
                 break;
             case PauseSection.Collection:
-                contentTitleLabel.text = "Collection";
+                contentTitleLabel.text = GetSectionTitle(PauseSection.Collection);
                 RefreshCollectionPanel();
                 break;
             default:
-                contentTitleLabel.text = "Settings";
+                contentTitleLabel.text = GetSectionTitle(PauseSection.Settings);
                 ClearDynamicContent();
                 ClearDetail("Settings options can be added here later.", string.Empty, null, true);
                 break;
@@ -672,12 +899,12 @@ public class PauseItemCollectionMenu : MonoBehaviour
         ApplyImageStyle(background, isUnlocked ? style.slotSprite : style.lockedSlotSprite, isUnlocked ? style.slotColor : style.lockedSlotColor);
 
         Outline outline = slotObject.AddComponent<Outline>();
-        outline.effectColor = new Color(0f, 0f, 0f, 0f);
         outline.effectDistance = new Vector2(2f, -2f);
+        outline.enabled = false;
 
         Button button = slotObject.AddComponent<Button>();
         button.targetGraphic = background;
-        ApplyButtonColors(button, background.color);
+        ApplyButtonColors(button);
 
         GameObject iconObject = CreateUiObject("Icon", slotRect);
         RectTransform iconRect = iconObject.GetComponent<RectTransform>();
@@ -689,9 +916,9 @@ public class PauseItemCollectionMenu : MonoBehaviour
 
         Image iconImage = iconObject.AddComponent<Image>();
         iconImage.sprite = entry.Icon;
+        iconImage.color = isUnlocked ? Color.white : Color.black;
         iconImage.preserveAspect = true;
         iconImage.raycastTarget = false;
-        iconImage.color = isUnlocked ? Color.white : Color.black;
 
         PauseItemCollectionSlot slot = slotObject.AddComponent<PauseItemCollectionSlot>();
         slot.Initialize(entry, FocusEntry, null);
@@ -713,7 +940,6 @@ public class PauseItemCollectionMenu : MonoBehaviour
         label.fontSize = 18f;
         label.alignment = TextAlignmentOptions.Center;
         label.text = message;
-        label.color = new Color(1f, 1f, 1f, 0.68f);
         label.textWrappingMode = TextWrappingModes.Normal;
     }
 
@@ -731,8 +957,6 @@ public class PauseItemCollectionMenu : MonoBehaviour
         {
             ClearDetail("???", entry.CategoryLabel, entry.Icon, false);
             detailDescriptionLabel.text = "Unlock this item during play to reveal its full information in the collection.";
-            if (detailIcon != null)
-                detailIcon.color = Color.black;
             return;
         }
 
@@ -754,12 +978,12 @@ public class PauseItemCollectionMenu : MonoBehaviour
         if (clearIcon)
         {
             detailIcon.sprite = null;
-            detailIcon.color = Color.clear;
+            detailIcon.enabled = false;
             return;
         }
 
         detailIcon.sprite = icon;
-        detailIcon.color = icon != null ? Color.white : Color.clear;
+        detailIcon.enabled = icon != null;
     }
 
     private void ClearDynamicContent()
@@ -775,7 +999,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
             return;
 
         for (int i = parent.childCount - 1; i >= 0; i--)
-            Destroy(parent.GetChild(i).gameObject);
+            DestroyObject(parent.GetChild(i).gameObject);
     }
 
     private void UpdateNavigationTabVisuals()
@@ -784,8 +1008,18 @@ public class PauseItemCollectionMenu : MonoBehaviour
         {
             PauseTabView tab = navigationTabs[i];
             bool isSelected = tab.Section == currentSection;
+            if (tab.Visual != null)
+            {
+                tab.Visual.ApplySelected(
+                    isSelected,
+                    style.tabSprite,
+                    style.selectedTabSprite,
+                    style.tabIconColor,
+                    style.selectedTabIconColor);
+                continue;
+            }
+
             ApplyImageStyle(tab.Background, isSelected ? style.selectedTabSprite : style.tabSprite, isSelected ? style.selectedTabColor : style.tabColor);
-            tab.Label.color = isSelected ? style.selectedTabTextColor : style.tabTextColor;
         }
     }
 
@@ -795,8 +1029,18 @@ public class PauseItemCollectionMenu : MonoBehaviour
         {
             CollectionTabView tab = collectionTabs[i];
             bool isSelected = tab.Category == currentCollectionCategory;
+            if (tab.Visual != null)
+            {
+                tab.Visual.ApplySelected(
+                    isSelected,
+                    style.tabSprite,
+                    style.selectedTabSprite,
+                    style.tabIconColor,
+                    style.selectedTabIconColor);
+                continue;
+            }
+
             ApplyImageStyle(tab.Background, isSelected ? style.selectedTabSprite : style.tabSprite, isSelected ? style.selectedTabColor : style.tabColor);
-            tab.Label.color = isSelected ? style.selectedTabTextColor : style.tabTextColor;
         }
     }
 
@@ -812,6 +1056,68 @@ public class PauseItemCollectionMenu : MonoBehaviour
 
         if (runtimeRoot != null)
             runtimeRoot.gameObject.SetActive(true);
+    }
+
+    private static PauseNavigationButtonVisual EnsureButtonVisual(Button button, bool forceRecache = false)
+    {
+        if (button == null)
+            return null;
+
+        PauseNavigationButtonVisual visual = button.GetComponent<PauseNavigationButtonVisual>();
+        if (visual == null)
+            visual = button.gameObject.AddComponent<PauseNavigationButtonVisual>();
+
+        visual.RefreshReferences(forceRecache);
+        return visual;
+    }
+
+    private static Image FindButtonIcon(Button button)
+    {
+        PauseNavigationButtonVisual visual = button != null ? button.GetComponent<PauseNavigationButtonVisual>() : null;
+        if (visual != null && visual.IconImage != null)
+            return visual.IconImage;
+
+        return null;
+    }
+
+    private GameObject FindManagedObject(string objectName)
+    {
+        Transform child = FindManagedTransform(objectName);
+        return child != null ? child.gameObject : null;
+    }
+
+    private RectTransform FindManagedRectTransform(string objectName)
+    {
+        return FindManagedTransform(objectName) as RectTransform;
+    }
+
+    private T FindManagedComponent<T>(string objectName) where T : Component
+    {
+        Transform child = FindManagedTransform(objectName);
+        return child != null ? child.GetComponent<T>() : null;
+    }
+
+    private Transform FindManagedTransform(string objectName)
+    {
+        return runtimeRoot != null ? FindDescendant(runtimeRoot, objectName) : null;
+    }
+
+    private static Transform FindDescendant(Transform parent, string objectName)
+    {
+        if (parent == null)
+            return null;
+
+        if (parent.name == objectName)
+            return parent;
+
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform child = FindDescendant(parent.GetChild(i), objectName);
+            if (child != null)
+                return child;
+        }
+
+        return null;
     }
 
     private RectTransform CreateSubSection(Transform parent, string title, float preferredHeight)
@@ -863,17 +1169,28 @@ public class PauseItemCollectionMenu : MonoBehaviour
         return contentRect;
     }
 
-    private RectTransform CreateGridScrollArea(RectTransform parent, out ScrollRect scrollRect, int columnCount, Vector2 cellSize, float topInset = 42f)
+    private RectTransform CreateGridScrollArea(RectTransform parent, out ScrollRect scrollRect, int columnCount, Vector2 cellSize, float topInset = 42f, bool autoFitCellSize = true)
     {
         RectTransform viewport = CreateScrollViewport(parent, out scrollRect, topInset);
 
         GameObject contentObject = CreateUiObject("Content", viewport);
         RectTransform contentRect = contentObject.GetComponent<RectTransform>();
-        contentRect.anchorMin = new Vector2(0f, 1f);
-        contentRect.anchorMax = new Vector2(1f, 1f);
-        contentRect.pivot = new Vector2(0.5f, 1f);
-        contentRect.anchoredPosition = Vector2.zero;
-        contentRect.sizeDelta = Vector2.zero;
+        if (autoFitCellSize)
+        {
+            contentRect.anchorMin = new Vector2(0f, 1f);
+            contentRect.anchorMax = new Vector2(1f, 1f);
+            contentRect.pivot = new Vector2(0.5f, 1f);
+            contentRect.anchoredPosition = Vector2.zero;
+            contentRect.sizeDelta = Vector2.zero;
+        }
+        else
+        {
+            contentRect.anchorMin = new Vector2(0.5f, 1f);
+            contentRect.anchorMax = new Vector2(0.5f, 1f);
+            contentRect.pivot = new Vector2(0.5f, 1f);
+            contentRect.anchoredPosition = Vector2.zero;
+            contentRect.sizeDelta = new Vector2(CalculatePreferredGridWidth(columnCount, cellSize), 8f);
+        }
 
         GridLayoutGroup gridLayout = contentObject.AddComponent<GridLayoutGroup>();
         gridLayout.cellSize = cellSize;
@@ -884,6 +1201,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
         gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
 
         GridCellSizeFitter cellSizeFitter = contentObject.AddComponent<GridCellSizeFitter>();
+        cellSizeFitter.SetAutoFitCellSize(autoFitCellSize);
         cellSizeFitter.Initialize(gridLayout, viewport, columnCount, cellSize);
 
         ContentSizeFitter fitter = contentObject.AddComponent<ContentSizeFitter>();
@@ -973,29 +1291,65 @@ public class PauseItemCollectionMenu : MonoBehaviour
 
         Button button = buttonObject.AddComponent<Button>();
         button.targetGraphic = backgroundImage;
-        ApplyButtonColors(button, backgroundImage.color);
+        ApplyButtonColors(button);
 
         label = CreateText("Label", buttonRect, new Vector2(0f, 0f), new Vector2(0f, 0f), labelText, 20f, FontStyles.Bold, TextAlignmentOptions.Center);
         StretchToParent(label.rectTransform);
         label.margin = new Vector4(12f, 8f, 12f, 8f);
-        label.color = style.tabTextColor;
+        label.color = Color.white;
 
         return button;
     }
 
-    private void ApplyButtonColors(Button button, Color baseColor)
+    private Button CreateIconButton(Transform parent, string name, out Image backgroundImage)
     {
+        GameObject buttonObject = CreateUiObject(name, parent);
+        RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
+
+        backgroundImage = buttonObject.AddComponent<Image>();
+        ApplyImageStyle(backgroundImage, style.tabSprite, style.tabColor);
+
+        Button button = buttonObject.AddComponent<Button>();
+        button.targetGraphic = backgroundImage;
+        ApplyButtonColors(button);
+
+        GameObject iconObject = CreateUiObject("Icon", buttonRect);
+        RectTransform iconRect = iconObject.GetComponent<RectTransform>();
+        iconRect.anchorMin = new Vector2(0.5f, 0.5f);
+        iconRect.anchorMax = new Vector2(0.5f, 0.5f);
+        iconRect.pivot = new Vector2(0.5f, 0.5f);
+        iconRect.anchoredPosition = Vector2.zero;
+        iconRect.sizeDelta = new Vector2(32f, 32f);
+
+        Image iconImage = iconObject.AddComponent<Image>();
+        iconImage.color = style.tabIconColor;
+        iconImage.raycastTarget = false;
+        iconImage.preserveAspect = true;
+
+        return button;
+    }
+
+    private void ApplyButtonColors(Button button)
+    {
+        if (button == null)
+            return;
+
+        button.transition = Selectable.Transition.ColorTint;
+
         ColorBlock colors = button.colors;
-        colors.normalColor = baseColor;
-        colors.highlightedColor = baseColor * 1.08f;
-        colors.pressedColor = baseColor * 0.9f;
-        colors.selectedColor = colors.highlightedColor;
-        colors.disabledColor = new Color(baseColor.r, baseColor.g, baseColor.b, 0.45f);
+        colors.normalColor = Color.white;
+        colors.highlightedColor = Color.white;
+        colors.pressedColor = Color.white;
+        colors.selectedColor = Color.white;
+        colors.disabledColor = new Color(1f, 1f, 1f, 0.45f);
         button.colors = colors;
     }
 
     private void ApplyImageStyle(Image image, Sprite sprite, Color color)
     {
+        if (image == null)
+            return;
+
         image.sprite = sprite;
         image.color = color;
         image.type = sprite != null ? Image.Type.Sliced : Image.Type.Simple;
@@ -1036,12 +1390,100 @@ public class PauseItemCollectionMenu : MonoBehaviour
         return uiObject;
     }
 
+    private static void DestroyObject(GameObject target)
+    {
+        if (target == null)
+            return;
+
+        if (Application.isPlaying)
+            Destroy(target);
+        else
+            DestroyImmediate(target);
+    }
+
+    private static void DestroyComponentImmediateOrDeferred(Component component)
+    {
+        if (component == null)
+            return;
+
+        if (Application.isPlaying)
+            Destroy(component);
+        else
+            DestroyImmediate(component);
+    }
+
     private static void StretchToParent(RectTransform rectTransform)
     {
         rectTransform.anchorMin = Vector2.zero;
         rectTransform.anchorMax = Vector2.one;
         rectTransform.offsetMin = Vector2.zero;
         rectTransform.offsetMax = Vector2.zero;
+    }
+
+    private static void SetTopAnchoredButtonLayout(RectTransform rectTransform, float topOffset, float height)
+    {
+        if (rectTransform == null)
+            return;
+
+        rectTransform.anchorMin = new Vector2(0.5f, 1f);
+        rectTransform.anchorMax = new Vector2(0.5f, 1f);
+        rectTransform.pivot = new Vector2(0.5f, 1f);
+        rectTransform.anchoredPosition = new Vector2(0f, -topOffset);
+        rectTransform.sizeDelta = new Vector2(198f, height);
+    }
+
+    private static void SetLeftAnchoredButtonLayout(RectTransform rectTransform, float leftOffset, float topOffset, float width, float height)
+    {
+        if (rectTransform == null)
+            return;
+
+        rectTransform.anchorMin = new Vector2(0f, 1f);
+        rectTransform.anchorMax = new Vector2(0f, 1f);
+        rectTransform.pivot = new Vector2(0f, 1f);
+        rectTransform.anchoredPosition = new Vector2(leftOffset, -topOffset);
+        rectTransform.sizeDelta = new Vector2(width, height);
+    }
+
+    private static void SetStretchLayout(RectTransform rectTransform, float leftInset, float bottomInset, float rightInset, float topInset)
+    {
+        if (rectTransform == null)
+            return;
+
+        rectTransform.anchorMin = Vector2.zero;
+        rectTransform.anchorMax = Vector2.one;
+        rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        rectTransform.offsetMin = new Vector2(leftInset, bottomInset);
+        rectTransform.offsetMax = new Vector2(-rightInset, -topInset);
+    }
+
+    private static void SetTopStretchLayout(RectTransform rectTransform, float topOffset, float height)
+    {
+        if (rectTransform == null)
+            return;
+
+        rectTransform.anchorMin = new Vector2(0f, 1f);
+        rectTransform.anchorMax = new Vector2(1f, 1f);
+        rectTransform.pivot = new Vector2(0.5f, 1f);
+        rectTransform.offsetMin = new Vector2(0f, -(topOffset + height));
+        rectTransform.offsetMax = new Vector2(0f, -topOffset);
+    }
+
+    private static float CalculatePreferredGridWidth(int columnCount, Vector2 cellSize)
+    {
+        int resolvedColumnCount = Mathf.Max(1, columnCount);
+        return (ItemGridPadding * 2f) + (cellSize.x * resolvedColumnCount) + (ItemGridSpacing * (resolvedColumnCount - 1));
+    }
+
+    private static void SetBottomAnchoredButtonLayout(RectTransform rectTransform, float bottomOffset, float height)
+    {
+        if (rectTransform == null)
+            return;
+
+        rectTransform.anchorMin = new Vector2(0.5f, 0f);
+        rectTransform.anchorMax = new Vector2(0.5f, 0f);
+        rectTransform.pivot = new Vector2(0.5f, 0f);
+        rectTransform.anchoredPosition = new Vector2(0f, bottomOffset);
+        rectTransform.sizeDelta = new Vector2(198f, height);
     }
 
     public struct ItemEntryViewModel
@@ -1059,10 +1501,13 @@ public class PauseItemCollectionMenu : MonoBehaviour
 [DisallowMultipleComponent]
 public sealed class GridCellSizeFitter : MonoBehaviour
 {
-    private GridLayoutGroup gridLayout;
-    private RectTransform viewport;
-    private int columnCount;
-    private Vector2 preferredCellSize;
+    [SerializeField] private GridLayoutGroup gridLayout;
+    [SerializeField] private RectTransform viewport;
+    [SerializeField] private bool autoFitCellSize = true;
+    [SerializeField] private int columnCount = 1;
+    [SerializeField] private Vector2 preferredCellSize = new Vector2(60f, 60f);
+
+    public bool AutoFitCellSize => autoFitCellSize;
 
     public void Initialize(GridLayoutGroup targetGridLayout, RectTransform targetViewport, int targetColumnCount, Vector2 targetPreferredCellSize)
     {
@@ -1073,19 +1518,57 @@ public sealed class GridCellSizeFitter : MonoBehaviour
         Apply();
     }
 
+    public void SetAutoFitCellSize(bool value)
+    {
+        autoFitCellSize = value;
+    }
+
     private void OnEnable()
     {
+        EnsureReferences();
         Apply();
     }
 
     private void OnRectTransformDimensionsChange()
     {
+        EnsureReferences();
         Apply();
+    }
+
+    private void Awake()
+    {
+        EnsureReferences();
+    }
+
+    private void EnsureReferences()
+    {
+        if (gridLayout == null)
+            gridLayout = GetComponent<GridLayoutGroup>();
+
+        if (viewport == null)
+        {
+            ScrollRect parentScrollRect = GetComponentInParent<ScrollRect>();
+            if (parentScrollRect != null && parentScrollRect.viewport != null)
+                viewport = parentScrollRect.viewport;
+            else if (transform.parent != null)
+                viewport = transform.parent as RectTransform;
+        }
+
+        if (gridLayout != null && columnCount <= 0)
+            columnCount = Mathf.Max(1, gridLayout.constraintCount);
+
+        if (preferredCellSize.x <= 0f || preferredCellSize.y <= 0f)
+        {
+            Vector2 fallbackCellSize = gridLayout != null ? gridLayout.cellSize : Vector2.zero;
+            preferredCellSize = new Vector2(
+                Mathf.Max(1f, fallbackCellSize.x),
+                Mathf.Max(1f, fallbackCellSize.y));
+        }
     }
 
     private void Apply()
     {
-        if (gridLayout == null || viewport == null)
+        if (!autoFitCellSize || gridLayout == null || viewport == null)
             return;
 
         float availableWidth = viewport.rect.width - gridLayout.padding.left - gridLayout.padding.right - (gridLayout.spacing.x * (columnCount - 1));

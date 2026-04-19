@@ -32,6 +32,7 @@ public class PauseItemCollectionSlot : MonoBehaviour, IPointerEnterHandler, IPoi
     {
         selectionOutline = outline;
         selectedOutlineColor = color;
+        selectionOutline.effectColor = selectedOutlineColor;
         SetSelected(false);
     }
 
@@ -40,9 +41,7 @@ public class PauseItemCollectionSlot : MonoBehaviour, IPointerEnterHandler, IPoi
         if (selectionOutline == null)
             return;
 
-        selectionOutline.effectColor = isSelected
-            ? selectedOutlineColor
-            : new Color(0f, 0f, 0f, 0f);
+        selectionOutline.enabled = isSelected;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
