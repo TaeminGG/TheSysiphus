@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class EnemyStats : MonoBehaviour, IDamageable
+public class EnemyStats : MonoBehaviour, IDamageable, IStatusTickDamageable
 {
     public float maxHp = 100f;
     private float currentHp = 0f;
@@ -66,6 +66,20 @@ public class EnemyStats : MonoBehaviour, IDamageable
 
         if (IsDead)
             OnDeath?.Invoke();
+    }
+
+    public void TakeStatusTickDamage(float damage)
+    {
+        TakeDamage(damage, Vector2.zero);
+    }
+
+    public void Kill()
+    {
+        if (IsDead)
+            return;
+
+        currentHp = 0f;
+        OnDeath?.Invoke();
     }
 
     public void ApplyCrowdControl(EnemyCrowdControlRequest request)

@@ -102,7 +102,7 @@ public class ChunkLoader : MonoBehaviour
             Vector3 worldPosition = tmap.GetCellCenterWorld(targetCell) + binding.positionOffset;
             GameObject spawnedObject = Instantiate(binding.prefab, worldPosition, Quaternion.identity, chunkRoot);
 
-            ApplySpawnFloorZ(spawnedObject, GetFloorZAtCell(targetCell));
+            ApplySpawnFloorZToObject(spawnedObject, GetFloorZAtCell(targetCell));
         }
     }
 
@@ -173,8 +173,11 @@ public class ChunkLoader : MonoBehaviour
         return 0;
     }
 
-    private void ApplySpawnFloorZ(GameObject spawnedObject, int floorZ)
+    public static void ApplySpawnFloorZToObject(GameObject spawnedObject, int floorZ)
     {
+        if (spawnedObject == null)
+            return;
+
         if (spawnedObject.TryGetComponent(out UndeadMovement undeadMovement))
             undeadMovement.floorZ = floorZ;
 
@@ -183,6 +186,21 @@ public class ChunkLoader : MonoBehaviour
 
         if (spawnedObject.TryGetComponent(out GorgonMovement gorgonMovement))
             gorgonMovement.floorZ = floorZ;
+
+        if (spawnedObject.TryGetComponent(out SkeletonMovement skeletonMovement))
+            skeletonMovement.floorZ = floorZ;
+
+        if (spawnedObject.TryGetComponent(out SpiritMovement spiritMovement))
+            spiritMovement.floorZ = floorZ;
+
+        if (spawnedObject.TryGetComponent(out BoomerMovement boomerMovement))
+            boomerMovement.floorZ = floorZ;
+
+        if (spawnedObject.TryGetComponent(out StaticEnemyMovement staticEnemyMovement))
+            staticEnemyMovement.floorZ = floorZ;
+
+        if (spawnedObject.TryGetComponent(out MinotaurMovement minotaurMovement))
+            minotaurMovement.floorZ = floorZ;
 
         if (spawnedObject.TryGetComponent(out GroundedEnemy groundedEnemy))
             groundedEnemy.floorZ = floorZ;

@@ -16,6 +16,7 @@ public class StatusAilmentController : MonoBehaviour
     [SerializeField] private Material burnMaterial;
 
     private IDamageable damageable;
+    private IStatusTickDamageable statusTickDamageable;
     private Material[] defaultMaterials;
 
     private TimedDamageAilment poison;
@@ -27,6 +28,7 @@ public class StatusAilmentController : MonoBehaviour
     private void Awake()
     {
         damageable = GetComponent<IDamageable>();
+        statusTickDamageable = GetComponent<IStatusTickDamageable>();
         ResolveRenderers();
         CacheDefaultMaterials();
     }
@@ -95,7 +97,10 @@ public class StatusAilmentController : MonoBehaviour
         while (ailment.TickTimer >= ailment.TickInterval && ailment.RemainingDuration > -ailment.TickInterval)
         {
             ailment.TickTimer -= ailment.TickInterval;
-            damageable.TakeDamage(ailment.DamagePerTick, Vector2.zero);
+            if (statusTickDamageable != null)
+                statusTickDamageable.TakeStatusTickDamage(ailment.DamagePerTick);
+            else
+                damageable.TakeDamage(ailment.DamagePerTick, Vector2.zero);
 
             if (damageable == null || damageable.IsDead)
                 break;

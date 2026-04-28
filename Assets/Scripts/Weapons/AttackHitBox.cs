@@ -20,6 +20,14 @@ public class AttackHitBox : MonoBehaviour
     private float damage;
     private float floorZ = 0;
     private PlayerStats ownerStats;
+    private bool applyPoisonToPlayerOnHit = false;
+    private float poisonDurationOnPlayerHit = 0f;
+    private float poisonDamagePerSecondOnPlayerHit = 0f;
+    private bool applyBurnToPlayerOnHit = false;
+    private float burnDurationOnPlayerHit = 0f;
+    private float burnTickIntervalOnPlayerHit = 0f;
+    private float burnDamagePerTickOnPlayerHit = 0f;
+    private bool ignorePlayerZCheck = false;
 
     public event System.Action OnEnemyHitConfirmed;
 
@@ -38,6 +46,7 @@ public class AttackHitBox : MonoBehaviour
         hitTargets.Clear();
         damage = playerAttackDamage;
         floorZ = z;
+        ResetOnHitAilments();
 
         SpriteRenderer dataSprite = data.visual.GetComponent<SpriteRenderer>();
         Animator dataAnim = data.visual.GetComponent<Animator>();
@@ -81,6 +90,7 @@ public class AttackHitBox : MonoBehaviour
         hitTargets.Clear();
         damage = attackDamage;
         floorZ = z;
+        ResetOnHitAilments();
 
         if (col is BoxCollider2D box)
         {
@@ -110,6 +120,38 @@ public class AttackHitBox : MonoBehaviour
     public void SetPlayerOwner(PlayerStats stats)
     {
         ownerStats = stats;
+    }
+
+    public void ConfigurePoisonOnPlayerHit(float duration, float damagePerSecond)
+    {
+        if (duration <= 0f || damagePerSecond <= 0f)
+        {
+            ResetPoisonOnHit();
+            return;
+        }
+
+        applyPoisonToPlayerOnHit = true;
+        poisonDurationOnPlayerHit = duration;
+        poisonDamagePerSecondOnPlayerHit = damagePerSecond;
+    }
+
+    public void ConfigureBurnOnPlayerHit(float duration, float tickInterval, float damagePerTick)
+    {
+        if (duration <= 0f || tickInterval <= 0f || damagePerTick <= 0f)
+        {
+            ResetBurnOnHit();
+            return;
+        }
+
+        applyBurnToPlayerOnHit = true;
+        burnDurationOnPlayerHit = duration;
+        burnTickIntervalOnPlayerHit = tickInterval;
+        burnDamagePerTickOnPlayerHit = damagePerTick;
+    }
+
+    public void ConfigurePlayerZCheck(bool ignoreZCheck)
+    {
+        ignorePlayerZCheck = ignoreZCheck;
     }
 
     private IEnumerator AutoDisable(float delay)
@@ -164,6 +206,13 @@ public class AttackHitBox : MonoBehaviour
 
         hitTargets.Add(other);
 
+        if ((hitLayer & (1 << LayerMask.NameToLayer("Player"))) != 0
+            && ignorePlayerZCheck
+            && TryHandleIgnoredPlayerZHit(other))
+        {
+            return;
+        }
+
         // 피격 주체 체크
         if((hitLayer & (1 << LayerMask.NameToLayer("Player"))) != 0)
         {
@@ -188,6 +237,8 @@ public class AttackHitBox : MonoBehaviour
                                             * currentData.knockbackForce;
                         bool wasDead = target.IsDead;
                         target.TakeDamage(finalDamage, knockback);
+                        if (other.TryGetComponent(out PlayerStats hitPlayerStats))
+                            ApplyConfiguredAilmentsToPlayer(hitPlayerStats);
                         if (!wasDead && target.IsDead)
                             ownerStats?.NotifyKill();
 
@@ -256,6 +307,27 @@ public class AttackHitBox : MonoBehaviour
         }
     }
 
+    private bool TryHandleIgnoredPlayerZHit(Collider2D other)
+    {
+        if (!other.TryGetComponent<IDamageable>(out var target))
+            return false;
+
+        float finalDamage = currentData.GetFinalDamage(damage);
+        Vector2 knockback = (other.transform.position - transform.position).normalized * currentData.knockbackForce;
+        bool wasDead = target.IsDead;
+        target.TakeDamage(finalDamage, knockback);
+        if (other.TryGetComponent(out PlayerStats hitPlayerStats))
+            ApplyConfiguredAilmentsToPlayer(hitPlayerStats);
+        if (!wasDead && target.IsDead)
+            ownerStats?.NotifyKill();
+
+        OnEnemyHitConfirmed?.Invoke();
+        PlayHitSpark(other, knockback);
+        PlayHitCameraFeedback();
+        PlayHitStop();
+        return true;
+    }
+
     private void PlayHitCameraFeedback()
     {
         if (currentData == null || currentData.onHitCameraPreset == null)
@@ -318,6 +390,40 @@ public class AttackHitBox : MonoBehaviour
     private void OnDestroy()
     {
         OnEnemyHitConfirmed = null;
+    }
+
+    private void ResetOnHitAilments()
+    {
+        ResetPoisonOnHit();
+        ResetBurnOnHit();
+        ignorePlayerZCheck = false;
+    }
+
+    private void ResetPoisonOnHit()
+    {
+        applyPoisonToPlayerOnHit = false;
+        poisonDurationOnPlayerHit = 0f;
+        poisonDamagePerSecondOnPlayerHit = 0f;
+    }
+
+    private void ResetBurnOnHit()
+    {
+        applyBurnToPlayerOnHit = false;
+        burnDurationOnPlayerHit = 0f;
+        burnTickIntervalOnPlayerHit = 0f;
+        burnDamagePerTickOnPlayerHit = 0f;
+    }
+
+    private void ApplyConfiguredAilmentsToPlayer(PlayerStats hitPlayerStats)
+    {
+        if (hitPlayerStats == null)
+            return;
+
+        if (applyPoisonToPlayerOnHit)
+            hitPlayerStats.ApplyPoison(poisonDurationOnPlayerHit, poisonDamagePerSecondOnPlayerHit);
+
+        if (applyBurnToPlayerOnHit)
+            hitPlayerStats.ApplyBurn(burnDurationOnPlayerHit, burnTickIntervalOnPlayerHit, burnDamagePerTickOnPlayerHit);
     }
 
 }

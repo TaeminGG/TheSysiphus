@@ -51,6 +51,31 @@ public class EnemyAttackTelegraph : MonoBehaviour
         ShowTelegraph(TelegraphShape.Box, center, Quaternion.Euler(0f, 0f, angle), scale, floorZ, color);
     }
 
+    public void ShowSweptHitBoxTelegraph(Vector3 origin, AttackData attackData, float angle, float sweepDistance, int floorZ)
+    {
+        ShowSweptHitBoxTelegraph(origin, attackData, angle, sweepDistance, floorZ, telegraphColor);
+    }
+
+    public void ShowSweptHitBoxTelegraph(Vector3 origin, AttackData attackData, float angle, float sweepDistance, int floorZ, Color color)
+    {
+        if (attackData == null)
+            return;
+
+        Quaternion rotation = Quaternion.Euler(0f, 0f, angle);
+        float clampedSweepDistance = Mathf.Max(0f, sweepDistance);
+        if (clampedSweepDistance <= 0.001f)
+        {
+            ShowHitBoxTelegraph(origin, attackData, angle, floorZ, color);
+            return;
+        }
+
+        Vector3 startCenter = origin + (rotation * (Vector3)attackData.hitboxOffset);
+        Vector3 sweepDirection = rotation * Vector3.up;
+        Vector3 center = startCenter + (sweepDirection * (clampedSweepDistance * 0.5f));
+        Vector3 scale = new Vector3(attackData.hitboxSize.x, attackData.hitboxSize.y + clampedSweepDistance, 1f);
+        ShowTelegraph(TelegraphShape.Box, center, rotation, scale, floorZ, color);
+    }
+
     public void ShowProjectileTelegraph(Vector3 origin, Vector2 direction, int floorZ, Projectile projectile)
     {
         ShowProjectileTelegraph(origin, direction, floorZ, projectile, telegraphColor);
