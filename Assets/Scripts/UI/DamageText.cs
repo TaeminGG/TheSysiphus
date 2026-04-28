@@ -17,7 +17,11 @@ public class DamageText : MonoBehaviour
 
     public void Setup(float damage)
     {
-        text.text = Mathf.RoundToInt(damage).ToString();
+        int displayDamage = Mathf.RoundToInt(damage);
+        if (damage > 0f && damage < 1f)
+            displayDamage = 1;
+
+        text.text = displayDamage.ToString();
         StartCoroutine(FloatAndFade());
     }
 

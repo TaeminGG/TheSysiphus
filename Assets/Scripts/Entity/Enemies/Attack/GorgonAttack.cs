@@ -37,6 +37,8 @@ public class GorgonAttack : MonoBehaviour, IEnemyAttack
     public float rangedTargetHeightOffset = 0f;
     public GameObject rangedProjectile;
     public AttackData rangedAttackData;
+    public float rangedPoisonDuration = 3f;
+    public float rangedPoisonDamagePerSecond = 1f;
 
     private GorgonMovement movement;
     private EnemyCrowdControl crowdControl;
@@ -293,6 +295,7 @@ public class GorgonAttack : MonoBehaviour, IEnemyAttack
                 transform.position,
                 lockedAttackAngle,
                 lockedRangedStartZ);
+            hitBox.ConfigurePoisonOnPlayerHit(rangedPoisonDuration, rangedPoisonDamagePerSecond);
         }
     }
 

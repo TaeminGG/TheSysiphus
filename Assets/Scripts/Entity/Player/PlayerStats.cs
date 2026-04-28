@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerStats : MonoBehaviour, IDamageable
+public class PlayerStats : MonoBehaviour, IDamageable, IStatusTickDamageable
 {
     private float maxHp = 100f;
     private float currentHp;
@@ -86,6 +86,18 @@ public class PlayerStats : MonoBehaviour, IDamageable
 
         if (crowdControl != null)
             crowdControl.ApplyKnockback(knockback);
+
+        if (IsDead)
+            OnDeath?.Invoke();
+    }
+
+    public void TakeStatusTickDamage(float amount)
+    {
+        if (IsDead || externalInvulnerabilitySources > 0 || TryPreventDamage(amount, Vector2.zero))
+            return;
+
+        currentHp = Mathf.Max(0f, currentHp - amount);
+        OnDamaged?.Invoke(amount);
 
         if (IsDead)
             OnDeath?.Invoke();

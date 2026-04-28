@@ -12,7 +12,7 @@ public class UndeadMovement : MonoBehaviour, IEnemyMovement
     public Transform sprite;
     private Vector3 targetPos = Vector3.zero;
     private GroundedEnemy groundedEnemy;
-    private UndeadAttack attack;
+    private IEnemyAttack attack;
     private EnemyCrowdControl crowdControl;
     public Transform player;
     public Grid grid;
@@ -27,7 +27,7 @@ public class UndeadMovement : MonoBehaviour, IEnemyMovement
         if (crowdControl == null)
             crowdControl = gameObject.AddComponent<EnemyCrowdControl>();
         anim = sprite.GetComponent<Animator>();
-        attack = GetComponent<UndeadAttack>();
+        attack = GetComponent<IEnemyAttack>();
     }
 
     void Start()
@@ -52,12 +52,12 @@ public class UndeadMovement : MonoBehaviour, IEnemyMovement
 
         if (targetPos.x < transform.position.x)
         {
-            if (isArrive && !attack.isAttacking)
+            if (isArrive && (attack == null || !attack.IsBusy))
                 sprite.GetComponent<SpriteRenderer>().flipX = true;
         }
         else
         {
-            if (isArrive && !attack.isAttacking)
+            if (isArrive && (attack == null || !attack.IsBusy))
                 sprite.GetComponent<SpriteRenderer>().flipX = false;
         }
     }
@@ -82,7 +82,7 @@ public class UndeadMovement : MonoBehaviour, IEnemyMovement
         if (crowdControl != null)
             currentMoveSpeed *= crowdControl.MoveSpeedMultiplier;
 
-        if (isArrive && !attack.isAttacking)
+        if (isArrive && (attack == null || !attack.IsBusy))
         {
             if (Vector3.Distance(transform.position, targetPos) > 0.05f)
             {

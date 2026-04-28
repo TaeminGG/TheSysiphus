@@ -582,6 +582,16 @@ public class PlayerMove : MonoBehaviour
         return jumpForce * jumpForceMultiplier;
     }
 
+    public void ForceJump(float force)
+    {
+        if (force <= 0f)
+            return;
+
+        verticalVelocity = Mathf.Max(verticalVelocity, force);
+        isGrounded = false;
+        isJumping = false;
+    }
+
     public void RegisterInteractable(IPlayerInteractable interactable)
     {
         if (IsInteractableDestroyed(interactable) || interactables.Contains(interactable))

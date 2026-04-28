@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 206133dcc744e9547a2381847e35ff30, type: 3}
+  m_Name: RemnantOfNotus
+  m_EditorClassIdentifier: Assembly-CSharp::SpeedUp
+  itemId: passive_remnantofnotus
+  rarity: 1
+  itemName: "\uB178\uD1A0\uC2A4\uC758 \uC794\uC7AC"
+  icon: {fileID: -7008412969330441016, guid: 966e7c2454984684cb560b12ea0e87ca, type: 3}
+  description: "Speed + 0.5\n\uB0A8\uD48D\uC758 \uC2E0 \uB178\uD1A0\uC2A4\uC758 \uD798\uC758
+    \uC794\uC7AC. \uCC29\uC6A9\uC790\uC758 \uC774\uB3D9\uC18D\uB3C4\uB97C \uC57D\uAC04
+    \uC99D\uAC00\uC2DC\uD0A8\uB2E4."
+  bonus: 0.25

@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d7b3f0ac54a4c5bb1d6e2f94730a105, type: 3}
+  m_Name: ShadowOfErebos
+  m_EditorClassIdentifier: Assembly-CSharp::AttackHitProjectilePassiveItem
+  itemId: passive_shadowoferebos
+  rarity: 4
+  itemName: "\uC5D0\uB808\uBCF4\uC2A4\uC758 \uADF8\uB9BC\uC790"
+  icon: {fileID: 21300000, guid: 18469a265870fa640bc61945c20c880c, type: 3}
+  description: "\uAE30\uBCF8 \uACF5\uACA9 \uC801\uC911 \uC2DC \uC801\uC744 \uAD00\uD1B5\uD558\uB294
+    \uD22C\uC0AC\uCCB4\uB97C \uCD94\uAC00\uB85C \uBC1C\uC0AC\uD55C\uB2E4."
+  projectilePrefab: {fileID: 4066100000000000001, guid: 73fdb4bb6de5427a8691ce0ef93cbf5d, type: 3}
+  baseDamage: 10
+  damageScaling: 0.45
+  knockbackForce: 0.75
+  hitboxSize: {x: 0.45, y: 0.75}
+  projectileSpeed: 7
+  projectileLifetime: 1.5
+  zUpperRange: 2
+  zLowerRange: 0
+  projectileSprite: {fileID: 21300000, guid: 18469a265870fa640bc61945c20c880c, type: 3}
+  projectileColor: {r: 0.6, g: 1, b: 0.95, a: 0.9}

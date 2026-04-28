@@ -86,6 +86,7 @@ public class SpecterAttack : MonoBehaviour, IEnemyAttack
     }
 
     public bool CanAttack => AttackRange();
+    public bool IsBusy => isAttacking;
 
     private void UpdateTelegraph()
     {

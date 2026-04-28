@@ -443,7 +443,7 @@ MonoBehaviour:
   gazeCoolTime: 4
   petrifyDuration: 2.5
   gazeFacingDotThreshold: 0.55
-  skillTelegraphColor: {r: 0.9019608, g: 0.9019608, b: 0.23529412, a: 0.11764706}
+  skillTelegraphColor: {r: 0.9019608, g: 0.9019608, b: 0.23529412, a: 0.39215687}
   meleeReadyTime: 0.8
   meleeRecoveryTime: 0.45
   meleeHitBox: {fileID: 2860421772269927892}
@@ -454,6 +454,8 @@ MonoBehaviour:
   rangedTargetHeightOffset: 1.5
   rangedProjectile: {fileID: 5942809631924833537, guid: 53a4c76473334f0182bab3d699f0a313, type: 3}
   rangedAttackData: {fileID: 11400000, guid: 8cc90c0207994f6382afb8a7d25331b9, type: 2}
+  rangedPoisonDuration: 5
+  rangedPoisonDamagePerSecond: 1
 --- !u!61 &8285363589372510369
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -612,9 +614,6 @@ MonoBehaviour:
     m_Bits: 64
   hitSparkController: {fileID: 0}
   visual: {fileID: 0}
-  showDebugInGame: 0
-  activeColor: {r: 1, g: 0, b: 0, a: 0.4}
-  inactiveColor: {r: 1, g: 1, b: 0, a: 0.2}
 --- !u!50 &7171132286394541007
 Rigidbody2D:
   serializedVersion: 5

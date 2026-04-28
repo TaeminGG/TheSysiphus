@@ -83,6 +83,7 @@ public class UndeadAttack : MonoBehaviour, IEnemyAttack
     }
 
     public bool CanAttack => AttackRange();
+    public bool IsBusy => isAttacking;
 
     private void UpdateTelegraph()
     {

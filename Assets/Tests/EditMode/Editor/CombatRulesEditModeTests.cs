@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Reflection;
 using UnityEngine;
 
 public class CombatRulesEditModeTests
@@ -125,5 +126,92 @@ public class CombatRulesEditModeTests
 
         Assert.That(inApplyRange, Is.True);
         Assert.That(outOfApplyRange, Is.False);
+    }
+
+    [Test]
+    public void PlayerStatusTickDamage_IgnoresHitInvulnerability()
+    {
+        GameObject player = new GameObject("Player");
+        try
+        {
+            PlayerStats stats = player.AddComponent<PlayerStats>();
+            SetCurrentHp(stats, stats.GetMaxHp());
+
+            stats.TakeDamage(10f, Vector2.zero);
+            stats.TakeStatusTickDamage(5f);
+
+            Assert.That(stats.GetCurrentHp(), Is.EqualTo(85f));
+        }
+        finally
+        {
+            Object.DestroyImmediate(player);
+        }
+    }
+
+    [Test]
+    public void PlayerStatusTickDamage_DoesNotStartHitInvulnerability()
+    {
+        GameObject player = new GameObject("Player");
+        try
+        {
+            PlayerStats stats = player.AddComponent<PlayerStats>();
+            SetCurrentHp(stats, stats.GetMaxHp());
+
+            stats.TakeStatusTickDamage(5f);
+            stats.TakeDamage(10f, Vector2.zero);
+
+            Assert.That(stats.GetCurrentHp(), Is.EqualTo(85f));
+        }
+        finally
+        {
+            Object.DestroyImmediate(player);
+        }
+    }
+
+    [Test]
+    public void PlayerStatusTickDamage_IsBlockedByExternalInvulnerability()
+    {
+        GameObject player = new GameObject("Player");
+        try
+        {
+            PlayerStats stats = player.AddComponent<PlayerStats>();
+            SetCurrentHp(stats, stats.GetMaxHp());
+            stats.AddExternalInvulnerabilitySource();
+
+            stats.TakeStatusTickDamage(5f);
+
+            Assert.That(stats.GetCurrentHp(), Is.EqualTo(100f));
+        }
+        finally
+        {
+            Object.DestroyImmediate(player);
+        }
+    }
+
+    [Test]
+    public void PlayerStatusTickDamage_CanBePreventedByBeforeDamageTaken()
+    {
+        GameObject player = new GameObject("Player");
+        try
+        {
+            PlayerStats stats = player.AddComponent<PlayerStats>();
+            SetCurrentHp(stats, stats.GetMaxHp());
+            stats.BeforeDamageTaken += (_, _) => true;
+
+            stats.TakeStatusTickDamage(5f);
+
+            Assert.That(stats.GetCurrentHp(), Is.EqualTo(100f));
+        }
+        finally
+        {
+            Object.DestroyImmediate(player);
+        }
+    }
+
+    private static void SetCurrentHp(PlayerStats stats, float value)
+    {
+        FieldInfo field = typeof(PlayerStats).GetField("currentHp", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.That(field, Is.Not.Null);
+        field.SetValue(stats, Mathf.Clamp(value, 0f, stats.GetMaxHp()));
     }
 }

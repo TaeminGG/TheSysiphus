@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 828925b6c05bddd439e99d3a3bf8300a, type: 3}
+  m_Name: RemnantOfPanacea
+  m_EditorClassIdentifier: Assembly-CSharp::MaxHpUp
+  itemId: passive_remnantofpanacea
+  rarity: 1
+  itemName: "\uD30C\uB098\uCF00\uC544\uC758 \uC794\uC7AC"
+  icon: {fileID: -7062486114238938467, guid: c7008d5880a9b1d41ac0fcd21ec1988d, type: 3}
+  description: "Max HP + 25\n\uC758\uC220\uC758 \uC2E0 \uC544\uC2A4\uD074\uB808\uD53C\uC624\uC2A4\uC758
+    \uB538\uC778 \uD30C\uB098\uCF00\uC544\uC758 \uD798\uC758 \uC794\uC7AC. \uCC29\uC6A9\uC790\uC758
+    \uC0DD\uBA85\uB825\uC744 \uD5A5\uC0C1\uC2DC\uD0A8\uB2E4."
+  bonus: 25
