@@ -86,10 +86,12 @@ public class PlayerCrowdControl : MonoBehaviour
     [SerializeField] private float knockbackMoveSpeed = 10f;
 
     private readonly List<TimedEffectInstance> activeEffects = new List<TimedEffectInstance>();
+    private readonly List<ControlLockInstance> activeControlLocks = new List<ControlLockInstance>();
 
     private Vector2 knockbackDirection = Vector2.zero;
     private float knockbackRemainingDistance = 0f;
     private PlayerControlLock knockbackLocks = PlayerControlLock.None;
+    private int controlLockTokenCounter;
 
     public bool CanMove => !HasLock(PlayerControlLock.Move);
     public bool CanAttack => !HasLock(PlayerControlLock.Attack);
@@ -217,6 +219,37 @@ public class PlayerCrowdControl : MonoBehaviour
         knockbackLocks = PlayerControlLock.None;
     }
 
+    public int AddControlLock(PlayerControlLock locks)
+    {
+        if (locks == PlayerControlLock.None)
+            return 0;
+
+        int token = ++controlLockTokenCounter;
+        activeControlLocks.Add(new ControlLockInstance
+        {
+            Token = token,
+            Locks = locks
+        });
+        return token;
+    }
+
+    public bool RemoveControlLock(int token)
+    {
+        if (token == 0)
+            return false;
+
+        for (int i = 0; i < activeControlLocks.Count; i++)
+        {
+            if (activeControlLocks[i].Token != token)
+                continue;
+
+            activeControlLocks.RemoveAt(i);
+            return true;
+        }
+
+        return false;
+    }
+
     private void ApplyTimedEffect(PlayerCrowdControlType type, float duration, PlayerControlLock locks, float moveSpeedMultiplier)
     {
         if (duration <= 0f)
@@ -248,6 +281,14 @@ public class PlayerCrowdControl : MonoBehaviour
             }
         }
 
+        for (int i = 0; i < activeControlLocks.Count; i++)
+        {
+            if ((activeControlLocks[i].Locks & targetLock) != 0)
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -257,5 +298,11 @@ public class PlayerCrowdControl : MonoBehaviour
         public float RemainingDuration;
         public PlayerControlLock Locks;
         public float MoveSpeedMultiplier;
+    }
+
+    private struct ControlLockInstance
+    {
+        public int Token;
+        public PlayerControlLock Locks;
     }
 }

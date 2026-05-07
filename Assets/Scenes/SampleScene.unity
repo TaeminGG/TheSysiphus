@@ -166,7 +166,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -73808,6 +73808,7 @@ GameObject:
   - component: {fileID: 7953271858389095962}
   - component: {fileID: 7953271858389095961}
   - component: {fileID: 7953271858389095966}
+  - component: {fileID: 7953271858389095973}
   - component: {fileID: 7953271858389095967}
   - component: {fileID: 7953271858389095968}
   - component: {fileID: 7953271858389095969}
@@ -74270,6 +74271,32 @@ MonoBehaviour:
   autoCollectChildRenderers: 1
   poisonMaterial: {fileID: 2100000, guid: 61e25b6b796a9e8429acdacdcd47c0fc, type: 2}
   burnMaterial: {fileID: 2100000, guid: 1d5473fa31be26f40b9579abc847c291, type: 2}
+--- !u!114 &7953271858389095973
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5295414531760418351}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a7d1e90e2f54f268ac2e4b4c0a53e7f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerDiveAttack
+  fallingAttackData: {fileID: 11400000, guid: 2c341f6ef94142c58f8e72d428d81945, type: 2}
+  landingShockwaveData: {fileID: 11400000, guid: b2d2d7772c4a4139b41027df4f4dce11, type: 2}
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  fallSpeed: 18
+  fallingDamageInterval: 0.08
+  maxDiveDuration: 3
+  postLandingRecoveryDuration: 0.25
+  fallSpeedAttackSpeedScale: 0.2
+  recoveryAttackSpeedScale: 0.2
+  visualRoot: {fileID: 0}
+  fallingVisualOffset: {x: 0, y: 0, z: 0}
+  landingVisualOffset: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
