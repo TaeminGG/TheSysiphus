@@ -74,6 +74,9 @@ public class ActiveInventory : MonoBehaviour
 
     public void NextItem()
     {
+        if (crowdControl != null && !crowdControl.CanUseItems)
+            return;
+
         if(items.Count > 1)
         {
             ActiveItem temp = items[0];
@@ -89,6 +92,9 @@ public class ActiveInventory : MonoBehaviour
 
     public void PrevItem()
     {
+        if (crowdControl != null && !crowdControl.CanUseItems)
+            return;
+
         if( items.Count > 1)
         {
             ActiveItem temp = items.Last();

@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aec2a4150947ec548a53fc25210430a9, type: 3}
+  m_Name: LandingShockwaveAttackData
+  m_EditorClassIdentifier: Assembly-CSharp::AttackData
+  animTrigger: 
+  damage: 18
+  damageScaling: 0.5
+  hitboxSize: {x: 3.5, y: 3.5}
+  hitboxOffset: {x: 0, y: 0}
+  attackDuration: 0.35
+  comboInputWindow: 0
+  knockbackForce: 2.5
+  zUpperRange: 0.2
+  zLowerRange: 0
+  onHitCameraPreset: {fileID: 11400000, guid: a599b1d9deba72143b98a62ccacb250f, type: 2}
+  onHitSparkPrefab: {fileID: 926944835836502072, guid: 7b04a79274bd66b43a07d24ba12fbdee, type: 3}
+  onHitSparkSettings:
+    count: 12
+    color: {r: 1, g: 0.85, b: 0.25, a: 1}
+    speedMin: 1.5
+    speedMax: 3
+    gravity: 0.7
+    spreadAngle: 110
+    lifetime: 0.25
+    direction: {x: 0, y: 1}
+  onHitStopDuration: 0.035
+  onHitStopTimeScale: 0
+  onHitStopPriority: 1
+  visual: {fileID: 6754642878256882807, guid: 00e0b4ae44d4b5148969664f39c192bc, type: 3}
+  flipX: 0
+  flipY: 0

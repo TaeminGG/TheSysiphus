@@ -39,6 +39,8 @@ public class PlayerMove : MonoBehaviour
     private float verticalVelocity = 0f;
     private bool isGrounded = true;
     private bool isJumping = false;
+    private bool isForcedFalling = false;
+    private float forcedFallSpeed = 0f;
     public int floorZ;
     public int groundedZ = 0;
     public float spritePivotY = 0.38f;
@@ -79,8 +81,11 @@ public class PlayerMove : MonoBehaviour
 
     public event System.Action OnDashStarted;
     public event System.Action OnDashEnded;
+    public event System.Action OnLanded;
 
     public bool IsDashing => dashTime < dashDuration;
+    public bool IsAirborne => !isGrounded || playerZ > floorZ;
+    public float VerticalVelocity => verticalVelocity;
     public Vector2 LastDashDirection { get; private set; } = Vector2.down;
 
     private void Awake()
@@ -171,6 +176,18 @@ public class PlayerMove : MonoBehaviour
     private void PlayerMoveMent()
     {
         bool isDashing = dashTime < dashDuration;
+
+        if (crowdControl != null && !crowdControl.CanMove)
+        {
+            if (isDashing)
+                EndDashIfActive();
+
+            isAttacking = false;
+            axis = Vector2.zero;
+            dashCooltimeCheck += Time.deltaTime;
+            return;
+        }
+
         if (isDashing)
         {
             dashTime += Time.deltaTime;
@@ -237,12 +254,6 @@ public class PlayerMove : MonoBehaviour
 
         if (isAttacking)
             axis = Vector2.zero;
-
-        if (crowdControl != null && !crowdControl.CanMove)
-        {
-            EndDashIfActive();
-            return;
-        }
 
         float currentMoveSpeed = moveSpeedSet;
         if (isDashing)
@@ -475,6 +486,11 @@ public class PlayerMove : MonoBehaviour
             isGrounded = false;
         }
 
+        if (isForcedFalling)
+        {
+            verticalVelocity = Mathf.Min(verticalVelocity, -forcedFallSpeed);
+        }
+
         int getZ = stc.GetGroundZLevel(pivotPos);
 
         if (getZ < 0)
@@ -501,6 +517,8 @@ public class PlayerMove : MonoBehaviour
                 isGrounded = true;
                 groundedZ = floorZ;
                 spriteZ = 0;
+                isForcedFalling = false;
+                OnLanded?.Invoke();
             }
 
             fixedZ = -1;
@@ -590,6 +608,24 @@ public class PlayerMove : MonoBehaviour
         verticalVelocity = Mathf.Max(verticalVelocity, force);
         isGrounded = false;
         isJumping = false;
+        isForcedFalling = false;
+    }
+
+    public void BeginForcedFall(float fallSpeed)
+    {
+        if (!IsAirborne || fallSpeed <= 0f)
+            return;
+
+        forcedFallSpeed = fallSpeed;
+        isForcedFalling = true;
+        isJumping = false;
+        isGrounded = false;
+        verticalVelocity = Mathf.Min(verticalVelocity, -forcedFallSpeed);
+    }
+
+    public void EndForcedFall()
+    {
+        isForcedFalling = false;
     }
 
     public void RegisterInteractable(IPlayerInteractable interactable)
@@ -729,5 +765,6 @@ public class PlayerMove : MonoBehaviour
     {
         OnDashStarted = null;
         OnDashEnded = null;
+        OnLanded = null;
     }
 }

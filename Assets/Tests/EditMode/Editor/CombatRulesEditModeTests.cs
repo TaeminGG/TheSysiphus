@@ -208,6 +208,30 @@ public class CombatRulesEditModeTests
         }
     }
 
+    [Test]
+    public void PlayerControlLock_BlocksAndReleasesSelectedActions()
+    {
+        GameObject player = new GameObject("PlayerControlLockTest");
+        try
+        {
+            PlayerCrowdControl crowdControl = player.AddComponent<PlayerCrowdControl>();
+
+            int token = crowdControl.AddControlLock(PlayerControlLock.Move | PlayerControlLock.Dash);
+
+            Assert.That(crowdControl.CanMove, Is.False);
+            Assert.That(crowdControl.CanDash, Is.False);
+            Assert.That(crowdControl.CanAttack, Is.True);
+
+            Assert.That(crowdControl.RemoveControlLock(token), Is.True);
+            Assert.That(crowdControl.CanMove, Is.True);
+            Assert.That(crowdControl.CanDash, Is.True);
+        }
+        finally
+        {
+            Object.DestroyImmediate(player);
+        }
+    }
+
     private static void SetCurrentHp(PlayerStats stats, float value)
     {
         FieldInfo field = typeof(PlayerStats).GetField("currentHp", BindingFlags.Instance | BindingFlags.NonPublic);
