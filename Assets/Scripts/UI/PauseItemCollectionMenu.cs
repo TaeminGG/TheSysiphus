@@ -630,7 +630,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
             placeholderFrame,
             new Vector2(24f, -76f),
             new Vector2(-24f, 220f),
-            "Settings tab is reserved for a later update.\n\nThe pause flow and fixed action buttons already use the same frame so this panel can be expanded without rebuilding the menu.",
+            "설정창",
             22f,
             FontStyles.Normal,
             TextAlignmentOptions.Center,
@@ -741,7 +741,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
             default:
                 contentTitleLabel.text = GetSectionTitle(PauseSection.Settings);
                 ClearDynamicContent();
-                ClearDetail("Settings options can be added here later.", string.Empty, null, true);
+                ClearDetail("설정", string.Empty, null, true);
                 break;
         }
 
@@ -956,7 +956,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
         if (!entry.IsUnlocked)
         {
             ClearDetail("???", entry.CategoryLabel, entry.Icon, false);
-            detailDescriptionLabel.text = "Unlock this item during play to reveal its full information in the collection.";
+            detailDescriptionLabel.text = "아직 발견되지 않은 아이템입니다.";
             return;
         }
 
