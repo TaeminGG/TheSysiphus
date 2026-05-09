@@ -12,6 +12,8 @@ public class PlayerDiveAttack : MonoBehaviour
     [Header("Fall")]
     [Min(0.1f)]
     [SerializeField] private float fallSpeed = 18f;
+    [Min(0f)]
+    [SerializeField] private float minHeightAboveFloorToStart = 1f;
     [Min(0.01f)]
     [SerializeField] private float fallingDamageInterval = 0.08f;
     [Min(0.1f)]
@@ -56,6 +58,8 @@ public class PlayerDiveAttack : MonoBehaviour
 
     public bool IsDiving => isDiving;
     public bool HasUsedThisAirborne => hasUsedThisAirborne;
+    public float HeightAboveFloor => GetHeightAboveFloor();
+    public bool HasEnoughHeightToStartDive => GetHeightAboveFloor() >= Mathf.Max(0f, minHeightAboveFloorToStart);
     public float FallSpeed
     {
         get => fallSpeed;
@@ -143,6 +147,9 @@ public class PlayerDiveAttack : MonoBehaviour
         if (!playerMove.IsAirborne || playerMove.IsDashing)
             return false;
 
+        if (!HasEnoughHeightToStartDive)
+            return false;
+
         if (crowdControl != null && (!crowdControl.CanMove || !crowdControl.CanAttack || !crowdControl.CanDash))
             return false;
 
@@ -209,6 +216,14 @@ public class PlayerDiveAttack : MonoBehaviour
     public float GetResolvedPostLandingRecoveryDuration()
     {
         return postLandingRecoveryDuration / GetAttackSpeedMultiplier(recoveryAttackSpeedScale);
+    }
+
+    private float GetHeightAboveFloor()
+    {
+        if (playerMove == null)
+            return 0f;
+
+        return Mathf.Max(0f, playerMove.playerZ - playerMove.floorZ);
     }
 
     private float GetAttackSpeedMultiplier(float scale)

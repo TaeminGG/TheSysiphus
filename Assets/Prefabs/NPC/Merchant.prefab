@@ -583,16 +583,15 @@ MonoBehaviour:
     - "\uC548\uBAA9\uC774 \uC88B\uAD70"
   insufficientGoldLines:
     lines:
-    - "\uADF8\uAC78 \uC0AC\uAE30\uC5D4 \uBAA8\uC790\uB780 \uAC83 \uAC19\uC740\uB370?"
+    - "\uB3C8\uC774 \uBAA8\uC790\uB780 \uAC83 \uAC19\uC740\uB370?"
   leaveLines:
     lines:
     - "\uB098\uC911\uC5D0 \uB610 \uBCF4\uC790\uACE0"
   talkLines:
     lines:
-    - "\uB0B4 \uAC71\uC815\uC740 \uD558\uC9C0\uB9C8. \uC774\uB7F0 \uACF3\uC5D0\uC11C
-      \uC8FD\uC744 \uC77C\uC744 \uC5C6\uC73C\uB2C8\uAE4C"
+    - "\uB0B4 \uAC71\uC815\uC740 \uD544\uC694\uC5C6\uB124"
     - "\uAC70\uB798\uC778\uAC00?"
-    - "\uBC18\uAC11\uB124"
+    - "\uBC18\uAC11\uAD70"
 --- !u!114 &6879144502276367243
 MonoBehaviour:
   m_ObjectHideFlags: 0
