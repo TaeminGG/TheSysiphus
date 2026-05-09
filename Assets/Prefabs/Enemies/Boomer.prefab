@@ -491,9 +491,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9301257d979a604d910d4f0cf344989, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoomerAttack
-  range: 1.1
+  range: 3
   fuseTime: 1
-  telegraphRadius: 1.1
+  telegraphRadius: 3
   telegraphColor: {r: 1, g: 0.35, b: 0.15, a: 0.4}
   explosionHitBoxPrefab: {fileID: 5942809631924833537, guid: 5c9a33aa6b0a47cdb4a10e283f25e451, type: 3}
   explosionAttackData: {fileID: 11400000, guid: a5c92f07dbef48c7b04342f77af08b78, type: 2}
