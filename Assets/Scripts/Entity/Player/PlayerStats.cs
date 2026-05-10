@@ -246,6 +246,31 @@ public class PlayerStats : MonoBehaviour, IDamageable, IStatusTickDamageable
         return maxPotion;
     }
 
+    public void RestoreRunState(
+        float savedMaxHp,
+        float savedCurrentHp,
+        int savedGold,
+        int savedPotionCount,
+        int savedMaxPotionCount,
+        float savedDamage = 0f,
+        float savedAttackSpeed = 1f)
+    {
+        maxHp = Mathf.Max(1f, savedMaxHp);
+        currentHp = Mathf.Clamp(savedCurrentHp, 0f, maxHp);
+        damage = savedDamage;
+        attackSpeed = Mathf.Max(0f, savedAttackSpeed);
+        gold = Mathf.Max(0, savedGold);
+        maxPotion = Mathf.Max(0, savedMaxPotionCount);
+        potionCount = Mathf.Clamp(savedPotionCount, 0, maxPotion);
+        healTimer = healCooltime;
+        invTimer = 0f;
+        hasHandledDeath = false;
+
+        OnGoldChanged?.Invoke(gold);
+        if (IsDead)
+            OnDeath?.Invoke();
+    }
+
     public void ChargePotion(int amount)
     {
         potionCount = Mathf.Min(maxPotion, potionCount + amount);

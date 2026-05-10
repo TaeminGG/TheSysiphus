@@ -41,4 +41,19 @@ public class PassiveItemList : MonoBehaviour
     {
         return items;
     }
+
+    public void RestoreItems(IEnumerable<PassiveItem> restoredItems, PlayerStats restoredStats = null)
+    {
+        for (int i = items.Count - 1; i >= 0; i--)
+            items[i]?.OnUnequip(stats);
+
+        items.Clear();
+        stats = restoredStats != null ? restoredStats : GetComponent<PlayerStats>();
+
+        if (restoredItems == null)
+            return;
+
+        foreach (PassiveItem item in restoredItems)
+            AddItem(item);
+    }
 }

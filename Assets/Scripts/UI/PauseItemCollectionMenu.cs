@@ -95,6 +95,8 @@ public class PauseItemCollectionMenu : MonoBehaviour
     private const string ManagedLayoutRootName = "ManagedPauseLayout";
 
     [SerializeField] private Vector2 windowSize = new Vector2(980f, 560f);
+    [SerializeField] private bool titleMenuMode = false;
+    [SerializeField] private GameObject closeTargetOnResume;
     [SerializeField] private PauseMenuStyle style = new PauseMenuStyle();
     [SerializeField] private PauseSectionTitles sectionTitles = new PauseSectionTitles();
 
@@ -140,7 +142,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
             registry.UnlocksChanged += HandleUnlocksChanged;
 
         SetLegacyRootObjectsActive(false);
-        ShowSection(PauseSection.CurrentItems);
+        ShowSection(GetDefaultSection());
     }
 
     private void OnDisable()
@@ -304,6 +306,8 @@ public class PauseItemCollectionMenu : MonoBehaviour
         RegisterCollectionTab(CollectionCategory.Passive, "Collection_Passive");
         RegisterCollectionTab(CollectionCategory.Active, "Collection_Active");
 
+        ApplyTitleMenuModeToBoundLayout();
+
         return runtimeRoot != null
             && leftContentHost != null
             && currentPassiveContentRoot != null
@@ -316,7 +320,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
             && detailNameLabel != null
             && detailDescriptionLabel != null
             && detailIcon != null
-            && navigationTabs.Count == 3
+            && HasRequiredNavigationTabs()
             && collectionTabs.Count == 2;
     }
 
@@ -494,16 +498,19 @@ public class PauseItemCollectionMenu : MonoBehaviour
         actionContainer.anchoredPosition = new Vector2(0f, 18f);
         actionContainer.sizeDelta = new Vector2(0f, 52f);
 
-        PauseTabView currentItemsTab = CreateNavigationTab(tabContainer, PauseSection.CurrentItems);
+        PauseTabView currentItemsTab = titleMenuMode ? null : CreateNavigationTab(tabContainer, PauseSection.CurrentItems);
         PauseTabView collectionTab = CreateNavigationTab(tabContainer, PauseSection.Collection);
         PauseTabView settingsTab = CreateNavigationTab(tabContainer, PauseSection.Settings);
-        navigationTabs.Add(currentItemsTab);
+        if (currentItemsTab != null)
+            navigationTabs.Add(currentItemsTab);
         navigationTabs.Add(collectionTab);
         navigationTabs.Add(settingsTab);
 
-        SetTopAnchoredButtonLayout(currentItemsTab.Button.GetComponent<RectTransform>(), 16f, 52f);
-        SetTopAnchoredButtonLayout(collectionTab.Button.GetComponent<RectTransform>(), 78f, 52f);
-        SetTopAnchoredButtonLayout(settingsTab.Button.GetComponent<RectTransform>(), 140f, 52f);
+        if (currentItemsTab != null)
+            SetTopAnchoredButtonLayout(currentItemsTab.Button.GetComponent<RectTransform>(), 16f, 52f);
+
+        SetTopAnchoredButtonLayout(collectionTab.Button.GetComponent<RectTransform>(), titleMenuMode ? 16f : 78f, 52f);
+        SetTopAnchoredButtonLayout(settingsTab.Button.GetComponent<RectTransform>(), titleMenuMode ? 78f : 140f, 52f);
 
         resumeButton = CreateActionButton(actionContainer, "ResumeButton", "Resume", style.actionButtonColor, HandleResumeClicked);
         quitButton = null;
@@ -512,7 +519,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
 
     private void BuildContentPanel(RectTransform contentPanel)
     {
-        contentTitleLabel = CreateText("ContentTitle", contentPanel, new Vector2(28f, -26f), new Vector2(-28f, 42f), GetSectionTitle(PauseSection.CurrentItems), 30f, FontStyles.Bold, TextAlignmentOptions.Left);
+        contentTitleLabel = CreateText("ContentTitle", contentPanel, new Vector2(28f, -26f), new Vector2(-28f, 42f), GetSectionTitle(GetDefaultSection()), 30f, FontStyles.Bold, TextAlignmentOptions.Left);
 
         RectTransform bodyRect = CreateUiObject("Body", contentPanel).GetComponent<RectTransform>();
         bodyRect.anchorMin = new Vector2(0f, 0f);
@@ -703,6 +710,13 @@ public class PauseItemCollectionMenu : MonoBehaviour
 
     private void HandleResumeClicked()
     {
+        if (titleMenuMode)
+        {
+            GameObject target = closeTargetOnResume != null ? closeTargetOnResume : gameObject;
+            target.SetActive(false);
+            return;
+        }
+
         pauseController?.ResumeGame();
     }
 
@@ -721,6 +735,9 @@ public class PauseItemCollectionMenu : MonoBehaviour
 
     private void ShowSection(PauseSection section)
     {
+        if (titleMenuMode && section == PauseSection.CurrentItems)
+            section = PauseSection.Collection;
+
         ResolveDependencies();
         currentSection = section;
 
@@ -1056,6 +1073,66 @@ public class PauseItemCollectionMenu : MonoBehaviour
 
         if (runtimeRoot != null)
             runtimeRoot.gameObject.SetActive(true);
+    }
+
+    private PauseSection GetDefaultSection()
+    {
+        return titleMenuMode ? PauseSection.Collection : PauseSection.CurrentItems;
+    }
+
+    private bool HasRequiredNavigationTabs()
+    {
+        bool hasCollection = false;
+        bool hasSettings = false;
+        bool hasCurrentItems = false;
+
+        for (int i = 0; i < navigationTabs.Count; i++)
+        {
+            PauseTabView tab = navigationTabs[i];
+            if (tab == null)
+                continue;
+
+            hasCollection |= tab.Section == PauseSection.Collection;
+            hasSettings |= tab.Section == PauseSection.Settings;
+            hasCurrentItems |= tab.Section == PauseSection.CurrentItems;
+        }
+
+        return titleMenuMode
+            ? hasCollection && hasSettings
+            : hasCurrentItems && hasCollection && hasSettings;
+    }
+
+    private void ApplyTitleMenuModeToBoundLayout()
+    {
+        if (!titleMenuMode)
+            return;
+
+        for (int i = navigationTabs.Count - 1; i >= 0; i--)
+        {
+            PauseTabView tab = navigationTabs[i];
+            if (tab == null || tab.Section != PauseSection.CurrentItems)
+                continue;
+
+            if (tab.Button != null)
+                tab.Button.gameObject.SetActive(false);
+
+            navigationTabs.RemoveAt(i);
+        }
+
+        for (int i = 0; i < navigationTabs.Count; i++)
+        {
+            RectTransform rect = navigationTabs[i]?.Button != null
+                ? navigationTabs[i].Button.GetComponent<RectTransform>()
+                : null;
+
+            if (rect == null)
+                continue;
+
+            SetTopAnchoredButtonLayout(rect, 16f + (62f * i), 52f);
+        }
+
+        if (currentItemsPanel != null)
+            currentItemsPanel.SetActive(false);
     }
 
     private static PauseNavigationButtonVisual EnsureButtonVisual(Button button, bool forceRecache = false)
@@ -1496,6 +1573,33 @@ public class PauseItemCollectionMenu : MonoBehaviour
         public bool IsPassive;
         public bool IsSelectable;
     }
+
+#if UNITY_INCLUDE_TESTS
+    public void ConfigureTitleMenuModeForTests(bool enabled, GameObject closeTarget = null)
+    {
+        titleMenuMode = enabled;
+        closeTargetOnResume = closeTarget;
+    }
+
+    public bool TryGetCollectionEntryForTests(string displayName, bool passive, out ItemEntryViewModel entry)
+    {
+        ResolveDependencies();
+        currentCollectionCategory = passive ? CollectionCategory.Passive : CollectionCategory.Active;
+
+        List<ItemEntryViewModel> entries = BuildCollectionEntries();
+        for (int i = 0; i < entries.Count; i++)
+        {
+            if (entries[i].DisplayName != displayName)
+                continue;
+
+            entry = entries[i];
+            return true;
+        }
+
+        entry = default;
+        return false;
+    }
+#endif
 }
 
 [DisallowMultipleComponent]

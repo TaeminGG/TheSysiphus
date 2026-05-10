@@ -82,6 +82,17 @@ public class EnemyStats : MonoBehaviour, IDamageable, IStatusTickDamageable
         OnDeath?.Invoke();
     }
 
+    public float GetCurrentHp()
+    {
+        return currentHp;
+    }
+
+    public void RestoreRunState(float savedMaxHp, float savedCurrentHp)
+    {
+        maxHp = Mathf.Max(1f, savedMaxHp);
+        currentHp = Mathf.Clamp(savedCurrentHp, 0f, maxHp);
+    }
+
     public void ApplyCrowdControl(EnemyCrowdControlRequest request)
     {
         if (crowdControl == null)
@@ -126,6 +137,10 @@ public class EnemyStats : MonoBehaviour, IDamageable, IStatusTickDamageable
 
     private void EnemyDead()
     {
+        RunSaveIdentity identity = GetComponent<RunSaveIdentity>();
+        if (identity != null)
+            RunSaveRuntimeState.MarkEnemyDead(identity.SaveId);
+
         statusAilmentController?.ClearAllAilments();
         OnDamaged = null;
         OnDeath = null;
