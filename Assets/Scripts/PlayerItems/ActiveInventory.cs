@@ -112,6 +112,23 @@ public class ActiveInventory : MonoBehaviour
         return items;
     }
 
+    public void RestoreItems(IEnumerable<ActiveItem> restoredItems)
+    {
+        items.Clear();
+        isUsed = false;
+        timer = 0f;
+        isChanged = true;
+
+        if (restoredItems == null)
+            return;
+
+        foreach (ActiveItem item in restoredItems)
+        {
+            if (item != null && items.Count < inventorySize)
+                items.Add(item);
+        }
+    }
+
     private void OnActiveUse(InputValue value)
     {
         UseCurrentItem();

@@ -600,6 +600,27 @@ public class PlayerMove : MonoBehaviour
         return jumpForce * jumpForceMultiplier;
     }
 
+    public void RestoreRunPosition(Vector3 position, int savedFloorZ, float savedPlayerZ)
+    {
+        transform.position = position;
+        floorZ = Mathf.Max(0, savedFloorZ);
+        groundedZ = floorZ;
+        playerZ = Mathf.Max(floorZ, savedPlayerZ);
+        verticalVelocity = 0f;
+        isGrounded = playerZ <= floorZ;
+        isJumping = false;
+        isForcedFalling = false;
+        fixedZ = -1;
+        spriteZ = Mathf.Max(0f, playerZ - floorZ);
+        yOffset = 0f;
+
+        if (shadow != null && stc != null)
+            stc.SyncToPosition(shadow.transform.position);
+
+        if (playerSprite != null && shadowSprite != null)
+            UpdatePosition();
+    }
+
     public void ForceJump(float force)
     {
         if (force <= 0f)
