@@ -20,14 +20,11 @@ public class PlayerDeathScreenUI : MonoBehaviour
     public event Action RestartRequested;
     public event Action MainMenuRequested;
 
+    public bool IsInitialized => rootCanvasGroup != null;
+
     private void Awake()
     {
-        if (restartButton != null)
-            restartButton.onClick.AddListener(NotifyRestartRequested);
-
-        if (mainMenuButton != null)
-            mainMenuButton.onClick.AddListener(NotifyMainMenuRequested);
-
+        WireButtonListeners();
         HideImmediate();
     }
 
@@ -72,16 +69,15 @@ public class PlayerDeathScreenUI : MonoBehaviour
         titleText.rectTransform.sizeDelta = new Vector2(360f, 60f);
         titleText.rectTransform.anchoredPosition = new Vector2(0f, 72f);
 
-        subtitleText = CreateText("Subtitle", panelRoot, fontAsset, "Restart and main menu actions can be connected here later.", 18f, FontStyles.Normal);
+        subtitleText = CreateText("Subtitle", panelRoot, fontAsset, "탈출에 실패했습니다", 18f, FontStyles.Normal);
         subtitleText.rectTransform.sizeDelta = new Vector2(360f, 64f);
         subtitleText.rectTransform.anchoredPosition = new Vector2(0f, 16f);
         subtitleText.enableWordWrapping = true;
 
-        restartButton = CreateButton("RestartButton", panelRoot, new Vector2(-90f, -70f), fontAsset, "Restart", out restartButtonLabel);
-        mainMenuButton = CreateButton("MainMenuButton", panelRoot, new Vector2(90f, -70f), fontAsset, "Main Menu", out mainMenuButtonLabel);
+        restartButton = CreateButton("RestartButton", panelRoot, new Vector2(-90f, -70f), fontAsset, "재시작", out restartButtonLabel);
+        mainMenuButton = CreateButton("MainMenuButton", panelRoot, new Vector2(90f, -70f), fontAsset, "메인으로", out mainMenuButtonLabel);
 
-        restartButton.onClick.AddListener(NotifyRestartRequested);
-        mainMenuButton.onClick.AddListener(NotifyMainMenuRequested);
+        WireButtonListeners();
     }
 
     public void HideImmediate()
@@ -148,6 +144,21 @@ public class PlayerDeathScreenUI : MonoBehaviour
     private void NotifyMainMenuRequested()
     {
         MainMenuRequested?.Invoke();
+    }
+
+    private void WireButtonListeners()
+    {
+        if (restartButton != null)
+        {
+            restartButton.onClick.RemoveListener(NotifyRestartRequested);
+            restartButton.onClick.AddListener(NotifyRestartRequested);
+        }
+
+        if (mainMenuButton != null)
+        {
+            mainMenuButton.onClick.RemoveListener(NotifyMainMenuRequested);
+            mainMenuButton.onClick.AddListener(NotifyMainMenuRequested);
+        }
     }
 
     private static GameObject CreateUiObject(string name, Transform parent)
