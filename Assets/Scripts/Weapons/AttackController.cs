@@ -12,6 +12,7 @@ public class AttackController : MonoBehaviour
     public bool inputBuffered = false;
     private float comboTimer = 0f;
     private float attackTimer = 0f;
+    private float currentAttackSpeed = 1f;
     private bool hasReportedHitThisAttack = false;
 
     public AttackHitBox hitbox;
@@ -96,17 +97,20 @@ public class AttackController : MonoBehaviour
         hasReportedHitThisAttack = false;
 
         AttackData data = combos[currentCombo];
-        attackTimer = data.attackDuration / attackSpeed;
+        currentAttackSpeed = AttackAnimationTiming.GetSafeAttackSpeed(attackSpeed);
+        float attackDuration = GetScaledAttackDuration(data, currentAttackSpeed);
+        attackTimer = attackDuration;
         comboTimer = 0f;
 
         Vector2 attackDir = GetComponent<PlayerAttackDirection>().GetAttackDirection();
+        float animationPlaybackSpeed = GetAnimationPlaybackSpeed(data, attackDir, attackDuration);
         if (directionalAnimator != null)
         {
-            directionalAnimator.PlayAttack(data.animTrigger, attackDir, attackSpeed);
+            directionalAnimator.PlayAttack(data.animTrigger, attackDir, animationPlaybackSpeed);
         }
         else if (anim != null)
         {
-            anim.SetFloat("AttackSpeed", attackSpeed);
+            anim.SetFloat("AttackSpeed", animationPlaybackSpeed);
             anim.SetTrigger(data.animTrigger);
         }
 
@@ -115,8 +119,22 @@ public class AttackController : MonoBehaviour
         if (hitbox != null)
         {
             hitbox.SetPlayerOwner(playerStats);
-            hitbox.Setup(data, attackSpeed, playerDamage, attackDir, playerMove.floorZ);
+            hitbox.Setup(data, currentAttackSpeed, playerDamage, attackDir, playerMove.floorZ);
         }
+    }
+
+    private float GetScaledAttackDuration(AttackData data, float speed)
+    {
+        return AttackAnimationTiming.GetScaledAttackDuration(data.attackDuration, speed);
+    }
+
+    private float GetAnimationPlaybackSpeed(AttackData data, Vector2 attackDir, float targetDuration)
+    {
+        if (directionalAnimator == null)
+            return currentAttackSpeed;
+
+        float clipLength = directionalAnimator.GetAttackClipLength(data.animationClipNamePrefix, data.animTrigger, attackDir);
+        return AttackAnimationTiming.GetPlaybackSpeed(clipLength, targetDuration, currentAttackSpeed);
     }
 
     private void HandleTimer()
@@ -125,7 +143,7 @@ public class AttackController : MonoBehaviour
             return;
 
         AttackData data = combos[currentCombo];
-        float comboWindow = data.comboInputWindow / attackSpeed;
+        float comboWindow = AttackAnimationTiming.GetScaledComboWindow(data.comboInputWindow, currentAttackSpeed);
 
         attackTimer -= Time.deltaTime;
 
@@ -164,6 +182,7 @@ public class AttackController : MonoBehaviour
         currentCombo = 0;
         comboTimer = 0f;
         attackTimer = 0f;
+        currentAttackSpeed = AttackAnimationTiming.GetSafeAttackSpeed(attackSpeed);
         hasReportedHitThisAttack = false;
 
         if (hitbox != null)

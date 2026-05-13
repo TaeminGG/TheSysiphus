@@ -82,11 +82,44 @@ public class PlayerDirectionalAnimator : MonoBehaviour
         SetBool(groundedParameter, isGrounded);
     }
 
-    public void PlayAttack(string triggerName, Vector2 attackDirection, float attackSpeed)
+    public void PlayAttack(string triggerName, Vector2 attackDirection, float playbackSpeed)
     {
         ApplyDirection(attackDirection);
-        SetFloat(attackSpeedParameter, attackSpeed);
+        SetFloat(attackSpeedParameter, playbackSpeed);
         SetTrigger(triggerName);
+    }
+
+    public float GetAttackClipLength(string clipNamePrefix, string triggerName, Vector2 attackDirection)
+    {
+        if (animator == null || animator.runtimeAnimatorController == null)
+            return 0f;
+
+        string resolvedPrefix = ResolveAttackClipNamePrefix(clipNamePrefix, triggerName);
+        if (string.IsNullOrWhiteSpace(resolvedPrefix))
+            return 0f;
+
+        Direction8 direction = GetDirection(attackDirection);
+        string directionSuffix = GetDirectionSuffix(direction);
+        AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
+
+        for (int i = 0; i < clips.Length; i++)
+        {
+            AnimationClip clip = clips[i];
+            if (clip == null)
+                continue;
+
+            if (clip.name == $"Player_{resolvedPrefix}_{directionSuffix}" || clip.name == $"{resolvedPrefix}_{directionSuffix}")
+                return clip.length;
+        }
+
+        for (int i = 0; i < clips.Length; i++)
+        {
+            AnimationClip clip = clips[i];
+            if (clip != null && clip.name.StartsWith($"{resolvedPrefix}_", System.StringComparison.Ordinal))
+                return clip.length;
+        }
+
+        return 0f;
     }
 
     public void EndAttack()
@@ -145,6 +178,40 @@ public class PlayerDirectionalAnimator : MonoBehaviour
             Direction8.SouthWest => new Vector2(-1f, -1f).normalized,
             _ => Vector2.down
         };
+    }
+
+    private static string GetDirectionSuffix(Direction8 direction)
+    {
+        return direction switch
+        {
+            Direction8.South => "S",
+            Direction8.SouthEast => "SE",
+            Direction8.East => "E",
+            Direction8.NorthEast => "NE",
+            Direction8.North => "N",
+            Direction8.NorthWest => "NW",
+            Direction8.West => "W",
+            Direction8.SouthWest => "SW",
+            _ => "S"
+        };
+    }
+
+    private static string ResolveAttackClipNamePrefix(string clipNamePrefix, string triggerName)
+    {
+        if (!string.IsNullOrWhiteSpace(clipNamePrefix))
+            return clipNamePrefix.Trim();
+
+        if (string.IsNullOrWhiteSpace(triggerName))
+            return string.Empty;
+
+        int end = triggerName.Length - 1;
+        while (end >= 0 && char.IsDigit(triggerName[end]))
+            end--;
+
+        if (end < triggerName.Length - 1)
+            return $"Attack{triggerName.Substring(end + 1)}";
+
+        return triggerName.Trim();
     }
 
     private void ApplyDirection(Vector2 direction)

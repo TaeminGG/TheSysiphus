@@ -162,6 +162,7 @@ public static class PlayerAnimatorAuthoringUtility
         BlendTree blendTree;
         AnimatorState state = controller.CreateBlendTreeInController(stateName, out blendTree, 0);
         MoveState(stateMachine, state, position);
+        state.speed = 1f;
 
         blendTree.name = $"{stateName}_BlendTree";
         blendTree.blendType = BlendTreeType.Simple1D;
@@ -263,10 +264,18 @@ public static class PlayerAnimatorAuthoringUtility
     {
         index = 0;
         string expectedPrefix = $"{prefix}_";
-        if (!spriteName.StartsWith(expectedPrefix, System.StringComparison.Ordinal))
+        if (spriteName.StartsWith(expectedPrefix, System.StringComparison.Ordinal))
+            return int.TryParse(spriteName.Substring(expectedPrefix.Length), out index);
+
+        string alternatePrefix = $"{prefix} ";
+        if (!spriteName.StartsWith(alternatePrefix, System.StringComparison.Ordinal))
             return false;
 
-        return int.TryParse(spriteName.Substring(expectedPrefix.Length), out index);
+        int separatorIndex = spriteName.LastIndexOf('_');
+        if (separatorIndex < 0 || separatorIndex >= spriteName.Length - 1)
+            return false;
+
+        return int.TryParse(spriteName.Substring(separatorIndex + 1), out index);
     }
 
     private static void ApplySpriteFrames(AnimationClip clip, Sprite[] sprites, float frameRate, bool loop)

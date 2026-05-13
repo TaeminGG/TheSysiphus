@@ -28,6 +28,9 @@ public class AttackData : ScriptableObject
     public bool flipX;
     public bool flipY;
 
+    [Header("Animation")]
+    public string animationClipNamePrefix;
+
     public float GetFinalDamage(float playerDamage)
     {
         return damage + Mathf.RoundToInt(playerDamage * damageScaling);

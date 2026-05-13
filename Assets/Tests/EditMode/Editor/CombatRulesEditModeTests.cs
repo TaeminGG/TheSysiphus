@@ -81,6 +81,12 @@ public class CombatRulesEditModeTests
         Assert.That(HasState(controller, "Attack1_8Way"), Is.True);
         Assert.That(HasState(controller, "Attack2_8Way"), Is.True);
         Assert.That(HasState(controller, "Attack3_8Way"), Is.True);
+        Assert.That(GetStateSpeed(controller, "Attack1_8Way"), Is.EqualTo(1f).Within(0.0001f));
+        Assert.That(GetStateSpeed(controller, "Attack2_8Way"), Is.EqualTo(1f).Within(0.0001f));
+        Assert.That(GetStateSpeed(controller, "Attack3_8Way"), Is.EqualTo(1f).Within(0.0001f));
+        Assert.That(AttackStateReturnsImmediately(controller, "Attack1_8Way"), Is.True);
+        Assert.That(AttackStateReturnsImmediately(controller, "Attack2_8Way"), Is.True);
+        Assert.That(AttackStateReturnsImmediately(controller, "Attack3_8Way"), Is.True);
     }
 
     [Test]
@@ -101,9 +107,66 @@ public class CombatRulesEditModeTests
     }
 
     [Test]
-    [Ignore("TODO: Extract attack timing calculation and verify attack speed scaling.")]
-    public void AttackTiming_ScalesWithAttackSpeed()
+    public void AttackTiming_ScalesAttackDurationWithAttackSpeed()
     {
+        Assert.That(AttackAnimationTiming.GetScaledAttackDuration(0.5f, 1f), Is.EqualTo(0.5f).Within(0.0001f));
+        Assert.That(AttackAnimationTiming.GetScaledAttackDuration(0.5f, 2f), Is.EqualTo(0.25f).Within(0.0001f));
+        Assert.That(AttackAnimationTiming.GetScaledAttackDuration(0.5f, 0.5f), Is.EqualTo(1f).Within(0.0001f));
+    }
+
+    [Test]
+    public void AttackTiming_ScalesComboWindowWithAttackSpeedSnapshot()
+    {
+        float speedAtAttackStart = 2f;
+        float changedSpeedDuringAttack = 0.5f;
+
+        float expectedWindow = AttackAnimationTiming.GetScaledComboWindow(0.3f, speedAtAttackStart);
+        float unstableWindow = AttackAnimationTiming.GetScaledComboWindow(0.3f, changedSpeedDuringAttack);
+
+        Assert.That(expectedWindow, Is.EqualTo(0.15f).Within(0.0001f));
+        Assert.That(unstableWindow, Is.Not.EqualTo(expectedWindow).Within(0.0001f));
+    }
+
+    [Test]
+    public void AttackTiming_MatchesPlaybackSpeedToTargetDuration()
+    {
+        float targetDuration = AttackAnimationTiming.GetScaledAttackDuration(0.5f, 1f);
+        float playbackSpeed = AttackAnimationTiming.GetPlaybackSpeed(1.25f, targetDuration, 1f);
+
+        Assert.That(playbackSpeed, Is.EqualTo(2.5f).Within(0.0001f));
+        Assert.That(1.25f / playbackSpeed, Is.EqualTo(targetDuration).Within(0.0001f));
+    }
+
+    [Test]
+    public void AttackTiming_UsesFallbackSpeedWhenClipLengthIsUnknown()
+    {
+        Assert.That(AttackAnimationTiming.GetPlaybackSpeed(0f, 0.5f, 1.75f), Is.EqualTo(1.75f).Within(0.0001f));
+        Assert.That(AttackAnimationTiming.GetPlaybackSpeed(1.25f, 0f, 1.75f), Is.EqualTo(1.75f).Within(0.0001f));
+    }
+
+    [Test]
+    public void AttackTiming_RecomputesPlaybackSpeedPerComboStep()
+    {
+        float firstDuration = AttackAnimationTiming.GetScaledAttackDuration(0.5f, 1f);
+        float secondDuration = AttackAnimationTiming.GetScaledAttackDuration(0.5f, 2f);
+        float thirdDuration = AttackAnimationTiming.GetScaledAttackDuration(0.4f, 0.5f);
+
+        Assert.That(AttackAnimationTiming.GetPlaybackSpeed(1.25f, firstDuration, 1f), Is.EqualTo(2.5f).Within(0.0001f));
+        Assert.That(AttackAnimationTiming.GetPlaybackSpeed(1.25f, secondDuration, 2f), Is.EqualTo(5f).Within(0.0001f));
+        Assert.That(AttackAnimationTiming.GetPlaybackSpeed(1.25f, thirdDuration, 0.5f), Is.EqualTo(1.5625f).Within(0.0001f));
+    }
+
+    [Test]
+    public void AttackTiming_CurrentSwingStaysStableWhenAttackSpeedChangesMidSwing()
+    {
+        float speedAtAttackStart = 1f;
+        float changedSpeedDuringAttack = 3f;
+        float targetDuration = AttackAnimationTiming.GetScaledAttackDuration(0.5f, speedAtAttackStart);
+        float playbackSpeed = AttackAnimationTiming.GetPlaybackSpeed(1.25f, targetDuration, speedAtAttackStart);
+
+        Assert.That(playbackSpeed, Is.EqualTo(2.5f).Within(0.0001f));
+        Assert.That(AttackAnimationTiming.GetScaledAttackDuration(0.5f, changedSpeedDuringAttack), Is.Not.EqualTo(targetDuration).Within(0.0001f));
+        Assert.That(1.25f / playbackSpeed, Is.EqualTo(targetDuration).Within(0.0001f));
     }
 
     [Test]
@@ -343,6 +406,45 @@ public class CombatRulesEditModeTests
         }
 
         return null;
+    }
+
+    private static float GetStateSpeed(AnimatorController controller, string stateName)
+    {
+        ChildAnimatorState[] states = controller.layers[0].stateMachine.states;
+        for (int i = 0; i < states.Length; i++)
+        {
+            if (states[i].state.name == stateName)
+                return states[i].state.speed;
+        }
+
+        return 0f;
+    }
+
+    private static bool AttackStateReturnsImmediately(AnimatorController controller, string stateName)
+    {
+        ChildAnimatorState[] states = controller.layers[0].stateMachine.states;
+        for (int i = 0; i < states.Length; i++)
+        {
+            if (states[i].state.name != stateName)
+                continue;
+
+            AnimatorStateTransition[] transitions = states[i].state.transitions;
+            if (transitions.Length < 2)
+                return false;
+
+            for (int j = 0; j < transitions.Length; j++)
+            {
+                if (!HasCondition(transitions[j], "AttackEnded", AnimatorConditionMode.If))
+                    return false;
+
+                if (transitions[j].hasExitTime || transitions[j].duration > 0f)
+                    return false;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     private static bool BlendTreeClipsLoop(AnimatorController controller, string stateName)
