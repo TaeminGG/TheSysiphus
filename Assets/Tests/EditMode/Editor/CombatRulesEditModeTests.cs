@@ -1,5 +1,7 @@
 using NUnit.Framework;
 using System.Reflection;
+using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 
 public class CombatRulesEditModeTests
@@ -46,6 +48,56 @@ public class CombatRulesEditModeTests
         {
             Object.DestroyImmediate(data);
         }
+    }
+
+    [Test]
+    public void PlayerDirectionalAnimator_MapsVectorsToEightDirections()
+    {
+        Assert.That(PlayerDirectionalAnimator.GetDirection(Vector2.down), Is.EqualTo(PlayerDirectionalAnimator.Direction8.South));
+        Assert.That(PlayerDirectionalAnimator.GetDirection(new Vector2(1f, -1f)), Is.EqualTo(PlayerDirectionalAnimator.Direction8.SouthEast));
+        Assert.That(PlayerDirectionalAnimator.GetDirection(Vector2.right), Is.EqualTo(PlayerDirectionalAnimator.Direction8.East));
+        Assert.That(PlayerDirectionalAnimator.GetDirection(new Vector2(1f, 1f)), Is.EqualTo(PlayerDirectionalAnimator.Direction8.NorthEast));
+        Assert.That(PlayerDirectionalAnimator.GetDirection(Vector2.up), Is.EqualTo(PlayerDirectionalAnimator.Direction8.North));
+        Assert.That(PlayerDirectionalAnimator.GetDirection(new Vector2(-1f, 1f)), Is.EqualTo(PlayerDirectionalAnimator.Direction8.NorthWest));
+        Assert.That(PlayerDirectionalAnimator.GetDirection(Vector2.left), Is.EqualTo(PlayerDirectionalAnimator.Direction8.West));
+        Assert.That(PlayerDirectionalAnimator.GetDirection(new Vector2(-1f, -1f)), Is.EqualTo(PlayerDirectionalAnimator.Direction8.SouthWest));
+    }
+
+    [Test]
+    public void PlayerAnimatorController_IsConfiguredForEightWayMotionStates()
+    {
+        AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>("Assets/Sprites/Player/PlayerAnim.controller");
+
+        Assert.That(controller, Is.Not.Null);
+        Assert.That(HasParameter(controller, "Direction", AnimatorControllerParameterType.Float), Is.True);
+        Assert.That(HasParameter(controller, "IsMoving", AnimatorControllerParameterType.Bool), Is.True);
+        Assert.That(HasParameter(controller, "Jump", AnimatorControllerParameterType.Trigger), Is.True);
+        Assert.That(HasParameter(controller, "AttackEnded", AnimatorControllerParameterType.Trigger), Is.True);
+        Assert.That(HasState(controller, "Idle_8Way"), Is.True);
+        Assert.That(HasState(controller, "Run_8Way"), Is.True);
+        Assert.That(HasState(controller, "Jump_8Way"), Is.True);
+        Assert.That(HasParameter(controller, "Dash", AnimatorControllerParameterType.Trigger), Is.False);
+        Assert.That(HasState(controller, "Dash_8Way"), Is.False);
+        Assert.That(HasState(controller, "Attack1_8Way"), Is.True);
+        Assert.That(HasState(controller, "Attack2_8Way"), Is.True);
+        Assert.That(HasState(controller, "Attack3_8Way"), Is.True);
+    }
+
+    [Test]
+    public void PlayerAnimatorController_UsesSpriteBackedClips_ForCorePlayerMotions()
+    {
+        AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>("Assets/Sprites/Player/PlayerAnim.controller");
+
+        Assert.That(controller, Is.Not.Null);
+        Assert.That(BlendTreeHasSpriteClips(controller, "Idle_8Way"), Is.True);
+        Assert.That(BlendTreeHasSpriteClips(controller, "Run_8Way"), Is.True);
+        Assert.That(BlendTreeHasSpriteClips(controller, "Jump_8Way"), Is.True);
+        Assert.That(BlendTreeHasSpriteClips(controller, "Attack1_8Way"), Is.True);
+        Assert.That(BlendTreeHasSpriteClips(controller, "Attack2_8Way"), Is.True);
+        Assert.That(BlendTreeHasSpriteClips(controller, "Attack3_8Way"), Is.True);
+        Assert.That(BlendTreeClipsLoop(controller, "Jump_8Way"), Is.False);
+        Assert.That(JumpStateReturnsOnlyAfterLanding(controller), Is.True);
+        Assert.That(JumpStateReturnsImmediatelyAfterLanding(controller), Is.True);
     }
 
     [Test]
@@ -237,5 +289,131 @@ public class CombatRulesEditModeTests
         FieldInfo field = typeof(PlayerStats).GetField("currentHp", BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.That(field, Is.Not.Null);
         field.SetValue(stats, Mathf.Clamp(value, 0f, stats.GetMaxHp()));
+    }
+
+    private static bool HasParameter(AnimatorController controller, string name, AnimatorControllerParameterType type)
+    {
+        for (int i = 0; i < controller.parameters.Length; i++)
+        {
+            AnimatorControllerParameter parameter = controller.parameters[i];
+            if (parameter.name == name && parameter.type == type)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool HasState(AnimatorController controller, string stateName)
+    {
+        ChildAnimatorState[] states = controller.layers[0].stateMachine.states;
+        for (int i = 0; i < states.Length; i++)
+        {
+            if (states[i].state.name == stateName && states[i].state.motion is BlendTree)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool BlendTreeHasSpriteClips(AnimatorController controller, string stateName)
+    {
+        BlendTree blendTree = GetStateBlendTree(controller, stateName);
+        if (blendTree == null || blendTree.children.Length != 8)
+            return false;
+
+        for (int i = 0; i < blendTree.children.Length; i++)
+        {
+            if (blendTree.children[i].motion is not AnimationClip clip)
+                return false;
+
+            if (AnimationUtility.GetObjectReferenceCurveBindings(clip).Length == 0)
+                return false;
+        }
+
+        return true;
+    }
+
+    private static BlendTree GetStateBlendTree(AnimatorController controller, string stateName)
+    {
+        ChildAnimatorState[] states = controller.layers[0].stateMachine.states;
+        for (int i = 0; i < states.Length; i++)
+        {
+            if (states[i].state.name == stateName)
+                return states[i].state.motion as BlendTree;
+        }
+
+        return null;
+    }
+
+    private static bool BlendTreeClipsLoop(AnimatorController controller, string stateName)
+    {
+        BlendTree blendTree = GetStateBlendTree(controller, stateName);
+        if (blendTree == null)
+            return false;
+
+        for (int i = 0; i < blendTree.children.Length; i++)
+        {
+            if (blendTree.children[i].motion is not AnimationClip clip)
+                return false;
+
+            if (AnimationUtility.GetAnimationClipSettings(clip).loopTime)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool JumpStateReturnsOnlyAfterLanding(AnimatorController controller)
+    {
+        ChildAnimatorState[] states = controller.layers[0].stateMachine.states;
+        for (int i = 0; i < states.Length; i++)
+        {
+            if (states[i].state.name != "Jump_8Way")
+                continue;
+
+            AnimatorStateTransition[] transitions = states[i].state.transitions;
+            for (int j = 0; j < transitions.Length; j++)
+            {
+                if (!HasCondition(transitions[j], "IsAirborne", AnimatorConditionMode.IfNot))
+                    return false;
+            }
+
+            return transitions.Length > 0;
+        }
+
+        return false;
+    }
+
+    private static bool HasCondition(AnimatorStateTransition transition, string parameterName, AnimatorConditionMode mode)
+    {
+        for (int i = 0; i < transition.conditions.Length; i++)
+        {
+            AnimatorCondition condition = transition.conditions[i];
+            if (condition.parameter == parameterName && condition.mode == mode)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool JumpStateReturnsImmediatelyAfterLanding(AnimatorController controller)
+    {
+        ChildAnimatorState[] states = controller.layers[0].stateMachine.states;
+        for (int i = 0; i < states.Length; i++)
+        {
+            if (states[i].state.name != "Jump_8Way")
+                continue;
+
+            AnimatorStateTransition[] transitions = states[i].state.transitions;
+            for (int j = 0; j < transitions.Length; j++)
+            {
+                if (transitions[j].hasExitTime || transitions[j].duration > 0f)
+                    return false;
+            }
+
+            return transitions.Length > 0;
+        }
+
+        return false;
     }
 }

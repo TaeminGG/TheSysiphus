@@ -57,6 +57,7 @@ public class PlayerMove : MonoBehaviour
     private Rigidbody2D rid;
     private Animator anim;
     private SpriteRenderer spriteRenderer;
+    private PlayerDirectionalAnimator directionalAnimator;
     private SurroundTileCheck stc;
     private PlayerStats stats;
     private PlayerCrowdControl crowdControl;
@@ -93,6 +94,10 @@ public class PlayerMove : MonoBehaviour
         rid = GetComponent<Rigidbody2D>();
         anim = playerSprite.GetComponent<Animator>();
         spriteRenderer = playerSprite.GetComponent<SpriteRenderer>();
+        directionalAnimator = GetComponent<PlayerDirectionalAnimator>();
+        if (directionalAnimator == null)
+            directionalAnimator = gameObject.AddComponent<PlayerDirectionalAnimator>();
+        directionalAnimator.Initialize(anim, spriteRenderer);
         stc = GetComponent<SurroundTileCheck>();
         stats = GetComponent<PlayerStats>();
         crowdControl = GetComponent<PlayerCrowdControl>();
@@ -236,21 +241,7 @@ public class PlayerMove : MonoBehaviour
             }
         }
 
-        if (lookAt == LookAt.S)
-            anim.SetInteger("Look", 0);
-        else if (lookAt == LookAt.SE || lookAt == LookAt.SW)
-            anim.SetInteger("Look", 1);
-        else if (lookAt == LookAt.E || lookAt == LookAt.W)
-            anim.SetInteger("Look", 2);
-        else if (lookAt == LookAt.NE || lookAt == LookAt.NW)
-            anim.SetInteger("Look", 3);
-        else if (lookAt == LookAt.N)
-            anim.SetInteger("Look", 4);
-
-        if (lookAt == LookAt.SW || lookAt == LookAt.NW || lookAt == LookAt.W)
-            spriteRenderer.flipX = true;
-        else
-            spriteRenderer.flipX = false;
+        directionalAnimator?.SyncLocomotion(GetFacingDirection(), isAttacking ? Vector2.zero : axis, isDashing, IsAirborne, isGrounded);
 
         if (isAttacking)
             axis = Vector2.zero;
@@ -478,6 +469,7 @@ public class PlayerMove : MonoBehaviour
             verticalVelocity = GetResolvedJumpForce();
             isGrounded = false;
             isJumping = false;
+            directionalAnimator?.PlayJump(GetFacingDirection());
         }
 
         if (!isGrounded || playerZ > floorZ)

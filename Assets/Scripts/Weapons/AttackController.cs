@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -18,6 +17,7 @@ public class AttackController : MonoBehaviour
     public AttackHitBox hitbox;
     public Animator anim;
     private PlayerMove playerMove;
+    private PlayerDirectionalAnimator directionalAnimator;
     private PlayerCrowdControl crowdControl;
     private PlayerStats playerStats;
 
@@ -26,6 +26,10 @@ public class AttackController : MonoBehaviour
     private void Awake()
     {
         playerMove = GetComponent<PlayerMove>();
+        directionalAnimator = GetComponent<PlayerDirectionalAnimator>();
+        if (directionalAnimator == null)
+            directionalAnimator = gameObject.AddComponent<PlayerDirectionalAnimator>();
+        directionalAnimator.Initialize(anim, null);
         playerStats = GetComponent<PlayerStats>();
         crowdControl = GetComponent<PlayerCrowdControl>();
         if (crowdControl == null)
@@ -47,7 +51,10 @@ public class AttackController : MonoBehaviour
         {
             if (isAttacking)
             {
-                anim.SetTrigger("AttackEnded");
+                if (directionalAnimator != null)
+                    directionalAnimator.EndAttack();
+                else if (anim != null)
+                    anim.SetTrigger("AttackEnded");
                 ResetCombo();
             }
 
@@ -92,10 +99,17 @@ public class AttackController : MonoBehaviour
         attackTimer = data.attackDuration / attackSpeed;
         comboTimer = 0f;
 
-        anim.SetFloat("AttackSpeed", attackSpeed);
-        anim.SetTrigger(data.animTrigger);
-
         Vector2 attackDir = GetComponent<PlayerAttackDirection>().GetAttackDirection();
+        if (directionalAnimator != null)
+        {
+            directionalAnimator.PlayAttack(data.animTrigger, attackDir, attackSpeed);
+        }
+        else if (anim != null)
+        {
+            anim.SetFloat("AttackSpeed", attackSpeed);
+            anim.SetTrigger(data.animTrigger);
+        }
+
         float playerDamage = playerStats != null ? playerStats.damage : 0f;
 
         if (hitbox != null)
@@ -130,8 +144,16 @@ public class AttackController : MonoBehaviour
             return;
         }
 
-        anim.SetTrigger("AttackEnded");
-        anim.ResetTrigger(data.animTrigger);
+        if (directionalAnimator != null)
+        {
+            directionalAnimator.EndAttack();
+            directionalAnimator.ResetAttackTrigger(data.animTrigger);
+        }
+        else if (anim != null)
+        {
+            anim.SetTrigger("AttackEnded");
+            anim.ResetTrigger(data.animTrigger);
+        }
         ResetCombo();
     }
 
