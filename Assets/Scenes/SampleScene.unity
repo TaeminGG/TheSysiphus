@@ -53951,6 +53951,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PauseItemCollectionMenu
   windowSize: {x: 980, y: 560}
+  titleMenuMode: 0
+  closeTargetOnResume: {fileID: 0}
   style:
     windowSprite: {fileID: 0}
     windowColor: {r: 0.08, g: 0.08, b: 0.08, a: 0.98}
@@ -58180,7 +58182,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.8, y: 0.8, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 451708598}
@@ -58256,7 +58258,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 6625810905091097837, guid: e3808841dff01a94fa7f1b0fbfe4b232, type: 3}
+  m_Sprite: {fileID: -7216628340827019732, guid: 471c9b25b83dadb48a5db65de9364205, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -74440,7 +74442,7 @@ Transform:
   m_GameObject: {fileID: 5295414531760418351}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.028, y: -0.88, z: 0}
+  m_LocalPosition: {x: -1.028, y: -1.015, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -74871,6 +74873,7 @@ MonoBehaviour:
   timeControlService: {fileID: 1825196477}
   uiCanvas: {fileID: 1574634818}
   deathScreenUI: {fileID: 2007081306}
+  titleSceneName: Main
   snapCameraToPlayerOnDeath: 0
   deathCameraMoveSpeed: 12
   deathZoomSize: 2.5
