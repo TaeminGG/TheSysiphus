@@ -30,8 +30,10 @@ public class PlayerDirectionalAnimator : MonoBehaviour
     [SerializeField] private string groundedParameter = "IsGrounded";
     [SerializeField] private string airborneParameter = "IsAirborne";
     [SerializeField] private string dashingParameter = "IsDashing";
+    [SerializeField] private string divingParameter = "IsDiving";
     [SerializeField] private string attackSpeedParameter = "AttackSpeed";
     [SerializeField] private string attackEndedTrigger = "AttackEnded";
+    [SerializeField] private string diveAttackTrigger = "DiveAttack";
     [SerializeField] private string jumpTrigger = "Jump";
 
     [Header("Compatibility")]
@@ -125,6 +127,18 @@ public class PlayerDirectionalAnimator : MonoBehaviour
     public void EndAttack()
     {
         SetTrigger(attackEndedTrigger);
+    }
+
+    public void PlayDiveAttack(Vector2 diveDirection)
+    {
+        ApplyDirection(diveDirection);
+        SetBool(divingParameter, true);
+        SetTrigger(diveAttackTrigger);
+    }
+
+    public void EndDiveAttack()
+    {
+        SetBool(divingParameter, false);
     }
 
     public void ResetAttackTrigger(string triggerName)

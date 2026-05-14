@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -40,6 +41,7 @@ public class PlayerDiveAttack : MonoBehaviour
     private PlayerMove playerMove;
     private PlayerStats playerStats;
     private PlayerCrowdControl crowdControl;
+    private PlayerDirectionalAnimator directionalAnimator;
     private HitSparkController hitSparkController;
 
     private bool hasUsedThisAirborne;
@@ -49,6 +51,7 @@ public class PlayerDiveAttack : MonoBehaviour
     private int controlLockToken;
     private float damageMultiplier = 1f;
     private float landingShockwaveRangeMultiplier = 1f;
+    private Coroutine endDiveAnimationCoroutine;
 
     private PlayerControlLock DiveControlLocks =>
         PlayerControlLock.Move | PlayerControlLock.Attack | PlayerControlLock.Item | PlayerControlLock.Heal | PlayerControlLock.Dash;
@@ -70,6 +73,9 @@ public class PlayerDiveAttack : MonoBehaviour
     {
         playerMove = GetComponent<PlayerMove>();
         playerStats = GetComponent<PlayerStats>();
+        directionalAnimator = GetComponent<PlayerDirectionalAnimator>();
+        if (directionalAnimator == null)
+            directionalAnimator = gameObject.AddComponent<PlayerDirectionalAnimator>();
         crowdControl = GetComponent<PlayerCrowdControl>();
         if (crowdControl == null)
             crowdControl = gameObject.AddComponent<PlayerCrowdControl>();
@@ -86,6 +92,8 @@ public class PlayerDiveAttack : MonoBehaviour
         if (playerMove != null)
             playerMove.OnLanded -= HandleLanded;
 
+        StopDiveAnimationEndRoutine();
+        directionalAnimator?.EndDiveAttack();
         EndDive(false);
     }
 
@@ -128,9 +136,11 @@ public class PlayerDiveAttack : MonoBehaviour
         fallingDamageTimer = 0f;
         fallingHitTargets.Clear();
         landingHitTargets.Clear();
+        StopDiveAnimationEndRoutine();
         controlLockToken = crowdControl != null ? crowdControl.AddControlLock(DiveControlLocks) : 0;
 
         playerMove.BeginForcedFall(GetResolvedFallSpeed());
+        directionalAnimator?.PlayDiveAttack(playerMove.GetFacingDirection());
         SpawnVisual(fallingAttackData, transform.position + fallingVisualOffset);
         OnDiveStarted?.Invoke();
         return true;
@@ -185,18 +195,23 @@ public class PlayerDiveAttack : MonoBehaviour
             Vector3 landingPosition = transform.position;
             ApplyAreaDamage(landingShockwaveData, landingHitTargets, playerMove != null ? playerMove.floorZ : 0f, landingPosition);
             SpawnVisual(landingShockwaveData, landingPosition + landingVisualOffset);
-            ApplyPostLandingRecovery();
+            float recoveryDuration = ApplyPostLandingRecovery();
+            ScheduleDiveAnimationEnd(recoveryDuration);
+        }
+        else
+        {
+            EndDiveAnimation();
         }
 
         if (shouldNotifyDiveEnded)
             OnDiveEnded?.Invoke();
     }
 
-    private void ApplyPostLandingRecovery()
+    private float ApplyPostLandingRecovery()
     {
         float resolvedDuration = GetResolvedPostLandingRecoveryDuration();
         if (crowdControl == null || resolvedDuration <= 0f)
-            return;
+            return 0f;
 
         crowdControl.ApplyEffect(new PlayerCrowdControlRequest
         {
@@ -206,6 +221,43 @@ public class PlayerDiveAttack : MonoBehaviour
             Locks = PlayerControlLock.Move | PlayerControlLock.Attack | PlayerControlLock.Dash,
             Knockback = Vector2.zero
         });
+
+        return resolvedDuration;
+    }
+
+    private void ScheduleDiveAnimationEnd(float delay)
+    {
+        StopDiveAnimationEndRoutine();
+
+        if (delay <= 0f)
+        {
+            EndDiveAnimation();
+            return;
+        }
+
+        endDiveAnimationCoroutine = StartCoroutine(EndDiveAnimationAfterDelay(delay));
+    }
+
+    private IEnumerator EndDiveAnimationAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        endDiveAnimationCoroutine = null;
+        EndDiveAnimation();
+    }
+
+    private void EndDiveAnimation()
+    {
+        StopDiveAnimationEndRoutine();
+        directionalAnimator?.EndDiveAttack();
+    }
+
+    private void StopDiveAnimationEndRoutine()
+    {
+        if (endDiveAnimationCoroutine == null)
+            return;
+
+        StopCoroutine(endDiveAnimationCoroutine);
+        endDiveAnimationCoroutine = null;
     }
 
     public float GetResolvedFallSpeed()
