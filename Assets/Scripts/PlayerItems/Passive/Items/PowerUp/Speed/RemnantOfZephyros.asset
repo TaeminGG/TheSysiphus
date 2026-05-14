@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: passive_remnantofzephyros
   rarity: 2
   itemName: "\uC81C\uD53C\uB85C\uC2A4\uC758 \uC794\uC7AC"
-  icon: {fileID: -7008412969330441016, guid: 966e7c2454984684cb560b12ea0e87ca, type: 3}
+  icon: {fileID: 21300000, guid: 39aaa91a693e46a98461afe2edb9565d, type: 3}
   description: "Speed + 1\n\uC11C\uD48D\uC758 \uC2E0 \uC81C\uD53C\uB85C\uC2A4\uC758
     \uD798\uC758 \uC794\uC7AC. \uCC29\uC6A9\uC790\uC758 \uC774\uB3D9\uC18D\uB3C4\uB97C
     \uC99D\uAC00\uC2DC\uD0A8\uB2E4."

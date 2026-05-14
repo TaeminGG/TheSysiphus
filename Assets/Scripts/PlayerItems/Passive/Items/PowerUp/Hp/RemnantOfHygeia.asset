@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: passive_remnantofhygeia
   rarity: 0
   itemName: "\uD718\uAC8C\uC774\uC544\uC758 \uC794\uC7AC"
-  icon: {fileID: -7062486114238938467, guid: c7008d5880a9b1d41ac0fcd21ec1988d, type: 3}
+  icon: {fileID: 21300000, guid: f86e02cf6cfa49a09a131cd9a75fe0de, type: 3}
   description: "Max HP + 10\n\uC758\uC220\uC758 \uC2E0 \uC544\uC2A4\uD074\uB808\uD53C\uC624\uC2A4\uC758
     \uB538\uC778 \uD718\uAE30\uC5D0\uC774\uC544\uC758 \uD798\uC758 \uC794\uC7AC.
     \uCC29\uC6A9\uC790\uC758 \uC0DD\uBA85\uB825\uC744 \uC18C\uD3ED \uD5A5\uC0C1\uC2DC\uD0A8\uB2E4."

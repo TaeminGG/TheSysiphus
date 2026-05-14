@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: passive_remnantoflysaamad
   rarity: 2
   itemName: "\uB9AC\uC0AC-\uAD11\uAE30\uC758 \uC794\uC7AC"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 75a1ecc409ce4c2a98ce2c89b7b9b19d, type: 3}
   description: "\uBD84\uB178\uC640 \uAD11\uAE30\uC758 \uC5EC\uC2E0 \uB9AC\uC0AC\uC758
     \uC794\uC7AC\uC911 \uAD11\uAE30\uC758 \uD798\uC774 \uB2F4\uAE34 \uC794\uC7AC.\n\uC801
     \uCC98\uCE58 \uC2DC \uCCB4\uB825\uC744 \uD68C\uBCF5\uD55C\uB2E4."

@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: passive_anemoi
   rarity: 4
   itemName: "\uC544\uB124\uBAA8\uC774"
-  icon: {fileID: -7008412969330441016, guid: 966e7c2454984684cb560b12ea0e87ca, type: 3}
+  icon: {fileID: 21300000, guid: 3005d8241f9a4bafab8984587db2a5a6, type: 3}
   description: "\uC774\uB3D9\uC18D\uB3C4 + 2\n\uBCC4\uC758 \uC2E0 \uC544\uC2A4\uD2B8\uB77C\uC774\uC624\uC2A4\uC640
     \uC0C8\uBCBD\uC758 \uC5EC\uC2E0 \uC5D0\uC624\uC2A4\uC758 \uC790\uC2DD\uB4E4\uC758
     \uD798\uC758 \uC6D0\uCC9C."

@@ -15,6 +15,6 @@ MonoBehaviour:
   itemId: passive_bootsofspeed
   rarity: 0
   itemName: "\uC18D\uB3C4\uC758 \uC2E0\uBC1C"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: b032936e03d9492992a7d06bd7826e17, type: 3}
   description: "\uB300\uC26C \uCFE8\uD0C0\uC784\uC744 \uC870\uAE08 \uC904\uC5EC\uC900\uB2E4."
   dashCooldownReductionPercent: 0.05
