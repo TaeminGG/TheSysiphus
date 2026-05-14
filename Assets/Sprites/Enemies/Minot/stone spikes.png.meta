@@ -1,0 +1,650 @@
+fileFormatVersion: 2
+guid: 1f937dbabb109ad4eb5e798d3bb27253
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 9003306967667096254
+    second: stone spikes_0
+  - first:
+      213: -6655189713727426786
+    second: stone spikes_1
+  - first:
+      213: -331022108284167754
+    second: stone spikes_2
+  - first:
+      213: 360546016112263540
+    second: stone spikes_3
+  - first:
+      213: -2740998564055005456
+    second: stone spikes_4
+  - first:
+      213: 5771578360833235552
+    second: stone spikes_5
+  - first:
+      213: 5151810482867708695
+    second: stone spikes_6
+  - first:
+      213: 8803701250216336791
+    second: stone spikes_7
+  - first:
+      213: -6816054680063868356
+    second: stone spikes_8
+  - first:
+      213: 6887093777559508028
+    second: stone spikes_9
+  - first:
+      213: 257129085535390263
+    second: stone spikes_10
+  - first:
+      213: 70405256844471392
+    second: stone spikes_11
+  - first:
+      213: 6074158015494919279
+    second: stone spikes_12
+  - first:
+      213: -8913439707375624305
+    second: stone spikes_13
+  - first:
+      213: -7208597123218681875
+    second: stone spikes_14
+  - first:
+      213: 5196136203017515133
+    second: stone spikes_15
+  - first:
+      213: 379706655853032917
+    second: stone spikes_16
+  - first:
+      213: -1536462312933581757
+    second: stone spikes_17
+  - first:
+      213: -8337924207694437152
+    second: stone spikes_18
+  - first:
+      213: -9086970877050564509
+    second: stone spikes_19
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: stone spikes_0
+      rect:
+        serializedVersion: 2
+        x: 14
+        y: 14
+        width: 33
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ebab89b4cfb22fc70800000000000000
+      internalID: 9003306967667096254
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_1
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 14
+        width: 32
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1f6170573404a3a0800000000000000
+      internalID: -6655189713727426786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_2
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 14
+        width: 34
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b9dbe67529f76bf0800000000000000
+      internalID: -331022108284167754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_3
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 14
+        width: 35
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 471cd8ff0bae00500800000000000000
+      internalID: 360546016112263540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_4
+      rect:
+        serializedVersion: 2
+        x: 269
+        y: 14
+        width: 34
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f645a3145406f9d0800000000000000
+      internalID: -2740998564055005456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_5
+      rect:
+        serializedVersion: 2
+        x: 340
+        y: 14
+        width: 35
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06adbc6a0f3c81050800000000000000
+      internalID: 5771578360833235552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_6
+      rect:
+        serializedVersion: 2
+        x: 396
+        y: 19
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 713a675b658ee7740800000000000000
+      internalID: 5151810482867708695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_7
+      rect:
+        serializedVersion: 2
+        x: 402
+        y: 14
+        width: 29
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79d9ecf94a70d2a70800000000000000
+      internalID: 8803701250216336791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_8
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 22
+        width: 6
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c328729a1628861a0800000000000000
+      internalID: -6816054680063868356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_9
+      rect:
+        serializedVersion: 2
+        x: 468
+        y: 14
+        width: 30
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c34dc322d4fd39f50800000000000000
+      internalID: 6887093777559508028
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_10
+      rect:
+        serializedVersion: 2
+        x: 494
+        y: 17
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 73a02cc7a81819300800000000000000
+      internalID: 257129085535390263
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_11
+      rect:
+        serializedVersion: 2
+        x: 498
+        y: 23
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06ce88445312af000800000000000000
+      internalID: 70405256844471392
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_12
+      rect:
+        serializedVersion: 2
+        x: 523
+        y: 16
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f649a27688ebb4450800000000000000
+      internalID: 6074158015494919279
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_13
+      rect:
+        serializedVersion: 2
+        x: 530
+        y: 14
+        width: 28
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f8f9303cfc91d4480800000000000000
+      internalID: -8913439707375624305
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_14
+      rect:
+        serializedVersion: 2
+        x: 596
+        y: 14
+        width: 33
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: defc5a5fb1be5fb90800000000000000
+      internalID: -7208597123218681875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_15
+      rect:
+        serializedVersion: 2
+        x: 628
+        y: 19
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d70f769a8526c1840800000000000000
+      internalID: 5196136203017515133
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_16
+      rect:
+        serializedVersion: 2
+        x: 651
+        y: 14
+        width: 35
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d5b8f4113df44500800000000000000
+      internalID: 379706655853032917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_17
+      rect:
+        serializedVersion: 2
+        x: 724
+        y: 14
+        width: 25
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34c91dabaa36daae0800000000000000
+      internalID: -1536462312933581757
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_18
+      rect:
+        serializedVersion: 2
+        x: 748
+        y: 14
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e42e3cfb1eb94c80800000000000000
+      internalID: -8337924207694437152
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stone spikes_19
+      rect:
+        serializedVersion: 2
+        x: 756
+        y: 14
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 360d415d12894e180800000000000000
+      internalID: -9086970877050564509
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      stone spikes_0: 9003306967667096254
+      stone spikes_1: -6655189713727426786
+      stone spikes_10: 257129085535390263
+      stone spikes_11: 70405256844471392
+      stone spikes_12: 6074158015494919279
+      stone spikes_13: -8913439707375624305
+      stone spikes_14: -7208597123218681875
+      stone spikes_15: 5196136203017515133
+      stone spikes_16: 379706655853032917
+      stone spikes_17: -1536462312933581757
+      stone spikes_18: -8337924207694437152
+      stone spikes_19: -9086970877050564509
+      stone spikes_2: -331022108284167754
+      stone spikes_3: 360546016112263540
+      stone spikes_4: -2740998564055005456
+      stone spikes_5: 5771578360833235552
+      stone spikes_6: 5151810482867708695
+      stone spikes_7: 8803701250216336791
+      stone spikes_8: -6816054680063868356
+      stone spikes_9: 6887093777559508028
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

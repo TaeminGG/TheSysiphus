@@ -1,0 +1,1690 @@
+fileFormatVersion: 2
+guid: cbedc1802a494714a89af9b11e72f7bb
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6042976080173199820
+    second: Medusa Gorgon-Sheet_0
+  - first:
+      213: -4422090341878963696
+    second: Medusa Gorgon-Sheet_1
+  - first:
+      213: 3466566340742949826
+    second: Medusa Gorgon-Sheet_2
+  - first:
+      213: -2202221284197666102
+    second: Medusa Gorgon-Sheet_3
+  - first:
+      213: 1275923366562126584
+    second: Medusa Gorgon-Sheet_4
+  - first:
+      213: 3217398895297202193
+    second: Medusa Gorgon-Sheet_5
+  - first:
+      213: 5164908996378683911
+    second: Medusa Gorgon-Sheet_6
+  - first:
+      213: -8250515875688814613
+    second: Medusa Gorgon-Sheet_7
+  - first:
+      213: 8040867377203195750
+    second: Medusa Gorgon-Sheet_8
+  - first:
+      213: 3123109140749551597
+    second: Medusa Gorgon-Sheet_9
+  - first:
+      213: 4251489450719385637
+    second: Medusa Gorgon-Sheet_10
+  - first:
+      213: -3976659886929911263
+    second: Medusa Gorgon-Sheet_11
+  - first:
+      213: -1666548296888338296
+    second: Medusa Gorgon-Sheet_12
+  - first:
+      213: 8419855932191320335
+    second: Medusa Gorgon-Sheet_13
+  - first:
+      213: -8440586664915231841
+    second: Medusa Gorgon-Sheet_14
+  - first:
+      213: -2259037098270484290
+    second: Medusa Gorgon-Sheet_15
+  - first:
+      213: -2425183163901989138
+    second: Medusa Gorgon-Sheet_16
+  - first:
+      213: 2776655685972602103
+    second: Medusa Gorgon-Sheet_17
+  - first:
+      213: 4482838992441606666
+    second: Medusa Gorgon-Sheet_18
+  - first:
+      213: 4043503791262865880
+    second: Medusa Gorgon-Sheet_19
+  - first:
+      213: -6169065745846972299
+    second: Medusa Gorgon-Sheet_20
+  - first:
+      213: -8746039231768626645
+    second: Medusa Gorgon-Sheet_21
+  - first:
+      213: -747467240212244515
+    second: Medusa Gorgon-Sheet_22
+  - first:
+      213: 1899981503249586322
+    second: Medusa Gorgon-Sheet_23
+  - first:
+      213: 8784410791193553332
+    second: Medusa Gorgon-Sheet_24
+  - first:
+      213: -3709494526039531850
+    second: Medusa Gorgon-Sheet_25
+  - first:
+      213: -8157950555842813599
+    second: Medusa Gorgon-Sheet_26
+  - first:
+      213: -6748640250720181587
+    second: Medusa Gorgon-Sheet_27
+  - first:
+      213: 307263255976170781
+    second: Medusa Gorgon-Sheet_28
+  - first:
+      213: -199596188095234975
+    second: Medusa Gorgon-Sheet_29
+  - first:
+      213: -8383770299642427947
+    second: Medusa Gorgon-Sheet_30
+  - first:
+      213: -5385033178445865625
+    second: Medusa Gorgon-Sheet_31
+  - first:
+      213: 8741787281546797489
+    second: Medusa Gorgon-Sheet_32
+  - first:
+      213: -1387151346721078599
+    second: Medusa Gorgon-Sheet_33
+  - first:
+      213: 2718550815815890227
+    second: Medusa Gorgon-Sheet_34
+  - first:
+      213: -8459839664292690072
+    second: Medusa Gorgon-Sheet_35
+  - first:
+      213: -7331138402727922857
+    second: Medusa Gorgon-Sheet_36
+  - first:
+      213: 1130539585326216235
+    second: Medusa Gorgon-Sheet_37
+  - first:
+      213: -3925946988106017582
+    second: Medusa Gorgon-Sheet_38
+  - first:
+      213: 6874158548234125745
+    second: Medusa Gorgon-Sheet_39
+  - first:
+      213: 4062118171752628574
+    second: Medusa Gorgon-Sheet_40
+  - first:
+      213: -6705631220448789815
+    second: Medusa Gorgon-Sheet_41
+  - first:
+      213: -881486325181016836
+    second: Medusa Gorgon-Sheet_42
+  - first:
+      213: 489088810637627992
+    second: Medusa Gorgon-Sheet_43
+  - first:
+      213: -5322260588757494216
+    second: Medusa Gorgon-Sheet_44
+  - first:
+      213: -2715931895945495481
+    second: Medusa Gorgon-Sheet_45
+  - first:
+      213: -7919867711714361133
+    second: Medusa Gorgon-Sheet_46
+  - first:
+      213: 5806152659533931396
+    second: Medusa Gorgon-Sheet_47
+  - first:
+      213: 6660248356444907721
+    second: Medusa Gorgon-Sheet_48
+  - first:
+      213: 1496170580858691433
+    second: Medusa Gorgon-Sheet_49
+  - first:
+      213: -331747118843356413
+    second: Medusa Gorgon-Sheet_50
+  - first:
+      213: -7903964647348508774
+    second: Medusa Gorgon-Sheet_51
+  - first:
+      213: 1029060157772638279
+    second: Medusa Gorgon-Sheet_52
+  - first:
+      213: -212445171257032062
+    second: Medusa Gorgon-Sheet_53
+  - first:
+      213: -7954611907086711024
+    second: Medusa Gorgon-Sheet_54
+  - first:
+      213: -1612043184368417689
+    second: Medusa Gorgon-Sheet_55
+  - first:
+      213: -8340335671098193354
+    second: Medusa Gorgon-Sheet_56
+  - first:
+      213: 6194424133532705137
+    second: Medusa Gorgon-Sheet_57
+  - first:
+      213: -1725769829183768350
+    second: Medusa Gorgon-Sheet_58
+  - first:
+      213: 1302194663698919769
+    second: Medusa Gorgon-Sheet_59
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 575
+        width: 36
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc1f7e45ab6fcd350800000000000000
+      internalID: 6042976080173199820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 575
+        width: 36
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0126e97634491a2c0800000000000000
+      internalID: -4422090341878963696
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 264
+        y: 575
+        width: 35
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2cb2f4268b7bb1030800000000000000
+      internalID: 3466566340742949826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 575
+        width: 35
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac2f79ee8632071e0800000000000000
+      internalID: -2202221284197666102
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 575
+        width: 35
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8fa5e80ba8df4b110800000000000000
+      internalID: 1275923366562126584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_5
+      rect:
+        serializedVersion: 2
+        x: 624
+        y: 575
+        width: 35
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1188ceeaf3f76ac20800000000000000
+      internalID: 3217398895297202193
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_6
+      rect:
+        serializedVersion: 2
+        x: 744
+        y: 575
+        width: 35
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70aee5a0e517da740800000000000000
+      internalID: 5164908996378683911
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_7
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 575
+        width: 35
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be7e8df2687408d80800000000000000
+      internalID: -8250515875688814613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_8
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 495
+        width: 58
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66f2938f646e69f60800000000000000
+      internalID: 8040867377203195750
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_9
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 495
+        width: 60
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de707217733875b20800000000000000
+      internalID: 3123109140749551597
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_10
+      rect:
+        serializedVersion: 2
+        x: 242
+        y: 495
+        width: 65
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 528137c4123500b30800000000000000
+      internalID: 4251489450719385637
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_11
+      rect:
+        serializedVersion: 2
+        x: 364
+        y: 495
+        width: 64
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1226ffee6e010d8c0800000000000000
+      internalID: -3976659886929911263
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_12
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 495
+        width: 68
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88830fa572b3fd8e0800000000000000
+      internalID: -1666548296888338296
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_13
+      rect:
+        serializedVersion: 2
+        x: 605
+        y: 495
+        width: 64
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f09aa3a2c5659d470800000000000000
+      internalID: 8419855932191320335
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_14
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 415
+        width: 69
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9b14ddf5230dda80800000000000000
+      internalID: -8440586664915231841
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_15
+      rect:
+        serializedVersion: 2
+        x: 121
+        y: 415
+        width: 72
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb8982f5ab946a0e0800000000000000
+      internalID: -2259037098270484290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_16
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 415
+        width: 69
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eee2d58f2c4085ed0800000000000000
+      internalID: -2425183163901989138
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_17
+      rect:
+        serializedVersion: 2
+        x: 363
+        y: 415
+        width: 69
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7fc27f192a9a88620800000000000000
+      internalID: 2776655685972602103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_18
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 415
+        width: 72
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0280c1005e363e30800000000000000
+      internalID: 4482838992441606666
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_19
+      rect:
+        serializedVersion: 2
+        x: 607
+        y: 415
+        width: 67
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d91b2656496d1830800000000000000
+      internalID: 4043503791262865880
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_20
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 335
+        width: 37
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 570d2c6a363136aa0800000000000000
+      internalID: -6169065745846972299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_21
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 335
+        width: 41
+        height: 55
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2afcce38a3df9680800000000000000
+      internalID: -8746039231768626645
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_22
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 335
+        width: 40
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd758e9518670a5f0800000000000000
+      internalID: -747467240212244515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_23
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 335
+        width: 60
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29811055c171e5a10800000000000000
+      internalID: 1899981503249586322
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_24
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 335
+        width: 61
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b92332a21f78e970800000000000000
+      internalID: 8784410791193553332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_25
+      rect:
+        serializedVersion: 2
+        x: 624
+        y: 335
+        width: 60
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6be582fd16a358cc0800000000000000
+      internalID: -3709494526039531850
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_26
+      rect:
+        serializedVersion: 2
+        x: 744
+        y: 335
+        width: 48
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 161e9cf213329ce80800000000000000
+      internalID: -8157950555842813599
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_27
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 335
+        width: 41
+        height: 55
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da2abe2a2730852a0800000000000000
+      internalID: -6748640250720181587
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_28
+      rect:
+        serializedVersion: 2
+        x: 984
+        y: 335
+        width: 38
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d155df8ad4e934400800000000000000
+      internalID: 307263255976170781
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_29
+      rect:
+        serializedVersion: 2
+        x: 27
+        y: 255
+        width: 31
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16cbf0e0354ea3df0800000000000000
+      internalID: -199596188095234975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_30
+      rect:
+        serializedVersion: 2
+        x: 139
+        y: 255
+        width: 38
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d5c753e45dd6ab80800000000000000
+      internalID: -8383770299642427947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_31
+      rect:
+        serializedVersion: 2
+        x: 260
+        y: 255
+        width: 47
+        height: 55
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76d9a07fad48445b0800000000000000
+      internalID: -5385033178445865625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_32
+      rect:
+        serializedVersion: 2
+        x: 393
+        y: 255
+        width: 59
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b1ef927731115970800000000000000
+      internalID: 8741787281546797489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_33
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 255
+        width: 72
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b24cf81339dfbce0800000000000000
+      internalID: -1387151346721078599
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_34
+      rect:
+        serializedVersion: 2
+        x: 635
+        y: 255
+        width: 69
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 335fd80409b3ab520800000000000000
+      internalID: 2718550815815890227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_35
+      rect:
+        serializedVersion: 2
+        x: 750
+        y: 255
+        width: 55
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8670311c5ac989a80800000000000000
+      internalID: -8459839664292690072
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_36
+      rect:
+        serializedVersion: 2
+        x: 857
+        y: 255
+        width: 43
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7537d2af670924a90800000000000000
+      internalID: -7331138402727922857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_37
+      rect:
+        serializedVersion: 2
+        x: 960
+        y: 255
+        width: 59
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b24f2e353cb70bf00800000000000000
+      internalID: 1130539585326216235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_38
+      rect:
+        serializedVersion: 2
+        x: 1099
+        y: 255
+        width: 40
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d41deec30c3489c0800000000000000
+      internalID: -3925946988106017582
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_39
+      rect:
+        serializedVersion: 2
+        x: 1227
+        y: 255
+        width: 32
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b1c53d57cae56f50800000000000000
+      internalID: 6874158548234125745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_40
+      rect:
+        serializedVersion: 2
+        x: 1345
+        y: 255
+        width: 35
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5189f684fa8f5830800000000000000
+      internalID: 4062118171752628574
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_41
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 175
+        width: 37
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ca7166deefc0f2a0800000000000000
+      internalID: -6705631220448789815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_42
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 175
+        width: 40
+        height: 55
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf498398bd454c3f0800000000000000
+      internalID: -881486325181016836
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_43
+      rect:
+        serializedVersion: 2
+        x: 266
+        y: 175
+        width: 89
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8529ca59ea799c600800000000000000
+      internalID: 489088810637627992
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_44
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 175
+        width: 90
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8365c0d61388326b0800000000000000
+      internalID: -5322260588757494216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_45
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 175
+        width: 91
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74cf30c84521f4ad0800000000000000
+      internalID: -2715931895945495481
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_46
+      rect:
+        serializedVersion: 2
+        x: 624
+        y: 175
+        width: 91
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d00e27074af61290800000000000000
+      internalID: -7919867711714361133
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_47
+      rect:
+        serializedVersion: 2
+        x: 744
+        y: 175
+        width: 87
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 483a53fd419939050800000000000000
+      internalID: 5806152659533931396
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_48
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 175
+        width: 84
+        height: 55
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c827c9b794fd6c50800000000000000
+      internalID: 6660248356444907721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_49
+      rect:
+        serializedVersion: 2
+        x: 984
+        y: 175
+        width: 38
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96fd87b573773c410800000000000000
+      internalID: 1496170580858691433
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_50
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 95
+        width: 32
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30b151ac0c5656bf0800000000000000
+      internalID: -331747118843356413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_51
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 95
+        width: 33
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a97eb8db70a7f4290800000000000000
+      internalID: -7903964647348508774
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_52
+      rect:
+        serializedVersion: 2
+        x: 264
+        y: 95
+        width: 33
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 748ab84e2c4f74e00800000000000000
+      internalID: 1029060157772638279
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_53
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 95
+        width: 34
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2824af80e3e3d0df0800000000000000
+      internalID: -212445171257032062
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_54
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 15
+        width: 32
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0170108ad9a8b9190800000000000000
+      internalID: -7954611907086711024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_55
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 15
+        width: 32
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7648129c34fd0a9e0800000000000000
+      internalID: -1612043184368417689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_56
+      rect:
+        serializedVersion: 2
+        x: 262
+        y: 15
+        width: 35
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63a4ca865ec214c80800000000000000
+      internalID: -8340335671098193354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_57
+      rect:
+        serializedVersion: 2
+        x: 378
+        y: 15
+        width: 39
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 171e2531ee307f550800000000000000
+      internalID: 6194424133532705137
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_58
+      rect:
+        serializedVersion: 2
+        x: 496
+        y: 15
+        width: 40
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e83a6fdb75dc08e0800000000000000
+      internalID: -1725769829183768350
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Medusa Gorgon-Sheet_59
+      rect:
+        serializedVersion: 2
+        x: 613
+        y: 15
+        width: 43
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 951fe26b523521210800000000000000
+      internalID: 1302194663698919769
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Medusa Gorgon-Sheet_0: 6042976080173199820
+      Medusa Gorgon-Sheet_1: -4422090341878963696
+      Medusa Gorgon-Sheet_10: 4251489450719385637
+      Medusa Gorgon-Sheet_11: -3976659886929911263
+      Medusa Gorgon-Sheet_12: -1666548296888338296
+      Medusa Gorgon-Sheet_13: 8419855932191320335
+      Medusa Gorgon-Sheet_14: -8440586664915231841
+      Medusa Gorgon-Sheet_15: -2259037098270484290
+      Medusa Gorgon-Sheet_16: -2425183163901989138
+      Medusa Gorgon-Sheet_17: 2776655685972602103
+      Medusa Gorgon-Sheet_18: 4482838992441606666
+      Medusa Gorgon-Sheet_19: 4043503791262865880
+      Medusa Gorgon-Sheet_2: 3466566340742949826
+      Medusa Gorgon-Sheet_20: -6169065745846972299
+      Medusa Gorgon-Sheet_21: -8746039231768626645
+      Medusa Gorgon-Sheet_22: -747467240212244515
+      Medusa Gorgon-Sheet_23: 1899981503249586322
+      Medusa Gorgon-Sheet_24: 8784410791193553332
+      Medusa Gorgon-Sheet_25: -3709494526039531850
+      Medusa Gorgon-Sheet_26: -8157950555842813599
+      Medusa Gorgon-Sheet_27: -6748640250720181587
+      Medusa Gorgon-Sheet_28: 307263255976170781
+      Medusa Gorgon-Sheet_29: -199596188095234975
+      Medusa Gorgon-Sheet_3: -2202221284197666102
+      Medusa Gorgon-Sheet_30: -8383770299642427947
+      Medusa Gorgon-Sheet_31: -5385033178445865625
+      Medusa Gorgon-Sheet_32: 8741787281546797489
+      Medusa Gorgon-Sheet_33: -1387151346721078599
+      Medusa Gorgon-Sheet_34: 2718550815815890227
+      Medusa Gorgon-Sheet_35: -8459839664292690072
+      Medusa Gorgon-Sheet_36: -7331138402727922857
+      Medusa Gorgon-Sheet_37: 1130539585326216235
+      Medusa Gorgon-Sheet_38: -3925946988106017582
+      Medusa Gorgon-Sheet_39: 6874158548234125745
+      Medusa Gorgon-Sheet_4: 1275923366562126584
+      Medusa Gorgon-Sheet_40: 4062118171752628574
+      Medusa Gorgon-Sheet_41: -6705631220448789815
+      Medusa Gorgon-Sheet_42: -881486325181016836
+      Medusa Gorgon-Sheet_43: 489088810637627992
+      Medusa Gorgon-Sheet_44: -5322260588757494216
+      Medusa Gorgon-Sheet_45: -2715931895945495481
+      Medusa Gorgon-Sheet_46: -7919867711714361133
+      Medusa Gorgon-Sheet_47: 5806152659533931396
+      Medusa Gorgon-Sheet_48: 6660248356444907721
+      Medusa Gorgon-Sheet_49: 1496170580858691433
+      Medusa Gorgon-Sheet_5: 3217398895297202193
+      Medusa Gorgon-Sheet_50: -331747118843356413
+      Medusa Gorgon-Sheet_51: -7903964647348508774
+      Medusa Gorgon-Sheet_52: 1029060157772638279
+      Medusa Gorgon-Sheet_53: -212445171257032062
+      Medusa Gorgon-Sheet_54: -7954611907086711024
+      Medusa Gorgon-Sheet_55: -1612043184368417689
+      Medusa Gorgon-Sheet_56: -8340335671098193354
+      Medusa Gorgon-Sheet_57: 6194424133532705137
+      Medusa Gorgon-Sheet_58: -1725769829183768350
+      Medusa Gorgon-Sheet_59: 1302194663698919769
+      Medusa Gorgon-Sheet_6: 5164908996378683911
+      Medusa Gorgon-Sheet_7: -8250515875688814613
+      Medusa Gorgon-Sheet_8: 8040867377203195750
+      Medusa Gorgon-Sheet_9: 3123109140749551597
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
