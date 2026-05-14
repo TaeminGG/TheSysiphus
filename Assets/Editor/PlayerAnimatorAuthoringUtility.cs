@@ -53,6 +53,7 @@ public static class PlayerAnimatorAuthoringUtility
         AnimatorState attack1 = CreateBlendTreeState(controller, stateMachine, "Attack1_8Way", "Attack1", new Vector3(240, 380, 0), true);
         AnimatorState attack2 = CreateBlendTreeState(controller, stateMachine, "Attack2_8Way", "Attack2", new Vector3(520, 380, 0), true);
         AnimatorState attack3 = CreateBlendTreeState(controller, stateMachine, "Attack3_8Way", "Attack3", new Vector3(800, 380, 0), true);
+        AnimatorState diveAttack = CreatePlaceholderBlendTreeState(controller, stateMachine, "DiveAttack_8Way", "DiveAttack", new Vector3(520, 180, 0));
 
         stateMachine.defaultState = idle;
 
@@ -60,11 +61,13 @@ public static class PlayerAnimatorAuthoringUtility
         AddTransition(run, idle, false, 0f, AnimatorConditionMode.IfNot, 0f, "IsMoving");
 
         AddAnyStateTransition(stateMachine, jump, "Jump");
+        AddAnyStateTransition(stateMachine, diveAttack, "DiveAttack");
         AddAnyStateTransition(stateMachine, attack1, "shackles_attack_1");
         AddAnyStateTransition(stateMachine, attack2, "shackles_attack_2");
         AddAnyStateTransition(stateMachine, attack3, "shackles_attack_3");
 
         AddReturnTransitions(jump, idle, run, "IsMoving");
+        AddDiveReturnTransitions(diveAttack, idle, run);
         AddAttackReturnTransitions(attack1, idle, run);
         AddAttackReturnTransitions(attack2, idle, run);
         AddAttackReturnTransitions(attack3, idle, run);
@@ -91,8 +94,10 @@ public static class PlayerAnimatorAuthoringUtility
         EnsureParameter(controller, "IsGrounded", AnimatorControllerParameterType.Bool);
         EnsureParameter(controller, "IsAirborne", AnimatorControllerParameterType.Bool);
         EnsureParameter(controller, "IsDashing", AnimatorControllerParameterType.Bool);
+        EnsureParameter(controller, "IsDiving", AnimatorControllerParameterType.Bool);
         EnsureParameter(controller, "AttackSpeed", AnimatorControllerParameterType.Float);
         EnsureParameter(controller, "Jump", AnimatorControllerParameterType.Trigger);
+        EnsureParameter(controller, "DiveAttack", AnimatorControllerParameterType.Trigger);
         RemoveParameter(controller, "Dash");
         EnsureParameter(controller, "AttackEnded", AnimatorControllerParameterType.Trigger);
         EnsureParameter(controller, "shackles_attack_1", AnimatorControllerParameterType.Trigger);
@@ -223,6 +228,57 @@ public static class PlayerAnimatorAuthoringUtility
         return clip;
     }
 
+    private static AnimatorState CreatePlaceholderBlendTreeState(
+        AnimatorController controller,
+        AnimatorStateMachine stateMachine,
+        string stateName,
+        string motionName,
+        Vector3 position)
+    {
+        BlendTree blendTree;
+        AnimatorState state = controller.CreateBlendTreeInController(stateName, out blendTree, 0);
+        MoveState(stateMachine, state, position);
+        state.speed = 1f;
+
+        blendTree.name = $"{stateName}_BlendTree";
+        blendTree.blendType = BlendTreeType.Simple1D;
+        blendTree.blendParameter = BlendParameter;
+        blendTree.useAutomaticThresholds = false;
+
+        for (int i = 0; i < Directions.Length; i++)
+        {
+            DirectionSlot direction = Directions[i];
+            blendTree.AddChild(GetOrCreateDirectionalPlaceholderClip(motionName, direction.Name), direction.Threshold);
+        }
+
+        return state;
+    }
+
+    private static AnimationClip GetOrCreateDirectionalPlaceholderClip(string motionName, string directionName)
+    {
+        return GetOrCreatePlaceholderClip($"{PlaceholderFolder}/Player_{motionName}_{directionName}.anim");
+    }
+
+    private static AnimationClip GetOrCreatePlaceholderClip(string clipPath)
+    {
+        AnimationClip clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(clipPath);
+        if (clip != null)
+            return clip;
+
+        clip = new AnimationClip
+        {
+            name = Path.GetFileNameWithoutExtension(clipPath),
+            frameRate = 12f
+        };
+
+        AssetDatabase.CreateAsset(clip, clipPath);
+        AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(clip);
+        settings.loopTime = false;
+        AnimationUtility.SetAnimationClipSettings(clip, settings);
+        EditorUtility.SetDirty(clip);
+        return clip;
+    }
+
     private static Sprite[] LoadDirectionSprites(ClipSource source, int directionIndex)
     {
         Object[] assets = AssetDatabase.LoadAllAssetRepresentationsAtPath(source.TexturePath);
@@ -338,6 +394,19 @@ public static class PlayerAnimatorAuthoringUtility
         AnimatorStateTransition toIdle = source.AddTransition(idle);
         ConfigureImmediateTransition(toIdle);
         toIdle.AddCondition(AnimatorConditionMode.If, 0f, "AttackEnded");
+        toIdle.AddCondition(AnimatorConditionMode.IfNot, 0f, "IsMoving");
+    }
+
+    private static void AddDiveReturnTransitions(AnimatorState source, AnimatorState idle, AnimatorState run)
+    {
+        AnimatorStateTransition toRun = source.AddTransition(run);
+        ConfigureImmediateTransition(toRun);
+        toRun.AddCondition(AnimatorConditionMode.IfNot, 0f, "IsDiving");
+        toRun.AddCondition(AnimatorConditionMode.If, 0f, "IsMoving");
+
+        AnimatorStateTransition toIdle = source.AddTransition(idle);
+        ConfigureImmediateTransition(toIdle);
+        toIdle.AddCondition(AnimatorConditionMode.IfNot, 0f, "IsDiving");
         toIdle.AddCondition(AnimatorConditionMode.IfNot, 0f, "IsMoving");
     }
 
