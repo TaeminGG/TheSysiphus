@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: passive_remnantofpower
   rarity: 0
   itemName: "\uD798\uC758 \uC794\uC7AC"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 7343984c9ec24e58953a75247bd79442, type: 3}
   description: "Attack + 5\n\uC774\uB984\uBAA8\uB97C \uBCD1\uC0AC\uAC00 \uB0A8\uAE34
     \uD798\uC758 \uC794\uC7AC. \uCC29\uC6A9\uC790\uC758 \uACF5\uACA9\uC744 \uC870\uAE08
     \uD5A5\uC0C1\uC2DC\uD0A8\uB2E4."

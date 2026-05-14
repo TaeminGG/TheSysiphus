@@ -15,6 +15,6 @@ MonoBehaviour:
   itemId: passive_satyrfoot
   rarity: 0
   itemName: "\uC0AC\uD2F0\uB85C\uC2A4\uC758 \uBC1C"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 730711427ca34df0ae3033784eff61c0, type: 3}
   description: "\uC810\uD504\uB825\uC774 \uC99D\uAC00\uD55C\uB2E4."
   jumpForceIncreasePercent: 0.25

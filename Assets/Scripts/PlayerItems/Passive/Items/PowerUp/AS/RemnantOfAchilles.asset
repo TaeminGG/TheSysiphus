@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: passive_remnantofachilles
   rarity: 2
   itemName: "\uC544\uD0AC\uB808\uC6B0\uC2A4\uC758 \uC794\uC7AC"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 1756d4fd2e5d4adb859fb316ca28b5e9, type: 3}
   description: "AttackSpeed + 1\n\uBC18\uC2E0 \uC544\uD0AC\uB808\uC6B0\uC2A4\uC758
     \uD798\uC758 \uC794\uC7AC. \uCC29\uC6A9\uC790\uC758 \uACF5\uACA9\uC18D\uB3C4\uB97C
     \uD5A5\uC0C1\uC2DC\uD0A8\uB2E4."

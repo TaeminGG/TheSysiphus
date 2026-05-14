@@ -15,5 +15,5 @@ MonoBehaviour:
   itemId: passive_styxwater
   rarity: 3
   itemName: "\uC2A4\uD2F1\uC2A4\uAC15\uC758 \uBB3C"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: cb85fa91a155434aba216b04db726efd, type: 3}
   description: "\uB300\uC26C \uC911 \uBB34\uC801\uC774 \uB41C\uB2E4."

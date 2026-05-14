@@ -15,6 +15,6 @@ MonoBehaviour:
   itemId: passive_arion
   rarity: 3
   itemName: "\uC544\uB9AC\uC628"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 384fa52e17574abf99e84ae72a9003de, type: 3}
   description: "\uB300\uC26C \uCFE8\uD0C0\uC784\uC744 \uD06C\uAC8C \uC904\uC5EC\uC900\uB2E4."
   dashCooldownReductionPercent: 0.3

@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: passive_remnantofprometheus
   rarity: 4
   itemName: "\uD504\uB85C\uBA54\uD14C\uC6B0\uC2A4\uC758 \uC794\uC7AC"
-  icon: {fileID: -7062486114238938467, guid: c7008d5880a9b1d41ac0fcd21ec1988d, type: 3}
+  icon: {fileID: 21300000, guid: 35fcddd997744d75bcb8fed3cef749e8, type: 3}
   description: "Max HP + 100\n\uC778\uAC04\uC758 \uCC3D\uC870\uC8FC \uD504\uB85C\uBA54\uD14C\uC6B0\uC2A4\uAC00
     \uB0A8\uAE34 \uCEE4\uB2E4\uB780 \uD798\uC758 \uC794\uC7AC. \uC544\uC9C1\uB3C4
     \uB728\uAC81\uAC8C \uD0C0\uC624\uB974\uACE0 \uC788\uC73C\uBA70 \uCC29\uC6A9\uC790\uC758

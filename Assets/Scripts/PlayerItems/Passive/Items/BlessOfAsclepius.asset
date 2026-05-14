@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: passive_blessofasclepius
   rarity: 3
   itemName: "\uC544\uC2A4\uD074\uB808\uD53C\uC624\uC2A4\uC758 \uAC00\uD638"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 0786a30675c74f68992a0ad39a3cfd11, type: 3}
   description: "\uC758\uC220\uC758 \uC2E0 \uC544\uC2A4\uD074\uB808\uD53C\uC624\uC2A4\uAC00
     \uB0B4\uB9B0 \uAC00\uD638\uAC00 \uC11C\uB9B0 \uBB3C\uAC74.\n\uC774\uCF54\uB974\uBCD1
     \uC0AC\uC6A9 \uC2DC \uC8FC\uBCC0 \uC801\uC744 \uBC00\uC5B4\uB0B8\uB2E4."

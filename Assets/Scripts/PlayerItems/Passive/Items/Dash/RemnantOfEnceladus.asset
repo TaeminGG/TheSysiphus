@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: passive_remnantofenceladus
   rarity: 3
   itemName: "\uC5D4\uCF08\uB77C\uB450\uC2A4\uC758 \uC794\uC7AC"
-  icon: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
+  icon: {fileID: 21300000, guid: 5ddb12b394054ad3ad1ce2b717850960, type: 3}
   description: "\uB300\uC26C \uD6C4 \uC8FC\uBCC0\uC5D0 \uCDA9\uACA9\uD30C \uACF5\uACA9\uC744
     \uAC00\uD55C\uB2E4."
   effectPrefab: {fileID: 4066200000000000001, guid: 68a8c0b2eb96493087cb3b5dad75cdb1, type: 3}
