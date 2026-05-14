@@ -1,0 +1,416 @@
+fileFormatVersion: 2
+guid: 4355180393a2b5c4d8b8c43e7172a87b
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5890166636409929830
+    second: Harpy-SheetNoEffect_0
+  - first:
+      213: 2363198479845923764
+    second: Harpy-SheetNoEffect_1
+  - first:
+      213: 5333270763337050462
+    second: Harpy-SheetNoEffect_2
+  - first:
+      213: 1900891040197603847
+    second: Harpy-SheetNoEffect_3
+  - first:
+      213: -1055288608102345087
+    second: Harpy-SheetNoEffect_4
+  - first:
+      213: -1496699711600340037
+    second: Harpy-SheetNoEffect_5
+  - first:
+      213: 4870296114426802457
+    second: Harpy-SheetNoEffect_6
+  - first:
+      213: 7656208611230623477
+    second: Harpy-SheetNoEffect_7
+  - first:
+      213: -3432673085941271813
+    second: Harpy-SheetNoEffect_8
+  - first:
+      213: -590997921685783445
+    second: Harpy-SheetNoEffect_9
+  - first:
+      213: 3730682635829716843
+    second: Harpy-SheetNoEffect_10
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Harpy-SheetNoEffect_0
+      rect:
+        serializedVersion: 2
+        x: 31
+        y: 119
+        width: 47
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 660421f29531eb150800000000000000
+      internalID: 5890166636409929830
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Harpy-SheetNoEffect_1
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 117
+        width: 53
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4bb95f42f74cbc020800000000000000
+      internalID: 2363198479845923764
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Harpy-SheetNoEffect_2
+      rect:
+        serializedVersion: 2
+        x: 238
+        y: 119
+        width: 50
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e596eab9085930a40800000000000000
+      internalID: 5333270763337050462
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Harpy-SheetNoEffect_3
+      rect:
+        serializedVersion: 2
+        x: 348
+        y: 118
+        width: 41
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70273b76452516a10800000000000000
+      internalID: 1900891040197603847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Harpy-SheetNoEffect_4
+      rect:
+        serializedVersion: 2
+        x: 31
+        y: 23
+        width: 47
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1861b822a9cda51f0800000000000000
+      internalID: -1055288608102345087
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Harpy-SheetNoEffect_5
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 21
+        width: 53
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb3d1aaca87aa3be0800000000000000
+      internalID: -1496699711600340037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Harpy-SheetNoEffect_6
+      rect:
+        serializedVersion: 2
+        x: 232
+        y: 20
+        width: 43
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 911ff5b1384c69340800000000000000
+      internalID: 4870296114426802457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Harpy-SheetNoEffect_7
+      rect:
+        serializedVersion: 2
+        x: 338
+        y: 16
+        width: 37
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f620b6ea21504a60800000000000000
+      internalID: 7656208611230623477
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Harpy-SheetNoEffect_8
+      rect:
+        serializedVersion: 2
+        x: 434
+        y: 15
+        width: 44
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf23d62f302bc50d0800000000000000
+      internalID: -3432673085941271813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Harpy-SheetNoEffect_9
+      rect:
+        serializedVersion: 2
+        x: 537
+        y: 15
+        width: 48
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6cbcee758a5cc7f0800000000000000
+      internalID: -590997921685783445
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Harpy-SheetNoEffect_10
+      rect:
+        serializedVersion: 2
+        x: 642
+        y: 15
+        width: 48
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b67295e571c06c330800000000000000
+      internalID: 3730682635829716843
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Harpy-SheetNoEffect_0: 5890166636409929830
+      Harpy-SheetNoEffect_1: 2363198479845923764
+      Harpy-SheetNoEffect_10: 3730682635829716843
+      Harpy-SheetNoEffect_2: 5333270763337050462
+      Harpy-SheetNoEffect_3: 1900891040197603847
+      Harpy-SheetNoEffect_4: -1055288608102345087
+      Harpy-SheetNoEffect_5: -1496699711600340037
+      Harpy-SheetNoEffect_6: 4870296114426802457
+      Harpy-SheetNoEffect_7: 7656208611230623477
+      Harpy-SheetNoEffect_8: -3432673085941271813
+      Harpy-SheetNoEffect_9: -590997921685783445
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

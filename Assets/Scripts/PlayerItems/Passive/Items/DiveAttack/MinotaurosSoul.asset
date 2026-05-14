@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f729d3fa0bee4670876e1be9162450b3, type: 3}
+  m_Name: MinotaurosSoul
+  m_EditorClassIdentifier: Assembly-CSharp::DiveAttackShockwaveRangePassiveItem
+  itemId: passive_minotaurossoul
+  rarity: 3
+  itemName: "\uBBF8\uB178\uD0C0\uC6B0\uB974\uC2A4\uC758 \uC601\uD63C"
+  icon: {fileID: 21300000, guid: 1ec8db5bc0e244ab9ead60621c6a1a07, type: 3}
+  description: "\uB099\uD558 \uACF5\uACA9\uC758 \uCDA9\uACA9\uD30C \uBC94\uC704\uB97C
+    \uD06C\uAC8C \uC99D\uAC00\uC2DC\uD0A8\uB2E4."
+  rangeIncreasePercent: 0.5
