@@ -191,7 +191,7 @@ Animator:
   m_GameObject: {fileID: 3445317388179714887}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: ac40803ace16c984684a7d1e7196ad86, type: 2}
+  m_Controller: {fileID: 9100000, guid: a06e34cb0c36ede469e23d33de7dd270, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -343,6 +343,7 @@ GameObject:
   - component: {fileID: 171385014296121057}
   - component: {fileID: 8285363589372510369}
   - component: {fileID: 1021382410384237918}
+  - component: {fileID: 4820362180097640880}
   m_Layer: 7
   m_Name: FireElemental
   m_TagString: Untagged
@@ -388,6 +389,10 @@ MonoBehaviour:
   hpbar: {fileID: 5188829508925080104}
   damageText: {fileID: 1157539638455765083, guid: f0354d01fe6238c4e90fdd1520c5060f, type: 3}
   damagePos: {fileID: 165597808842642123}
+  deathAnimator: {fileID: 1177467983456142408}
+  deathAnimationTrigger: Die
+  deathAnimationStateName: Death_8Way
+  deathDestroyDelay: 1.25
 --- !u!114 &4322169297175387084
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -446,6 +451,7 @@ MonoBehaviour:
   burnDuration: 3
   burnTickInterval: 1
   burnDamagePerTick: 1
+  isAttacking: 0
 --- !u!61 &8285363589372510369
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -507,6 +513,20 @@ MonoBehaviour:
   item: {fileID: 4327369436755851135, guid: bcbf89086957f344db1e553ea3a74919, type: 3}
   isGold: 1
   dropGold: 15
+--- !u!114 &4820362180097640880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5480518171943689137}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3b5f3516c7310948ab51fecd110924f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDirectionalAnimator
+  sprite: {fileID: 8418245287335229799}
+  clearSpriteFlip: 1
 --- !u!1 &5491639949466923108
 GameObject:
   m_ObjectHideFlags: 0
@@ -604,9 +624,6 @@ MonoBehaviour:
     m_Bits: 64
   hitSparkController: {fileID: 0}
   visual: {fileID: 0}
-  showDebugInGame: 0
-  activeColor: {r: 1, g: 0, b: 0, a: 0.4}
-  inactiveColor: {r: 1, g: 1, b: 0, a: 0.2}
 --- !u!50 &7171132286394541007
 Rigidbody2D:
   serializedVersion: 5
@@ -812,6 +829,3 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
-
-
-

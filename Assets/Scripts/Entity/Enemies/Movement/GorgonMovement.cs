@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class GorgonMovement : MonoBehaviour, IEnemyMovement
 {
+    private static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
+    private static readonly int LegacyIsWalkingHash = Animator.StringToHash("isWalking");
+
     public float moveSpeed = 1.2f;
     public int floorZ = 0;
     public int FloorZ => floorZ;
@@ -166,6 +169,9 @@ public class GorgonMovement : MonoBehaviour, IEnemyMovement
     private void SetWalking(bool isWalking)
     {
         if (anim != null)
-            anim.SetBool("isWalking", isWalking);
+        {
+            anim.SetBool(IsWalkingHash, isWalking);
+            anim.SetBool(LegacyIsWalkingHash, isWalking);
+        }
     }
 }

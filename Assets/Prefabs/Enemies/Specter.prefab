@@ -343,6 +343,7 @@ GameObject:
   - component: {fileID: -2595935122299454274}
   - component: {fileID: 8302899067512245806}
   - component: {fileID: 7431106052030571576}
+  - component: {fileID: 4133885060295342107}
   m_Layer: 7
   m_Name: Specter
   m_TagString: Untagged
@@ -387,6 +388,10 @@ MonoBehaviour:
   hpbar: {fileID: 5188829508925080104}
   damageText: {fileID: 1157539638455765083, guid: f0354d01fe6238c4e90fdd1520c5060f, type: 3}
   damagePos: {fileID: 165597808842642123}
+  deathAnimator: {fileID: 1177467983456142408}
+  deathAnimationTrigger: Die
+  deathAnimationStateName: Death_8Way
+  deathDestroyDelay: 1.25
 --- !u!61 &8285363589372510369
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -497,6 +502,20 @@ MonoBehaviour:
   isAttacking: 0
   projectile: {fileID: 5942809631924833537, guid: a2993f8eedc4f9e409c99471f30298ac, type: 3}
   attackData: {fileID: 11400000, guid: bbdf8c3d8bf624144b8fc4d465d2f683, type: 2}
+--- !u!114 &4133885060295342107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5480518171943689137}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3b5f3516c7310948ab51fecd110924f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDirectionalAnimator
+  sprite: {fileID: 8418245287335229799}
+  clearSpriteFlip: 1
 --- !u!1 &6471016072633922974
 GameObject:
   m_ObjectHideFlags: 0
