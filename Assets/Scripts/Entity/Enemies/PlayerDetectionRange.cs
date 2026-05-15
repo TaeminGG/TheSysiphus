@@ -6,14 +6,15 @@ public class PlayerDetectionRange : MonoBehaviour
     public LayerMask hitLayer;
 
 
-    private void Start()
+    private void Awake()
     {
-        movement = transform.parent.GetComponent<IEnemyMovement>();
+        ResolveMovement();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (((1 << other.gameObject.layer) & hitLayer) == 0) return;
+        if (!ResolveMovement()) return;
 
         movement.SetPlayerDetected(true);
     }
@@ -21,7 +22,17 @@ public class PlayerDetectionRange : MonoBehaviour
     private void OnTriggerExit2D(Collider2D other)
     {
         if (((1 << other.gameObject.layer) & hitLayer) == 0) return;
+        if (!ResolveMovement()) return;
 
         movement.SetPlayerDetected(false);
+    }
+
+    private bool ResolveMovement()
+    {
+        if (movement != null)
+            return true;
+
+        movement = GetComponentInParent<IEnemyMovement>();
+        return movement != null;
     }
 }
