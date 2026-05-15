@@ -11,6 +11,11 @@ public class LevelManager : MonoBehaviour
     public RockMovement rockMovement;
     public Transform player;
 
+    [Header("Stage Goal")]
+    public bool useStageGoalY = true;
+    public float stageGoalY = -250f;
+    public bool setRocksTargetToStageGoal = true;
+
     [Header("Chunk Generation")]
     public bool resetChunkCountOnStart = true;
     public int startingChunkCount = 1;
@@ -22,6 +27,10 @@ public class LevelManager : MonoBehaviour
 
     private bool hasStarted;
     private float nextChunkTriggerY;
+
+    public bool HasStarted => hasStarted;
+    public bool HasStageGoal => useStageGoalY;
+    public float StageGoalY => stageGoalY;
 
     private void Awake()
     {
@@ -126,6 +135,10 @@ public class LevelManager : MonoBehaviour
             return;
 
         rockMovement.ClearSpeedModifiers();
+
+        if (useStageGoalY && setRocksTargetToStageGoal)
+            rockMovement.SetTargetY(stageGoalY, true);
+
         rockMovement.ResetProgress();
         rockMovement.ResumeMovement();
     }
