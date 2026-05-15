@@ -101,7 +101,7 @@ GameObject:
   - component: {fileID: 74733841713430245}
   - component: {fileID: 1177467983456142408}
   m_Layer: 7
-  m_Name: SkeletonSprite
+  m_Name: UndeadSprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -117,7 +117,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3513714798304566990}
@@ -171,7 +171,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 8598911646308356358, guid: e713fa18caa5d4f44adebf75384f8a03, type: 3}
+  m_Sprite: {fileID: 1248883925, guid: 9cdab30589df1d948ac4c00e3e05ad98, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -191,7 +191,7 @@ Animator:
   m_GameObject: {fileID: 3445317388179714887}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: ac40803ace16c984684a7d1e7196ad86, type: 2}
+  m_Controller: {fileID: 9100000, guid: 59cd62230283dad4db7d6f290d1e360b, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -343,6 +343,7 @@ GameObject:
   - component: {fileID: 171385014296121057}
   - component: {fileID: 8285363589372510369}
   - component: {fileID: 1021382410384237918}
+  - component: {fileID: 4067715978886868493}
   m_Layer: 7
   m_Name: Skeleton
   m_TagString: Untagged
@@ -388,6 +389,10 @@ MonoBehaviour:
   hpbar: {fileID: 5188829508925080104}
   damageText: {fileID: 1157539638455765083, guid: f0354d01fe6238c4e90fdd1520c5060f, type: 3}
   damagePos: {fileID: 165597808842642123}
+  deathAnimator: {fileID: 1177467983456142408}
+  deathAnimationTrigger: Die
+  deathAnimationStateName: Death_8Way
+  deathDestroyDelay: 1.25
 --- !u!114 &4322169297175387084
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -413,13 +418,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 5480518171943689137}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e28a2ac691339064788b9b61d74b50c7, type: 3}
+  m_Script: {fileID: 11500000, guid: 6ee74193be2bed24ba5dd8aa23aa32f7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SkeletonMovement
-  moveSpeed: 1.05
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadMovement
+  moveSpeed: 1
   floorZ: 0
   isDetected: 0
   sprite: {fileID: 8418245287335229799}
+  player: {fileID: 0}
+  grid: {fileID: 0}
 --- !u!114 &171385014296121057
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -429,22 +436,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 5480518171943689137}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4dae8ea2f6500974282c8e270f0149e4, type: 3}
+  m_Script: {fileID: 11500000, guid: 3a46ab768a5337f47b0edc735daeef08, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyProjectileAttack
-  range: 4.5
-  readyTime: 0.6
-  recoveryTime: 0.8
-  requireCasterFloorAtLeastTargetFloor: 1
-  rangedStartHeightOffset: 1
-  rangedTargetHeightOffset: 0.5
-  projectilePrefab: {fileID: 5942809631924833537, guid: 79c0f7338c7341fa9a859a6f437e0b43, type: 3}
-  attackData: {fileID: 11400000, guid: 6edbb8f73c4947b99b5b729f0c7de210, type: 2}
-  poisonDuration: 0
-  poisonDamagePerSecond: 0
-  burnDuration: 0
-  burnTickInterval: 0
-  burnDamagePerTick: 0
+  m_EditorClassIdentifier: Assembly-CSharp::UndeadAttack
+  range: 0.6
+  readyTime: 0.5
+  coolTime: 2
+  isAttacking: 0
+  hitBox: {fileID: 2860421772269927892}
+  attackData: {fileID: 11400000, guid: 72d816a28a8f8a74e802e24883aac654, type: 2}
 --- !u!61 &8285363589372510369
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -489,7 +489,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.42, y: 0.64}
+  m_Size: {x: 0.5, y: 0.8}
   m_EdgeRadius: 0
 --- !u!114 &1021382410384237918
 MonoBehaviour:
@@ -506,6 +506,20 @@ MonoBehaviour:
   item: {fileID: 4327369436755851135, guid: bcbf89086957f344db1e553ea3a74919, type: 3}
   isGold: 1
   dropGold: 15
+--- !u!114 &4067715978886868493
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5480518171943689137}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3b5f3516c7310948ab51fecd110924f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDirectionalAnimator
+  sprite: {fileID: 8418245287335229799}
+  clearSpriteFlip: 1
 --- !u!1 &5491639949466923108
 GameObject:
   m_ObjectHideFlags: 0
@@ -603,9 +617,6 @@ MonoBehaviour:
     m_Bits: 64
   hitSparkController: {fileID: 0}
   visual: {fileID: 0}
-  showDebugInGame: 0
-  activeColor: {r: 1, g: 0, b: 0, a: 0.4}
-  inactiveColor: {r: 1, g: 1, b: 0, a: 0.2}
 --- !u!50 &7171132286394541007
 Rigidbody2D:
   serializedVersion: 5
@@ -811,7 +822,3 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
-
-
-
-
