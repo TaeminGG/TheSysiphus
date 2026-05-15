@@ -10,6 +10,12 @@ public enum MinotaurAttackMode
 
 public class MinotaurAttack : MonoBehaviour, IEnemyAttack
 {
+    private static readonly int SkillHash = Animator.StringToHash("Skill");
+    private static readonly int MeleeAttackHash = Animator.StringToHash("MeleeAttack");
+    private static readonly int MeleeAttackStateHash = Animator.StringToHash("MeleeAttack");
+    private static readonly int ChargeHash = Animator.StringToHash("Charge");
+    private static readonly int AttackEndedHash = Animator.StringToHash("AttackEnded");
+
     [Header("Ranges")]
     public float earthquakeRange = 2.5f;
     public float comboRange = 1.1f;
@@ -49,6 +55,7 @@ public class MinotaurAttack : MonoBehaviour, IEnemyAttack
     private EnemyCrowdControl crowdControl;
     private PlayerMove playerMove;
     private EnemyAttackTelegraph telegraph;
+    private Animator animator;
 
     private MinotaurAttackMode currentMode = MinotaurAttackMode.None;
     private float timer = 0f;
@@ -76,6 +83,9 @@ public class MinotaurAttack : MonoBehaviour, IEnemyAttack
         telegraph = GetComponent<EnemyAttackTelegraph>();
         if (telegraph == null)
             telegraph = gameObject.AddComponent<EnemyAttackTelegraph>();
+
+        if (movement != null && movement.sprite != null)
+            animator = movement.sprite.GetComponent<Animator>();
     }
 
     private void Update()
@@ -183,6 +193,7 @@ public class MinotaurAttack : MonoBehaviour, IEnemyAttack
 
     private void ExecuteEarthquake()
     {
+        PlayAttackAnimation(MinotaurAttackMode.Earthquake);
         earthquakeCooldownTimer = earthquakeCoolTime;
 
         if (earthquakeHitBoxPrefab != null && earthquakeAttackData != null)
@@ -285,6 +296,8 @@ public class MinotaurAttack : MonoBehaviour, IEnemyAttack
 
     private void StartChargeHitBox()
     {
+        PlayAttackAnimation(MinotaurAttackMode.Charge);
+
         if (chargeHitBoxPrefab == null || chargeAttackData == null)
             return;
 
@@ -370,6 +383,7 @@ public class MinotaurAttack : MonoBehaviour, IEnemyAttack
 
         float movementDuration = previewMoveDistance / Mathf.Max(0.01f, comboMoveSpeed);
         float hitBoxDuration = Mathf.Max(attackData.attackDuration, movementDuration);
+        PlayAttackAnimation(MinotaurAttackMode.Combo);
         comboHitBox.EnemySetup(attackData, attackData.damage, hitBoxDuration, transform.position, lockedAngle, movement.FloorZ);
         comboRemainingMoveDistance = previewMoveDistance;
         telegraph.Hide();
@@ -479,5 +493,29 @@ public class MinotaurAttack : MonoBehaviour, IEnemyAttack
         activeChargeHitBoxObject = null;
         lockedDirection = Vector2.down;
         lockedAngle = 180f;
+
+        if (animator != null)
+            animator.SetTrigger(AttackEndedHash);
+    }
+
+    private void PlayAttackAnimation(MinotaurAttackMode mode)
+    {
+        if (animator == null)
+            return;
+
+        switch (mode)
+        {
+            case MinotaurAttackMode.Earthquake:
+                animator.SetTrigger(SkillHash);
+                break;
+            case MinotaurAttackMode.Combo:
+                animator.ResetTrigger(MeleeAttackHash);
+                animator.SetTrigger(MeleeAttackHash);
+                animator.Play(MeleeAttackStateHash, 0, 0f);
+                break;
+            case MinotaurAttackMode.Charge:
+                animator.SetTrigger(ChargeHash);
+                break;
+        }
     }
 }

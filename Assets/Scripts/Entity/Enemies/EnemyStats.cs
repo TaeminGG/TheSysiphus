@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 public class EnemyStats : MonoBehaviour, IDamageable, IStatusTickDamageable
@@ -20,6 +21,14 @@ public class EnemyStats : MonoBehaviour, IDamageable, IStatusTickDamageable
     public GameObject damageText;
     public Transform damagePos;             // 피격 시 데미지가 표시될 위치
 
+    [Header("Death Animation")]
+    public Animator deathAnimator;
+    public string deathAnimationTrigger = "";
+    public string deathAnimationStateName = "Death";
+    public float deathDestroyDelay = 0f;
+
+    private bool isHandlingDeath;
+    private bool hasFinalizedDeath;
     public bool IsDead => currentHp <= 0;
     void Awake()
     {
@@ -65,7 +74,7 @@ public class EnemyStats : MonoBehaviour, IDamageable, IStatusTickDamageable
         // 넉백 저항에 따라 넉백 Vector 조절
 
         if (IsDead)
-            OnDeath?.Invoke();
+            BeginDeathSequence();
     }
 
     public void TakeStatusTickDamage(float damage)
@@ -79,7 +88,7 @@ public class EnemyStats : MonoBehaviour, IDamageable, IStatusTickDamageable
             return;
 
         currentHp = 0f;
-        OnDeath?.Invoke();
+        BeginDeathSequence();
     }
 
     public float GetCurrentHp()
@@ -137,6 +146,11 @@ public class EnemyStats : MonoBehaviour, IDamageable, IStatusTickDamageable
 
     private void EnemyDead()
     {
+        if (hasFinalizedDeath)
+            return;
+
+        hasFinalizedDeath = true;
+
         RunSaveIdentity identity = GetComponent<RunSaveIdentity>();
         if (identity != null)
             RunSaveRuntimeState.MarkEnemyDead(identity.SaveId);
@@ -144,8 +158,103 @@ public class EnemyStats : MonoBehaviour, IDamageable, IStatusTickDamageable
         statusAilmentController?.ClearAllAilments();
         OnDamaged = null;
         OnDeath = null;
-        Destroy(gameObject);
         Debug.Log("isDead");
+        Destroy(gameObject);
+    }
+
+    private void BeginDeathSequence()
+    {
+        if (isHandlingDeath)
+            return;
+
+        isHandlingDeath = true;
+        statusAilmentController?.ClearAllAilments();
+        DisableDeathInteractions();
+        PlayDeathAnimation();
+
+        if (ShouldDelayDeathFinalization())
+            StartCoroutine(CompleteDeathSequenceAfterAnimation());
+        else
+            OnDeath?.Invoke();
+    }
+
+    private void PlayDeathAnimation()
+    {
+        if (deathAnimator == null || string.IsNullOrWhiteSpace(deathAnimationTrigger))
+            return;
+
+        deathAnimator.ResetTrigger(deathAnimationTrigger);
+        deathAnimator.SetTrigger(deathAnimationTrigger);
+    }
+
+    private IEnumerator CompleteDeathSequenceAfterAnimation()
+    {
+        yield return WaitForDeathAnimation();
+        OnDeath?.Invoke();
+    }
+
+    private bool ShouldDelayDeathFinalization()
+    {
+        return deathDestroyDelay > 0f || (deathAnimator != null && !string.IsNullOrWhiteSpace(deathAnimationTrigger));
+    }
+
+    private IEnumerator WaitForDeathAnimation()
+    {
+        if (deathAnimator == null || string.IsNullOrWhiteSpace(deathAnimationTrigger))
+        {
+            if (deathDestroyDelay > 0f)
+                yield return new WaitForSeconds(deathDestroyDelay);
+
+            yield break;
+        }
+
+        yield return null;
+
+        if (!string.IsNullOrWhiteSpace(deathAnimationStateName))
+        {
+            float enterTimeout = 0.25f;
+            while (enterTimeout > 0f && !deathAnimator.GetCurrentAnimatorStateInfo(0).IsName(deathAnimationStateName))
+            {
+                enterTimeout -= Time.deltaTime;
+                yield return null;
+            }
+
+            AnimatorStateInfo stateInfo = deathAnimator.GetCurrentAnimatorStateInfo(0);
+            if (stateInfo.IsName(deathAnimationStateName))
+            {
+                float fallbackTimeout = deathDestroyDelay > 0f ? deathDestroyDelay + 0.25f : stateInfo.length + 0.25f;
+                while (fallbackTimeout > 0f)
+                {
+                    stateInfo = deathAnimator.GetCurrentAnimatorStateInfo(0);
+                    if (!deathAnimator.IsInTransition(0) && stateInfo.IsName(deathAnimationStateName) && stateInfo.normalizedTime >= 1f)
+                        yield break;
+
+                    fallbackTimeout -= Time.deltaTime;
+                    yield return null;
+                }
+
+                yield break;
+            }
+        }
+
+        if (deathDestroyDelay > 0f)
+            yield return new WaitForSeconds(deathDestroyDelay);
+    }
+
+    private void DisableDeathInteractions()
+    {
+        if (attack is Behaviour attackBehaviour)
+            attackBehaviour.enabled = false;
+
+        if (movement is Behaviour movementBehaviour)
+            movementBehaviour.enabled = false;
+
+        Collider2D[] colliders = GetComponentsInChildren<Collider2D>();
+        for (int i = 0; i < colliders.Length; i++)
+            colliders[i].enabled = false;
+
+        if (canvas != null)
+            canvas.enabled = false;
     }
 
     private void ShowDamage(float damage)

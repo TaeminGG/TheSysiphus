@@ -244,6 +244,48 @@ public class CombatRulesEditModeTests
     }
 
     [Test]
+    public void GorgonAnimatorController_IsConfiguredForCoreMotions()
+    {
+        AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>("Assets/Sprites/Enemies/Gorgon/Gorgon.controller");
+
+        Assert.That(controller, Is.Not.Null);
+        Assert.That(HasParameter(controller, "IsWalking", AnimatorControllerParameterType.Bool), Is.True);
+        Assert.That(HasParameter(controller, "MeleeAttack", AnimatorControllerParameterType.Trigger), Is.True);
+        Assert.That(HasParameter(controller, "RangedAttack", AnimatorControllerParameterType.Trigger), Is.True);
+        Assert.That(HasParameter(controller, "Skill", AnimatorControllerParameterType.Trigger), Is.True);
+        Assert.That(HasParameter(controller, "Die", AnimatorControllerParameterType.Trigger), Is.True);
+        Assert.That(HasParameter(controller, "AttackEnded", AnimatorControllerParameterType.Trigger), Is.True);
+
+        Assert.That(HasStateWithMotion(controller, "Idle"), Is.True);
+        Assert.That(HasStateWithMotion(controller, "Walk"), Is.True);
+        Assert.That(HasStateWithMotion(controller, "MeleeAttack"), Is.True);
+        Assert.That(HasStateWithMotion(controller, "RangedAttack"), Is.True);
+        Assert.That(HasStateWithMotion(controller, "Skill"), Is.True);
+        Assert.That(HasStateWithMotion(controller, "Death"), Is.True);
+    }
+
+    [Test]
+    public void MinotaurAnimatorController_IsConfiguredForCoreMotions()
+    {
+        AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>("Assets/Sprites/Enemies/Minot/Minotaur.controller");
+
+        Assert.That(controller, Is.Not.Null);
+        Assert.That(HasParameter(controller, "IsWalking", AnimatorControllerParameterType.Bool), Is.True);
+        Assert.That(HasParameter(controller, "Skill", AnimatorControllerParameterType.Trigger), Is.True);
+        Assert.That(HasParameter(controller, "MeleeAttack", AnimatorControllerParameterType.Trigger), Is.True);
+        Assert.That(HasParameter(controller, "Charge", AnimatorControllerParameterType.Trigger), Is.True);
+        Assert.That(HasParameter(controller, "Die", AnimatorControllerParameterType.Trigger), Is.True);
+        Assert.That(HasParameter(controller, "AttackEnded", AnimatorControllerParameterType.Trigger), Is.True);
+
+        Assert.That(HasStateWithMotion(controller, "Idle"), Is.True);
+        Assert.That(HasStateWithMotion(controller, "Walk"), Is.True);
+        Assert.That(HasStateWithMotion(controller, "Skill"), Is.True);
+        Assert.That(HasStateWithMotion(controller, "MeleeAttack"), Is.True);
+        Assert.That(HasStateWithMotion(controller, "Charge"), Is.True);
+        Assert.That(HasStateWithMotion(controller, "Death"), Is.True);
+    }
+
+    [Test]
     public void PlayerStatusTickDamage_IgnoresHitInvulnerability()
     {
         GameObject player = new GameObject("Player");
@@ -372,6 +414,18 @@ public class CombatRulesEditModeTests
         for (int i = 0; i < states.Length; i++)
         {
             if (states[i].state.name == stateName && states[i].state.motion is BlendTree)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool HasStateWithMotion(AnimatorController controller, string stateName)
+    {
+        ChildAnimatorState[] states = controller.layers[0].stateMachine.states;
+        for (int i = 0; i < states.Length; i++)
+        {
+            if (states[i].state.name == stateName && states[i].state.motion != null)
                 return true;
         }
 

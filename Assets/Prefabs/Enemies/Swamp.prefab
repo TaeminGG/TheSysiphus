@@ -344,7 +344,7 @@ GameObject:
   - component: {fileID: 8285363589372510369}
   - component: {fileID: 1021382410384237918}
   m_Layer: 7
-  m_Name: PoisonUndead
+  m_Name: Swamp
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

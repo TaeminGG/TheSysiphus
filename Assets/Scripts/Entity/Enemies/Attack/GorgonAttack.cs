@@ -10,6 +10,11 @@ public enum GorgonAttackMode
 
 public class GorgonAttack : MonoBehaviour, IEnemyAttack
 {
+    private static readonly int MeleeAttackHash = Animator.StringToHash("MeleeAttack");
+    private static readonly int RangedAttackHash = Animator.StringToHash("RangedAttack");
+    private static readonly int SkillHash = Animator.StringToHash("Skill");
+    private static readonly int AttackEndedHash = Animator.StringToHash("AttackEnded");
+
     [Header("Ranges")]
     public float skillTriggerRange = 2.25f;
     public float skillApplyRange = 1.75f;
@@ -45,6 +50,7 @@ public class GorgonAttack : MonoBehaviour, IEnemyAttack
     private PlayerMove playerMove;
     private PlayerStats playerStats;
     private EnemyAttackTelegraph telegraph;
+    private Animator animator;
 
     private GorgonAttackMode currentMode = GorgonAttackMode.None;
     private float currentTimer = 0f;
@@ -71,6 +77,9 @@ public class GorgonAttack : MonoBehaviour, IEnemyAttack
         telegraph = GetComponent<EnemyAttackTelegraph>();
         if (telegraph == null)
             telegraph = gameObject.AddComponent<EnemyAttackTelegraph>();
+
+        if (movement != null && movement.sprite != null)
+            animator = movement.sprite.GetComponent<Animator>();
     }
 
     private void Update()
@@ -186,6 +195,8 @@ public class GorgonAttack : MonoBehaviour, IEnemyAttack
 
     private void ExecuteCurrentAttack()
     {
+        PlayAttackAnimation(currentMode);
+
         switch (currentMode)
         {
             case GorgonAttackMode.PetrifyingGaze:
@@ -329,6 +340,9 @@ public class GorgonAttack : MonoBehaviour, IEnemyAttack
         lockedRangedTargetZ = 0f;
         lockedRangedTargetDistance = 0f;
         lockedRangedStartZ = 0f;
+
+        if (animator != null)
+            animator.SetTrigger(AttackEndedHash);
     }
 
     private void CacheAttackDirection()
@@ -352,5 +366,24 @@ public class GorgonAttack : MonoBehaviour, IEnemyAttack
         lockedRangedTargetZ = playerMove.playerZ + rangedTargetHeightOffset;
         lockedRangedTargetDistance = Mathf.Max(0.01f, Vector2.Distance(transform.position, playerMove.transform.position));
         lockedRangedStartZ = movement.floorZ + rangedStartHeightOffset;
+    }
+
+    private void PlayAttackAnimation(GorgonAttackMode mode)
+    {
+        if (animator == null)
+            return;
+
+        switch (mode)
+        {
+            case GorgonAttackMode.PetrifyingGaze:
+                animator.SetTrigger(SkillHash);
+                break;
+            case GorgonAttackMode.Melee:
+                animator.SetTrigger(MeleeAttackHash);
+                break;
+            case GorgonAttackMode.Ranged:
+                animator.SetTrigger(RangedAttackHash);
+                break;
+        }
     }
 }
