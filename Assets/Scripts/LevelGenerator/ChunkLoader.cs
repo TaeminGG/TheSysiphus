@@ -35,8 +35,34 @@ public class ChunkLoader : MonoBehaviour
         GridUpdate();
     }
 
+    public void EnsureGridReferences()
+    {
+        GridUpdate();
+    }
+
+    public int GetAvailableChunkCount()
+    {
+        return Mathf.Min(
+            GetPrefabCount(tileChunkPrefabs),
+            GetPrefabCount(boxChunkPrefabs),
+            GetPrefabCount(spawnChunkPrefabs));
+    }
+
+    public bool IsValidChunkIndex(int index)
+    {
+        return index >= 0 && index < GetAvailableChunkCount();
+    }
+
     public void AddChunk(int index, int height, int currentChunkCount, bool isBox)
     {
+        GridUpdate();
+
+        if (!IsValidChunkIndex(index))
+        {
+            Debug.LogWarning($"ChunkLoader: invalid chunk index {index}. Check tile/box/spawn chunk prefab arrays.", this);
+            return;
+        }
+
         Vector3Int offset = new Vector3Int(-(height * currentChunkCount), -(height * currentChunkCount), 0);
 
         if (isBox)
@@ -112,6 +138,11 @@ public class ChunkLoader : MonoBehaviour
             return null;
 
         return prefabs[index];
+    }
+
+    private static int GetPrefabCount(GameObject[] prefabs)
+    {
+        return prefabs == null ? 0 : prefabs.Length;
     }
 
     private Tilemap GetChunkTilemap(GameObject chunkPrefab)

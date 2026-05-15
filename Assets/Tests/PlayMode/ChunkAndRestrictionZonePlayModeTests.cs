@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class ChunkAndRestrictionZonePlayModeTests
 {
@@ -7,6 +8,73 @@ public class ChunkAndRestrictionZonePlayModeTests
     public void Scaffold_IsConfigured_ForPlayModeChunkTests()
     {
         Assert.Pass("PlayMode chunk/restriction-zone test scaffold is ready.");
+    }
+
+    [Test]
+    public void LevelManager_StartRun_GeneratesChunksFromPlayerYProgress()
+    {
+        GameObject gridObject = new GameObject("Grid", typeof(Grid));
+        GameObject tmapObject = new GameObject("tmap", typeof(Tilemap));
+        GameObject bmapObject = new GameObject("bmap", typeof(Tilemap));
+        GameObject eventMapObject = new GameObject("eventmap", typeof(Tilemap));
+        GameObject levelObject = new GameObject("LevelManager");
+        GameObject playerObject = new GameObject("Player");
+        GameObject rocksObject = new GameObject("Rocks");
+        GameObject tileChunk = new GameObject("TileChunk", typeof(Tilemap));
+        GameObject boxChunk = new GameObject("BoxChunk", typeof(Tilemap));
+        GameObject spawnChunk = new GameObject("SpawnChunk", typeof(Tilemap));
+
+        try
+        {
+            tmapObject.transform.SetParent(gridObject.transform);
+            bmapObject.transform.SetParent(gridObject.transform);
+            eventMapObject.transform.SetParent(gridObject.transform);
+
+            RockMovement rockMovement = rocksObject.AddComponent<RockMovement>();
+            rocksObject.SetActive(false);
+
+            ChunkLoader chunkLoader = levelObject.AddComponent<ChunkLoader>();
+            chunkLoader.tmap = tmapObject.GetComponent<Tilemap>();
+            chunkLoader.bmap = bmapObject.GetComponent<Tilemap>();
+            chunkLoader.eventMap = eventMapObject.GetComponent<Tilemap>();
+            chunkLoader.tileChunkPrefabs = new[] { tileChunk };
+            chunkLoader.boxChunkPrefabs = new[] { boxChunk };
+            chunkLoader.spawnChunkPrefabs = new[] { spawnChunk };
+
+            LevelManager levelManager = levelObject.AddComponent<LevelManager>();
+            levelManager.player = playerObject.transform;
+            levelManager.rocksObject = rocksObject;
+            levelManager.rockMovement = rockMovement;
+            levelManager.startingChunkCount = 0;
+            levelManager.currentLevel = 0;
+            levelManager.nextChunkPlayerYStep = 2f;
+
+            Assert.That(levelManager.currentLevel, Is.EqualTo(0));
+            Assert.That(rocksObject.activeSelf, Is.False);
+
+            levelManager.StartRun();
+
+            Assert.That(levelManager.currentLevel, Is.EqualTo(1));
+            Assert.That(rocksObject.activeSelf, Is.True);
+
+            playerObject.transform.position = new Vector3(0f, -2.1f, 0f);
+            levelManager.TickChunkGeneration();
+
+            Assert.That(levelManager.currentLevel, Is.EqualTo(2));
+        }
+        finally
+        {
+            Object.DestroyImmediate(spawnChunk);
+            Object.DestroyImmediate(boxChunk);
+            Object.DestroyImmediate(tileChunk);
+            Object.DestroyImmediate(rocksObject);
+            Object.DestroyImmediate(playerObject);
+            Object.DestroyImmediate(levelObject);
+            Object.DestroyImmediate(eventMapObject);
+            Object.DestroyImmediate(bmapObject);
+            Object.DestroyImmediate(tmapObject);
+            Object.DestroyImmediate(gridObject);
+        }
     }
 
     [Test]
