@@ -2,8 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PickupChest : MonoBehaviour, IPlayerInteractable
+public class PickupChest : MonoBehaviour, IPlayerInteractable, IRunSaveWorldStateHandler
 {
+    [System.Serializable]
+    private class ChestRunSavePayload
+    {
+        public bool isOpened;
+        public int floorZ;
+    }
+
     [Header("Layer")]
     public LayerMask hitLayer;
 
@@ -32,6 +39,7 @@ public class PickupChest : MonoBehaviour, IPlayerInteractable
 
     public int InteractionPriority => interactionPriority;
     public Vector3 InteractionPosition => transform.position;
+    public bool SuppressDefaultConsumedState => true;
 
     private void Awake()
     {
@@ -67,6 +75,7 @@ public class PickupChest : MonoBehaviour, IPlayerInteractable
 
         isOpened = true;
         UnregisterInteractable();
+        GetComponent<RunSaveWorldObject>()?.MarkConsumedWithoutApplyingVisualState();
 
         if (openedSprite != null && spriteRenderer != null)
             spriteRenderer.sprite = openedSprite;
@@ -128,6 +137,38 @@ public class PickupChest : MonoBehaviour, IPlayerInteractable
         transform.position = pos;
     }
 
+    public string CaptureRunSavePayload()
+    {
+        return JsonUtility.ToJson(new ChestRunSavePayload
+        {
+            isOpened = isOpened,
+            floorZ = floorZ
+        });
+    }
+
+    public void RestoreRunSaveState(WorldObjectRunSaveData data)
+    {
+        ChestRunSavePayload payload = null;
+        if (data != null && !string.IsNullOrWhiteSpace(data.payloadJson))
+            payload = JsonUtility.FromJson<ChestRunSavePayload>(data.payloadJson);
+
+        isOpened = data != null && (data.consumed || (payload != null && payload.isOpened));
+        if (payload != null)
+            floorZ = payload.floorZ;
+
+        gameObject.SetActive(true);
+        SetZ(floorZ);
+        if (canvas != null)
+            canvas.enabled = false;
+
+        if (isOpened)
+        {
+            UnregisterInteractable();
+            if (openedSprite != null && spriteRenderer != null)
+                spriteRenderer.sprite = openedSprite;
+        }
+    }
+
     private IEnumerator SpawnPickupItem()
     {
         if (!TryResolveLoot(out bool isPassive, out PassiveItem passiveItem, out ActiveItem activeItem))
@@ -151,6 +192,10 @@ public class PickupChest : MonoBehaviour, IPlayerInteractable
         }
 
         pickupItem.ConfigureDropItem(isPassive, passiveItem, activeItem, isPassive);
+        RunSaveIdentity chestIdentity = GetComponent<RunSaveIdentity>();
+        if (chestIdentity != null)
+            RunSaveIdentity.Ensure(spawnedObject, $"{chestIdentity.SaveId}:pickup", "PickupItem");
+
         pickupItem.SetZ(floorZ);
 
         float elapsed = 0f;

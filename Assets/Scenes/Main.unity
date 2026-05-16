@@ -4371,8 +4371,47 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemUnlockRegistry
   catalog: {fileID: 11400000, guid: a3ad5360a63f495884657c0ad6ab8a12, type: 2}
-  initiallyUnlockedPassiveItems: []
-  initiallyUnlockedActiveItems: []
+  initiallyUnlockedPassiveItems:
+  - {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a205, type: 2}
+  - {fileID: 11400000, guid: bf41144352e0802478567c35db807752, type: 2}
+  - {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a20a, type: 2}
+  - {fileID: 11400000, guid: 3f6b3aef5ec760442a94d1f15d1f8bf7, type: 2}
+  - {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a207, type: 2}
+  - {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a201, type: 2}
+  - {fileID: 11400000, guid: 43b67b4268ce9a44c90dc0c53797f9c0, type: 2}
+  - {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a208, type: 2}
+  - {fileID: 11400000, guid: f9c4e2a2086cbfe4292835ea320c37f2, type: 2}
+  - {fileID: 11400000, guid: e1b97ace921c82349972559dffb942b8, type: 2}
+  - {fileID: 11400000, guid: 0684d6f35326ff04d8872f85a73c3777, type: 2}
+  - {fileID: 11400000, guid: 9b1f0f809d8e0954dabd2e546532d41e, type: 2}
+  - {fileID: 11400000, guid: a05112f6d7fa2c14e967e1b1fe8dcc69, type: 2}
+  - {fileID: 11400000, guid: 4998639e8157f804094ffb1ac9331f18, type: 2}
+  - {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a206, type: 2}
+  - {fileID: 11400000, guid: 0519dc9b692551b4a9c582b0c6317777, type: 2}
+  - {fileID: 11400000, guid: 255cf103768e703429f303f5efc3cc18, type: 2}
+  - {fileID: 11400000, guid: 1e48d1d4706a7bb42a3870bc61f92d24, type: 2}
+  - {fileID: 11400000, guid: a0c86b3472f5ea644944a582526d34b7, type: 2}
+  - {fileID: 11400000, guid: 6edb1ba55cec43848975e01bae9369e5, type: 2}
+  - {fileID: 11400000, guid: 048635c5c1f693e43871eeefaf68b5fa, type: 2}
+  - {fileID: 11400000, guid: 5465a00f705c44049803dad32df2b7ea, type: 2}
+  - {fileID: 11400000, guid: 24367eb7247c8544db1f22e7b2a885d3, type: 2}
+  - {fileID: 11400000, guid: e404b034dd0036346a6e1ed75eb8dc52, type: 2}
+  - {fileID: 11400000, guid: 72aceb581381f68409cc14971bada6e9, type: 2}
+  - {fileID: 11400000, guid: 7234f4383247f1748b9de29cee24f39c, type: 2}
+  - {fileID: 11400000, guid: 1ec26ff189614af4bbe158cdafa28919, type: 2}
+  - {fileID: 11400000, guid: ef40d07433f71164aa7ae05aaf183f1e, type: 2}
+  - {fileID: 11400000, guid: 4d3084ea2c785ed4a874a12d9fa75f60, type: 2}
+  - {fileID: 11400000, guid: db1f441b142547440bd000ceec986779, type: 2}
+  - {fileID: 11400000, guid: 7810639a25ca1d64f950309960449f91, type: 2}
+  - {fileID: 11400000, guid: 2a82c742a90115740aa1d14a03b5d258, type: 2}
+  - {fileID: 11400000, guid: f0cf32d7c3ef9d24b8481bd0e5bead24, type: 2}
+  - {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a203, type: 2}
+  - {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a202, type: 2}
+  - {fileID: 11400000, guid: 9f6d1c4e8ab24d0ba3c1f5e94730a209, type: 2}
+  initiallyUnlockedActiveItems:
+  - {fileID: 11400000, guid: db27c7aaca375db4080cbe80b3f2e9f8, type: 2}
+  - {fileID: 11400000, guid: 244161eb188503541986f307880234b2, type: 2}
+  - {fileID: 11400000, guid: 84bd0f6a5d79a104db9a1031c4defd92, type: 2}
 --- !u!1 &1189731024
 GameObject:
   m_ObjectHideFlags: 0

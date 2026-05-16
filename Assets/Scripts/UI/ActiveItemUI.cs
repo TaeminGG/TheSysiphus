@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 public class ActiveItemUI : MonoBehaviour
 {
@@ -19,57 +20,76 @@ public class ActiveItemUI : MonoBehaviour
 
     private void Start()
     {
-        inventory = GameObject.Find("Player").GetComponent<ActiveInventory>();
+        GameObject player = GameObject.Find("Player");
+        if (player != null)
+            inventory = player.GetComponent<ActiveInventory>();
     }
 
     private void Update()
     {
+        if (inventory == null)
+        {
+            HideIcons();
+            return;
+        }
+
+        List<ActiveItem> items = inventory.GetItems();
+        int itemCount = items != null ? items.Count : 0;
+
         if (inventory.isChanged)
         {
             inventory.isChanged = false;
-            text.text = inventory.GetItems()[0].itemName;
+            if (text != null)
+                text.text = itemCount > 0 && items[0] != null ? items[0].itemName : string.Empty;
 
-            if(fade != null)
+            if (fade != null)
                 StopCoroutine(fade);
-            fade = StartCoroutine(Fade());
+
+            if (itemCount > 0 && text != null)
+                fade = StartCoroutine(Fade());
         }
 
-        if (inventory.GetItems().Count > 2)
+        if (itemCount > 2)
         {
-            currentIcon.enabled = true;
-            nextIcon.enabled = true;
-            thirdIcon.enabled = true;
-
-            currentIcon.sprite = inventory.GetItems()[0].icon;
-            nextIcon.sprite = inventory.GetItems()[1].icon;
-            thirdIcon.sprite = inventory.GetItems()[2].icon;
+            SetIcon(currentIcon, items[0]);
+            SetIcon(nextIcon, items[1]);
+            SetIcon(thirdIcon, items[2]);
+            return;
         }
-        else
+
+        if (itemCount == 2)
         {
-            if (inventory.GetItems().Count == 2)
-            {
-                currentIcon.enabled = true;
-                nextIcon.enabled = true;
-                thirdIcon.enabled = false;
-
-                currentIcon.sprite = inventory.GetItems()[0].icon;
-                nextIcon.sprite = inventory.GetItems()[1].icon;
-            }
-            else if (inventory.GetItems().Count == 1)
-            {
-                currentIcon.enabled = true;
-                nextIcon.enabled = false;
-                thirdIcon.enabled = false;
-
-                currentIcon.sprite = inventory.GetItems()[0].icon;
-            }
-            else
-            {
-                currentIcon.enabled = false;
-                nextIcon.enabled = false;
-                thirdIcon.enabled = false;
-            }
+            SetIcon(currentIcon, items[0]);
+            SetIcon(nextIcon, items[1]);
+            SetIcon(thirdIcon, null);
+            return;
         }
+
+        if (itemCount == 1)
+        {
+            SetIcon(currentIcon, items[0]);
+            SetIcon(nextIcon, null);
+            SetIcon(thirdIcon, null);
+            return;
+        }
+
+        HideIcons();
+    }
+
+    private void SetIcon(Image image, ActiveItem item)
+    {
+        if (image == null)
+            return;
+
+        image.enabled = item != null && item.icon != null;
+        image.sprite = item != null ? item.icon : null;
+    }
+
+    private void HideIcons()
+    {
+        SetIcon(currentIcon, null);
+        SetIcon(nextIcon, null);
+        SetIcon(thirdIcon, null);
     }
 
     private IEnumerator Fade()

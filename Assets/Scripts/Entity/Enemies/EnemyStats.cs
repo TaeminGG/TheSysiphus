@@ -14,6 +14,7 @@ public class EnemyStats : MonoBehaviour, IDamageable, IStatusTickDamageable
     private IEnemyAttack attack;
     private IEnemyMovement movement;
     private EnemyCrowdControl crowdControl;
+    private EnemyDirectionalAnimator directionalAnimator;
     private StatusAilmentController statusAilmentController;
 
     public Canvas canvas;
@@ -36,6 +37,7 @@ public class EnemyStats : MonoBehaviour, IDamageable, IStatusTickDamageable
 
         movement = GetComponent<IEnemyMovement>();
         attack = GetComponent<IEnemyAttack>();
+        directionalAnimator = GetComponent<EnemyDirectionalAnimator>();
         crowdControl = GetComponent<EnemyCrowdControl>();
         if (crowdControl == null)
             crowdControl = gameObject.AddComponent<EnemyCrowdControl>();
@@ -169,6 +171,10 @@ public class EnemyStats : MonoBehaviour, IDamageable, IStatusTickDamageable
 
         isHandlingDeath = true;
         statusAilmentController?.ClearAllAilments();
+        if (directionalAnimator == null)
+            directionalAnimator = GetComponent<EnemyDirectionalAnimator>();
+
+        directionalAnimator?.LockDeathDirection();
         DisableDeathInteractions();
         PlayDeathAnimation();
 

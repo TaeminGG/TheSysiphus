@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 [DisallowMultipleComponent]
@@ -50,6 +51,11 @@ public class PauseItemCollectionMenu : MonoBehaviour
         public Color actionButtonColor = new Color(0.22f, 0.22f, 0.22f, 1f);
         public Color actionButtonTextColor = Color.white;
         public Color quitButtonColor = new Color(0.46f, 0.2f, 0.18f, 1f);
+        public Sprite fullscreenOnSprite = null;
+        public Sprite fullscreenOffSprite = null;
+        public Color fullscreenOnColor = new Color(0.2f, 0.46f, 0.28f, 1f);
+        public Color fullscreenOffColor = new Color(0.26f, 0.26f, 0.26f, 1f);
+        public Color fullscreenHoverColor = new Color(0.72f, 0.66f, 0.42f, 1f);
 
         [Header("Item Slots")]
         public Sprite slotSprite = null;
@@ -97,6 +103,8 @@ public class PauseItemCollectionMenu : MonoBehaviour
     [SerializeField] private Vector2 windowSize = new Vector2(980f, 560f);
     [SerializeField] private bool titleMenuMode = false;
     [SerializeField] private GameObject closeTargetOnResume;
+    [SerializeField] private string titleSceneName = "Main";
+    [SerializeField, TextArea(6, 12)] private string creditsText = "Credits\n\nDesign / Programming\nTeam Name\n\nSpecial Thanks\nPlayers";
     [SerializeField] private PauseMenuStyle style = new PauseMenuStyle();
     [SerializeField] private PauseSectionTitles sectionTitles = new PauseSectionTitles();
 
@@ -110,11 +118,17 @@ public class PauseItemCollectionMenu : MonoBehaviour
     private RectTransform leftContentHost;
     private RectTransform currentPassiveContentRoot;
     private RectTransform collectionGridContentRoot;
+    private GameObject detailPanel;
+    private GameObject settingsCreditsPanel;
     private GameObject currentItemsPanel;
     private GameObject collectionPanel;
     private GameObject settingsPanel;
     private Button resumeButton;
     private Button quitButton;
+    private Button fullscreenButton;
+    private Image fullscreenButtonBackground;
+    private TextMeshProUGUI fullscreenButtonLabel;
+    private PauseFullscreenToggleVisual fullscreenButtonVisual;
     private TextMeshProUGUI contentTitleLabel;
     private TextMeshProUGUI detailNameLabel;
     private TextMeshProUGUI detailDescriptionLabel;
@@ -127,6 +141,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
     private PauseSection currentSection = PauseSection.CurrentItems;
     private CollectionCategory currentCollectionCategory = CollectionCategory.Passive;
     private bool isInitialized;
+    private bool isSavingAndExiting;
 
     private void Awake()
     {
@@ -262,11 +277,17 @@ public class PauseItemCollectionMenu : MonoBehaviour
         leftContentHost = null;
         currentPassiveContentRoot = null;
         collectionGridContentRoot = null;
+        detailPanel = null;
+        settingsCreditsPanel = null;
         currentItemsPanel = null;
         collectionPanel = null;
         settingsPanel = null;
         resumeButton = null;
         quitButton = null;
+        fullscreenButton = null;
+        fullscreenButtonBackground = null;
+        fullscreenButtonLabel = null;
+        fullscreenButtonVisual = null;
         contentTitleLabel = null;
         detailNameLabel = null;
         detailDescriptionLabel = null;
@@ -290,11 +311,19 @@ public class PauseItemCollectionMenu : MonoBehaviour
         leftContentHost = FindManagedRectTransform("LeftContentHost");
         currentPassiveContentRoot = FindManagedRectTransform("CurrentItemsContent");
         collectionGridContentRoot = FindManagedRectTransform("CollectionContent");
+        detailPanel = FindManagedObject("DetailPanel");
+        settingsCreditsPanel = FindManagedObject("SettingsCreditsPanel");
         currentItemsPanel = FindManagedObject("CurrentItemsPanel");
         collectionPanel = FindManagedObject("CollectionPanel");
         settingsPanel = FindManagedObject("SettingsPanel");
         resumeButton = FindManagedComponent<Button>("ResumeButton");
-        quitButton = FindManagedComponent<Button>("QuitButton");
+        quitButton = FindManagedComponent<Button>("SaveAndExitButton");
+        if (quitButton == null)
+            quitButton = FindManagedComponent<Button>("QuitButton");
+        fullscreenButton = FindManagedComponent<Button>("FullscreenToggleButton");
+        fullscreenButtonBackground = fullscreenButton != null ? fullscreenButton.GetComponent<Image>() : null;
+        fullscreenButtonLabel = FindManagedComponent<TextMeshProUGUI>("FullscreenToggleLabel");
+        fullscreenButtonVisual = fullscreenButton != null ? fullscreenButton.GetComponent<PauseFullscreenToggleVisual>() : null;
         contentTitleLabel = FindManagedComponent<TextMeshProUGUI>("ContentTitle");
         detailNameLabel = FindManagedComponent<TextMeshProUGUI>("DetailName");
         detailDescriptionLabel = FindManagedComponent<TextMeshProUGUI>("DetailDescription");
@@ -307,11 +336,13 @@ public class PauseItemCollectionMenu : MonoBehaviour
         RegisterCollectionTab(CollectionCategory.Active, "Collection_Active");
 
         ApplyTitleMenuModeToBoundLayout();
+        EnsureSettingsPanelEnhancements();
 
         return runtimeRoot != null
             && leftContentHost != null
             && currentPassiveContentRoot != null
             && collectionGridContentRoot != null
+            && detailPanel != null
             && currentItemsPanel != null
             && collectionPanel != null
             && settingsPanel != null
@@ -377,6 +408,26 @@ public class PauseItemCollectionMenu : MonoBehaviour
 
             DestroyComponentImmediateOrDeferred(canvas);
         }
+
+        NormalizeManagedScrollbars();
+    }
+
+    private void NormalizeManagedScrollbars()
+    {
+        Scrollbar[] scrollbars = runtimeRoot.GetComponentsInChildren<Scrollbar>(true);
+        for (int i = 0; i < scrollbars.Length; i++)
+        {
+            Scrollbar scrollbar = scrollbars[i];
+            if (scrollbar == null || scrollbar.handleRect == null)
+                continue;
+
+            RectTransform slidingArea = scrollbar.handleRect.parent as RectTransform;
+            if (slidingArea != null)
+                StretchToParent(slidingArea);
+
+            scrollbar.handleRect.anchoredPosition = Vector2.zero;
+            scrollbar.handleRect.sizeDelta = Vector2.zero;
+        }
     }
 
     private void WireInteractionHandlers()
@@ -395,6 +446,14 @@ public class PauseItemCollectionMenu : MonoBehaviour
             quitButton.onClick.RemoveAllListeners();
             quitButton.onClick.AddListener(HandleQuitClicked);
             ApplyButtonColors(quitButton);
+        }
+
+        if (fullscreenButton != null)
+        {
+            fullscreenButton.onClick.RemoveAllListeners();
+            fullscreenButton.onClick.AddListener(HandleFullscreenClicked);
+            ApplyButtonColors(fullscreenButton);
+            RefreshFullscreenButtonVisual();
         }
 
         for (int i = 0; i < navigationTabs.Count; i++)
@@ -533,13 +592,15 @@ public class PauseItemCollectionMenu : MonoBehaviour
         leftContentHost.offsetMin = new Vector2(0f, 0f);
         leftContentHost.offsetMax = new Vector2(-260f, 0f);
 
-        RectTransform detailPanel = CreateUiObject("DetailPanel", bodyRect).GetComponent<RectTransform>();
-        detailPanel.anchorMin = new Vector2(1f, 0f);
-        detailPanel.anchorMax = new Vector2(1f, 1f);
-        detailPanel.offsetMin = new Vector2(-244f, 0f);
-        detailPanel.offsetMax = new Vector2(-4f, 0f);
-        ApplyImageStyle(detailPanel.gameObject.AddComponent<Image>(), style.detailPanelSprite, style.detailPanelColor);
-        BuildDetailPanel(detailPanel);
+        RectTransform detailPanelRect = CreateUiObject("DetailPanel", bodyRect).GetComponent<RectTransform>();
+        detailPanel = detailPanelRect.gameObject;
+        detailPanelRect.anchorMin = new Vector2(1f, 0f);
+        detailPanelRect.anchorMax = new Vector2(1f, 1f);
+        detailPanelRect.offsetMin = new Vector2(-244f, 0f);
+        detailPanelRect.offsetMax = new Vector2(-4f, 0f);
+        ApplyImageStyle(detailPanelRect.gameObject.AddComponent<Image>(), style.detailPanelSprite, style.detailPanelColor);
+        BuildDetailPanel(detailPanelRect);
+        BuildSettingsCreditsPanel(detailPanelRect);
 
         BuildCurrentItemsPanel();
         BuildCollectionPanel();
@@ -628,21 +689,87 @@ public class PauseItemCollectionMenu : MonoBehaviour
         RectTransform panelRect = settingsPanel.GetComponent<RectTransform>();
         StretchToParent(panelRect);
         settingsPanel.SetActive(false);
+        BuildSettingsControls(panelRect);
+    }
 
-        RectTransform placeholderFrame = CreateSubSection(settingsPanel.transform, "Settings", -1f);
-        StretchToParent(placeholderFrame);
+    private void EnsureSettingsPanelEnhancements()
+    {
+        if (settingsPanel != null && fullscreenButton == null)
+            BuildSettingsControls(settingsPanel.GetComponent<RectTransform>());
 
-        TextMeshProUGUI placeholder = CreateText(
-            "SettingsPlaceholder",
-            placeholderFrame,
-            new Vector2(24f, -76f),
-            new Vector2(-24f, 220f),
-            "설정창",
-            22f,
-            FontStyles.Normal,
-            TextAlignmentOptions.Center,
-            new Color(1f, 1f, 1f, 0.85f));
-        placeholder.textWrappingMode = TextWrappingModes.Normal;
+        if (detailPanel != null && settingsCreditsPanel == null)
+            BuildSettingsCreditsPanel(detailPanel.GetComponent<RectTransform>());
+    }
+
+    private void BuildSettingsControls(RectTransform panelRect)
+    {
+        if (panelRect == null)
+            return;
+
+        Transform existingFrame = FindDescendant(panelRect, "SettingsControlsFrame");
+        if (existingFrame != null)
+        {
+            fullscreenButton = FindManagedComponent<Button>("FullscreenToggleButton");
+            fullscreenButtonBackground = fullscreenButton != null ? fullscreenButton.GetComponent<Image>() : null;
+            fullscreenButtonLabel = FindManagedComponent<TextMeshProUGUI>("FullscreenToggleLabel");
+            fullscreenButtonVisual = fullscreenButton != null ? fullscreenButton.GetComponent<PauseFullscreenToggleVisual>() : null;
+            if (fullscreenButton != null && fullscreenButtonVisual == null)
+                fullscreenButtonVisual = fullscreenButton.gameObject.AddComponent<PauseFullscreenToggleVisual>();
+            quitButton = FindManagedComponent<Button>("SaveAndExitButton");
+            if (quitButton != null)
+                quitButton.gameObject.SetActive(!titleMenuMode);
+            return;
+        }
+
+        RectTransform controlsFrame = CreateSubSection(panelRect, "Settings", -1f);
+        controlsFrame.name = "SettingsControlsFrame";
+        StretchToParent(controlsFrame);
+
+        fullscreenButton = CreateButton(controlsFrame, "FullscreenToggleButton", "Fullscreen", out fullscreenButtonLabel, out fullscreenButtonBackground);
+        fullscreenButtonLabel.name = "FullscreenToggleLabel";
+        SetTopStretchLayout(fullscreenButton.GetComponent<RectTransform>(), 56f, 54f);
+        fullscreenButtonVisual = fullscreenButton.gameObject.AddComponent<PauseFullscreenToggleVisual>();
+        fullscreenButton.onClick.AddListener(HandleFullscreenClicked);
+
+        if (!titleMenuMode)
+        {
+            quitButton = CreateActionButton(controlsFrame, "SaveAndExitButton", "Save and Exit", style.quitButtonColor, HandleQuitClicked);
+            SetTopStretchLayout(quitButton.GetComponent<RectTransform>(), 124f, 54f);
+        }
+
+        RefreshFullscreenButtonVisual();
+    }
+
+    private void BuildSettingsCreditsPanel(RectTransform parent)
+    {
+        if (parent == null)
+            return;
+
+        Transform existingPanel = FindDescendant(parent, "SettingsCreditsPanel");
+        if (existingPanel != null)
+        {
+            settingsCreditsPanel = existingPanel.gameObject;
+            return;
+        }
+
+        settingsCreditsPanel = CreateUiObject("SettingsCreditsPanel", parent).gameObject;
+        RectTransform panelRect = settingsCreditsPanel.GetComponent<RectTransform>();
+        StretchToParent(panelRect);
+        settingsCreditsPanel.SetActive(false);
+
+        TextMeshProUGUI title = CreateText("CreditsTitle", panelRect, new Vector2(18f, -22f), new Vector2(-18f, 30f), "Credits", 24f, FontStyles.Bold, TextAlignmentOptions.Left);
+        title.raycastTarget = false;
+
+        GameObject boxObject = CreateUiObject("CreditsTextBox", panelRect);
+        RectTransform boxRect = boxObject.GetComponent<RectTransform>();
+        SetStretchLayout(boxRect, 16f, 18f, 16f, 68f);
+
+        Image boxImage = boxObject.AddComponent<Image>();
+        ApplyImageStyle(boxImage, style.subPanelSprite, new Color(0.08f, 0.08f, 0.08f, 0.62f));
+
+        TextMeshProUGUI creditsLabel = CreateText("CreditsText", boxRect, new Vector2(12f, -12f), new Vector2(-12f, 256f), creditsText, 17f, FontStyles.Normal, TextAlignmentOptions.TopLeft, new Color(1f, 1f, 1f, 0.88f));
+        creditsLabel.textWrappingMode = TextWrappingModes.Normal;
+        creditsLabel.overflowMode = TextOverflowModes.Overflow;
     }
 
     private string GetSectionTitle(PauseSection section)
@@ -722,7 +849,60 @@ public class PauseItemCollectionMenu : MonoBehaviour
 
     private void HandleQuitClicked()
     {
-        pauseController?.QuitGame();
+        if (isSavingAndExiting)
+            return;
+
+        isSavingAndExiting = true;
+
+        SaveManager saveManager = SaveManager.EnsureInstance();
+        saveManager.CaptureUnlocksFromRegistry();
+        saveManager.SaveCurrentRun("pause-menu-save-exit");
+
+        pauseController?.ResumeGame();
+        Time.timeScale = 1f;
+        AudioListener.pause = false;
+
+        SceneManager.LoadScene(string.IsNullOrWhiteSpace(titleSceneName) ? "Main" : titleSceneName);
+    }
+
+    private void HandleFullscreenClicked()
+    {
+        SettingsManager settingsManager = SettingsManager.EnsureInstance();
+        bool nextValue = !settingsManager.Settings.Fullscreen;
+        settingsManager.SetFullscreen(nextValue);
+        RefreshFullscreenButtonVisual();
+    }
+
+    private void RefreshFullscreenButtonVisual()
+    {
+        bool isFullscreen = ResolveFullscreenSetting();
+        string label = isFullscreen ? "Fullscreen: On" : "Fullscreen: Off";
+
+        if (fullscreenButtonLabel != null)
+            fullscreenButtonLabel.text = label;
+
+        if (fullscreenButtonVisual != null)
+        {
+            fullscreenButtonVisual.SetVisuals(
+                fullscreenButtonBackground,
+                fullscreenButtonLabel,
+                style.fullscreenOffSprite,
+                style.fullscreenOnSprite,
+                style.fullscreenOffColor,
+                style.fullscreenOnColor,
+                style.fullscreenHoverColor);
+            fullscreenButtonVisual.SetFullscreen(isFullscreen);
+            return;
+        }
+
+        if (fullscreenButtonBackground != null)
+            ApplyImageStyle(fullscreenButtonBackground, isFullscreen ? style.fullscreenOnSprite : style.fullscreenOffSprite, isFullscreen ? style.fullscreenOnColor : style.fullscreenOffColor);
+    }
+
+    private static bool ResolveFullscreenSetting()
+    {
+        SettingsManager settingsManager = SettingsManager.Instance;
+        return settingsManager != null ? settingsManager.Settings.Fullscreen : Screen.fullScreen;
     }
 
     private void HandleUnlocksChanged()
@@ -744,6 +924,11 @@ public class PauseItemCollectionMenu : MonoBehaviour
         currentItemsPanel.SetActive(section == PauseSection.CurrentItems);
         collectionPanel.SetActive(section == PauseSection.Collection);
         settingsPanel.SetActive(section == PauseSection.Settings);
+        if (detailPanel != null)
+            detailPanel.SetActive(true);
+        SetItemDetailContentVisible(section != PauseSection.Settings);
+        if (settingsCreditsPanel != null)
+            settingsCreditsPanel.SetActive(section == PauseSection.Settings);
 
         switch (section)
         {
@@ -758,11 +943,23 @@ public class PauseItemCollectionMenu : MonoBehaviour
             default:
                 contentTitleLabel.text = GetSectionTitle(PauseSection.Settings);
                 ClearDynamicContent();
-                ClearDetail("설정", string.Empty, null, true);
+                RefreshFullscreenButtonVisual();
                 break;
         }
 
         UpdateNavigationTabVisuals();
+    }
+
+    private void SetItemDetailContentVisible(bool visible)
+    {
+        if (detailIcon != null && detailIcon.transform.parent != null)
+            detailIcon.transform.parent.gameObject.SetActive(visible);
+
+        if (detailNameLabel != null)
+            detailNameLabel.gameObject.SetActive(visible);
+
+        if (detailDescriptionLabel != null)
+            detailDescriptionLabel.gameObject.SetActive(visible);
     }
 
     private void RefreshCurrentItemsPanel()
@@ -1328,7 +1525,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
         handleRect.anchorMin = new Vector2(0f, 1f);
         handleRect.anchorMax = new Vector2(1f, 1f);
         handleRect.pivot = new Vector2(0.5f, 1f);
-        handleRect.sizeDelta = new Vector2(0f, 48f);
+        handleRect.sizeDelta = Vector2.zero;
 
         Image handleImage = handleObject.AddComponent<Image>();
         ApplyImageStyle(handleImage, style.selectedTabSprite, new Color(0.8f, 0.8f, 0.8f, 1f));

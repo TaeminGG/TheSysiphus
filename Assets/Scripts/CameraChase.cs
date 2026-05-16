@@ -12,6 +12,12 @@ public class CameraChase : MonoBehaviour
     public float maxY = -50f;
     public bool useBounds = false;
 
+    [Header("Map Bounds")]
+    [SerializeField] private bool useHorizontalMapBounds = true;
+    [SerializeField] private float horizontalBoundsCenterX = 0f;
+    [SerializeField] private float horizontalBoundsWidth = 50f;
+    [SerializeField] private bool keepViewportInsideHorizontalBounds = true;
+
     [Header("Follow")]
     public Vector3 cameraDepth = new Vector3(0f, 0f, -10f);
     public float cameraSpeed = 5.0f;
@@ -248,7 +254,31 @@ public class CameraChase : MonoBehaviour
             desiredPosition.y = Mathf.Clamp(desiredPosition.y, minY, maxY);
         }
 
+        desiredPosition.x = ClampCameraXToHorizontalMapBounds(desiredPosition.x);
+
         return desiredPosition;
+    }
+
+    private float ClampCameraXToHorizontalMapBounds(float cameraX)
+    {
+        if (!useHorizontalMapBounds || horizontalBoundsWidth <= 0f)
+            return cameraX;
+
+        float halfWidth = horizontalBoundsWidth * 0.5f;
+        float minCameraX = horizontalBoundsCenterX - halfWidth;
+        float maxCameraX = horizontalBoundsCenterX + halfWidth;
+
+        if (keepViewportInsideHorizontalBounds && targetCamera != null && targetCamera.orthographic)
+        {
+            float cameraHalfWidth = targetCamera.orthographicSize * targetCamera.aspect;
+            minCameraX += cameraHalfWidth;
+            maxCameraX -= cameraHalfWidth;
+        }
+
+        if (minCameraX > maxCameraX)
+            return horizontalBoundsCenterX;
+
+        return Mathf.Clamp(cameraX, minCameraX, maxCameraX);
     }
 
     private IEnumerator ShakeRoutine(float duration, float magnitude, float frequency, AnimationCurve curve)

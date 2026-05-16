@@ -12,6 +12,9 @@ public class ItemUnlockSnapshot
     public IReadOnlyList<string> UnlockedPassiveItemIds => unlockedPassiveItemIds;
     public IReadOnlyList<string> UnlockedActiveItemIds => unlockedActiveItemIds;
     public IReadOnlyList<string> CollectedPassiveItemIds => collectedPassiveItemIds;
+    public bool HasAnyUnlocks => unlockedPassiveItemIds.Count > 0
+        || unlockedActiveItemIds.Count > 0
+        || collectedPassiveItemIds.Count > 0;
 
     public void SetUnlockedPassiveItemIds(IEnumerable<string> itemIds)
     {

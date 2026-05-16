@@ -39,17 +39,22 @@ public class ActiveInventory : MonoBehaviour
 
     public void AddItem(ActiveItem item)
     {
+        if (item == null)
+            return;
+
         if (items.Count >= inventorySize)
         {
             Vector2 offset = Random.insideUnitCircle.normalized * 0.3f;
             Vector3 dropPosition = transform.position + (Vector3)offset;
             PickupItem dropped = Instantiate(dropItem, dropPosition, Quaternion.identity).GetComponent<PickupItem>();
+            RunSaveIdentity.Ensure(dropped.gameObject, System.Guid.NewGuid().ToString("N"), dropItem.name);
 
             dropped.ConfigureDropItem(false, null, items[0]);
             dropped.SetZ(GetComponent<PlayerMove>().floorZ);
             RemoveItem(items[0]);
         }
         items.Insert(0, item);
+        isChanged = true;
     }
     public void RemoveItem(ActiveItem item)
     {
@@ -117,16 +122,20 @@ public class ActiveInventory : MonoBehaviour
         items.Clear();
         isUsed = false;
         timer = 0f;
-        isChanged = true;
 
         if (restoredItems == null)
+        {
+            isChanged = true;
             return;
+        }
 
         foreach (ActiveItem item in restoredItems)
         {
             if (item != null && items.Count < inventorySize)
                 items.Add(item);
         }
+
+        isChanged = true;
     }
 
     private void OnActiveUse(InputValue value)

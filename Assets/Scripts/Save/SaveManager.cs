@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 [DisallowMultipleComponent]
 public sealed class SaveManager : MonoBehaviour, IItemUnlockStateStore
@@ -15,6 +16,8 @@ public sealed class SaveManager : MonoBehaviour, IItemUnlockStateStore
     private ItemUnlockRegistry boundRegistry;
     private RunSaveStateController runSaveStateController;
     private bool isRestoringUnlocks;
+    private RunSaveData pendingRunRestore;
+    private bool restorePendingAfterSceneLoad;
 
     public string GameSceneName => string.IsNullOrWhiteSpace(gameSceneName) ? DefaultGameSceneName : gameSceneName;
     public bool HasActiveRun => Repository.HasActiveRun;
@@ -105,8 +108,15 @@ public sealed class SaveManager : MonoBehaviour, IItemUnlockStateStore
         if (registry == null)
             return;
 
+        ItemUnlockSnapshot profileSnapshot = Profile.ItemUnlockSnapshot;
+        if (profileSnapshot == null || !profileSnapshot.HasAnyUnlocks)
+        {
+            CaptureUnlocksFromRegistry(registry);
+            return;
+        }
+
         isRestoringUnlocks = true;
-        registry.RestoreSnapshot(Profile.ItemUnlockSnapshot);
+        registry.RestoreSnapshot(profileSnapshot);
         isRestoringUnlocks = false;
     }
 
@@ -130,6 +140,15 @@ public sealed class SaveManager : MonoBehaviour, IItemUnlockStateStore
     public RunSaveData SaveCurrentRun(string reason = null)
     {
         RunSaveData runData = CaptureCurrentRun(reason);
+
+        if (IsPlayerDeadInRun(runData))
+        {
+            runData.ActiveRun = false;
+            Repository.DeleteRun();
+            RunSaveRuntimeState.ClearRunState();
+            return runData;
+        }
+
         Repository.SaveRun(runData);
         return runData;
     }
@@ -163,7 +182,27 @@ public sealed class SaveManager : MonoBehaviour, IItemUnlockStateStore
 
     public bool RestoreRun(RunSaveData runData)
     {
-        return GetRunSaveStateController().Restore(runData);
+        bool restored = GetRunSaveStateController().Restore(runData);
+        if (restored)
+            RunSaveRuntimeState.RestoreFromRun(runData);
+
+        return restored;
+    }
+
+    public bool ContinueRun()
+    {
+        if (!TryLoadRun(out RunSaveData runData) || IsPlayerDeadInRun(runData))
+        {
+            DeleteRun();
+            return false;
+        }
+
+        pendingRunRestore = runData;
+        restorePendingAfterSceneLoad = true;
+
+        string sceneName = string.IsNullOrWhiteSpace(runData.SceneName) ? GameSceneName : runData.SceneName;
+        SceneManager.LoadScene(sceneName);
+        return true;
     }
 
     public void DeleteRun()
@@ -186,6 +225,27 @@ public sealed class SaveManager : MonoBehaviour, IItemUnlockStateStore
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         BindActiveRegistry();
+
+        if (restorePendingAfterSceneLoad && pendingRunRestore != null)
+            StartCoroutine(RestorePendingRunAfterSceneStart(scene.name));
+    }
+
+    private IEnumerator RestorePendingRunAfterSceneStart(string loadedSceneName)
+    {
+        yield return null;
+
+        if (!restorePendingAfterSceneLoad || pendingRunRestore == null)
+            yield break;
+
+        string restoreSceneName = string.IsNullOrWhiteSpace(pendingRunRestore.SceneName) ? GameSceneName : pendingRunRestore.SceneName;
+        if (!string.Equals(loadedSceneName, restoreSceneName, System.StringComparison.Ordinal))
+            yield break;
+
+        RestoreRun(pendingRunRestore);
+        pendingRunRestore = null;
+        restorePendingAfterSceneLoad = false;
+
+        GamePauseController.Instance?.ResumeGame();
     }
 
     private RunSaveStateController GetRunSaveStateController()
@@ -248,5 +308,13 @@ public sealed class SaveManager : MonoBehaviour, IItemUnlockStateStore
         profileSnapshot.SetUnlockedPassiveItemIds(source.UnlockedPassiveItemIds);
         profileSnapshot.SetUnlockedActiveItemIds(source.UnlockedActiveItemIds);
         return profileSnapshot;
+    }
+
+    private static bool IsPlayerDeadInRun(RunSaveData runData)
+    {
+        return runData != null
+            && runData.Player != null
+            && runData.Player.hasData
+            && runData.Player.currentHp <= 0f;
     }
 }

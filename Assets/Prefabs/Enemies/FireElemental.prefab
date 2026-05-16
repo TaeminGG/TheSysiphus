@@ -421,7 +421,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ee74193be2bed24ba5dd8aa23aa32f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UndeadMovement
-  moveSpeed: 1
+  moveSpeed: 2
   floorZ: 0
   isDetected: 0
   sprite: {fileID: 8418245287335229799}
