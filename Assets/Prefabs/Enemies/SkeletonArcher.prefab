@@ -383,7 +383,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01049d2e664f0604f9a1f74152acd9f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
-  maxHp: 100
+  maxHp: 40
   knockBackResist: 0.5
   canvas: {fileID: 7115197825974064350}
   hpbar: {fileID: 5188829508925080104}

@@ -392,7 +392,7 @@ MonoBehaviour:
   deathAnimator: {fileID: 1177467983456142408}
   deathAnimationTrigger: Die
   deathAnimationStateName: Death_8Way
-  deathDestroyDelay: 1.25
+  deathDestroyDelay: 0
 --- !u!114 &4322169297175387084
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -34,7 +34,7 @@ public class GamePauseController : MonoBehaviour
         ResolveReferences();
         ResolvePauseBackdrop();
         EnsurePauseMenuExtensions();
-        SetPauseVisuals(false);
+        SetPaused(false);
     }
 
     private void OnDestroy()

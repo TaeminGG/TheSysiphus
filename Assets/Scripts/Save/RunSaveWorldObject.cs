@@ -17,6 +17,11 @@ public sealed class RunSaveWorldObject : MonoBehaviour
         ApplyConsumedVisualState();
     }
 
+    public void MarkConsumedWithoutApplyingVisualState()
+    {
+        consumed = true;
+    }
+
     public void MarkAvailable()
     {
         consumed = false;
@@ -26,12 +31,14 @@ public sealed class RunSaveWorldObject : MonoBehaviour
     public WorldObjectRunSaveData Capture()
     {
         RunSaveIdentity resolvedIdentity = ResolveIdentity();
+        IRunSaveWorldStateHandler stateHandler = ResolveStateHandler();
         return new WorldObjectRunSaveData
         {
             saveId = resolvedIdentity.SaveId,
             stateKey = string.IsNullOrWhiteSpace(stateKey) ? gameObject.name : stateKey,
             position = transform.position,
-            consumed = consumed
+            consumed = consumed,
+            payloadJson = stateHandler != null ? stateHandler.CaptureRunSavePayload() : string.Empty
         };
     }
 
@@ -42,7 +49,12 @@ public sealed class RunSaveWorldObject : MonoBehaviour
 
         transform.position = data.position;
         consumed = data.consumed;
-        ApplyConsumedVisualState();
+        IRunSaveWorldStateHandler stateHandler = ResolveStateHandler();
+        if (stateHandler != null)
+            stateHandler.RestoreRunSaveState(data);
+
+        if (stateHandler == null || !stateHandler.SuppressDefaultConsumedState)
+            ApplyConsumedVisualState();
     }
 
     private RunSaveIdentity ResolveIdentity()
@@ -54,6 +66,18 @@ public sealed class RunSaveWorldObject : MonoBehaviour
             identity = gameObject.AddComponent<RunSaveIdentity>();
 
         return identity;
+    }
+
+    private IRunSaveWorldStateHandler ResolveStateHandler()
+    {
+        MonoBehaviour[] behaviours = GetComponents<MonoBehaviour>();
+        for (int i = 0; i < behaviours.Length; i++)
+        {
+            if (behaviours[i] is IRunSaveWorldStateHandler handler)
+                return handler;
+        }
+
+        return null;
     }
 
     private void ApplyConsumedVisualState()

@@ -128,8 +128,29 @@ public class ChunkLoader : MonoBehaviour
             Vector3 worldPosition = tmap.GetCellCenterWorld(targetCell) + binding.positionOffset;
             GameObject spawnedObject = Instantiate(binding.prefab, worldPosition, Quaternion.identity, chunkRoot);
 
+            ConfigureRunSaveIdentity(spawnedObject, binding.prefab, index, currentChunkCount, targetCell);
             ApplySpawnFloorZToObject(spawnedObject, GetFloorZAtCell(targetCell));
         }
+    }
+
+    private static void ConfigureRunSaveIdentity(GameObject spawnedObject, GameObject prefab, int chunkIndex, int currentChunkCount, Vector3Int targetCell)
+    {
+        if (spawnedObject == null)
+            return;
+
+        string prefabId = prefab != null ? prefab.name : spawnedObject.name;
+        string saveId = $"chunk:{currentChunkCount}:prefab:{prefabId}:cell:{targetCell.x},{targetCell.y},{targetCell.z}";
+        RunSaveIdentity.Ensure(spawnedObject, saveId, prefabId);
+
+        if (ShouldTrackWorldObject(spawnedObject) && spawnedObject.GetComponent<RunSaveWorldObject>() == null)
+            spawnedObject.AddComponent<RunSaveWorldObject>();
+    }
+
+    private static bool ShouldTrackWorldObject(GameObject spawnedObject)
+    {
+        return spawnedObject.GetComponent<PickupChest>() != null
+            || spawnedObject.GetComponent<FountainOfHealth>() != null
+            || spawnedObject.GetComponent<BreakableProbs>() != null;
     }
 
     private GameObject GetChunkPrefab(GameObject[] prefabs, int index)
@@ -235,6 +256,12 @@ public class ChunkLoader : MonoBehaviour
 
         if (spawnedObject.TryGetComponent(out GroundedEnemy groundedEnemy))
             groundedEnemy.floorZ = floorZ;
+
+        if (spawnedObject.TryGetComponent(out MerchantNPC merchant))
+            merchant.SetZ(floorZ);
+
+        if (spawnedObject.TryGetComponent(out MerchantStockSpawner merchantStockSpawner))
+            merchantStockSpawner.floorZ = floorZ;
 
         if (spawnedObject.TryGetComponent(out BreakableProbs breakableProbs))
             breakableProbs.floorZ = floorZ;

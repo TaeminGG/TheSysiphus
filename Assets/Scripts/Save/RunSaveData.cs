@@ -11,6 +11,7 @@ public class RunSaveData
     [SerializeField] private string startedAtUtc = string.Empty;
     [SerializeField] private string savedAtUtc = string.Empty;
     [SerializeField] private PlayerRunSaveData player = new PlayerRunSaveData();
+    [SerializeField] private LevelRunSaveData level = new LevelRunSaveData();
     [SerializeField] private List<EnemyRunSaveData> enemies = new List<EnemyRunSaveData>();
     [SerializeField] private List<PickupRunSaveData> pickups = new List<PickupRunSaveData>();
     [SerializeField] private List<WorldObjectRunSaveData> worldObjects = new List<WorldObjectRunSaveData>();
@@ -54,6 +55,16 @@ public class RunSaveData
             return player;
         }
         set => player = value ?? new PlayerRunSaveData();
+    }
+
+    public LevelRunSaveData Level
+    {
+        get
+        {
+            level ??= new LevelRunSaveData();
+            return level;
+        }
+        set => level = value ?? new LevelRunSaveData();
     }
 
     public List<EnemyRunSaveData> Enemies
@@ -135,6 +146,25 @@ public class PlayerRunSaveData
 }
 
 [Serializable]
+public class LevelRunSaveData
+{
+    public bool hasData;
+    public bool hasStarted;
+    public int currentLevel;
+    public int chunkHeight;
+    public float nextChunkTriggerY;
+    public List<ChunkRunSaveData> loadedChunks = new List<ChunkRunSaveData>();
+}
+
+[Serializable]
+public class ChunkRunSaveData
+{
+    public int chunkIndex;
+    public int chunkHeight;
+    public int chunkCount;
+}
+
+[Serializable]
 public class EnemyRunSaveData
 {
     public string saveId = string.Empty;
@@ -150,13 +180,17 @@ public class EnemyRunSaveData
 public class PickupRunSaveData
 {
     public string saveId = string.Empty;
+    public string prefabId = string.Empty;
+    public bool isDroppedItem;
     public bool isPassive;
+    public bool isGold;
     public string itemId = string.Empty;
     public int goldAmount;
     public Vector3 position;
     public int floorZ;
     public bool requiresPurchase;
     public int price;
+    public bool consumed;
 }
 
 [Serializable]

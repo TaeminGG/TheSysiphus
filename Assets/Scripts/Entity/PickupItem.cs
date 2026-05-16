@@ -137,6 +137,7 @@ public class PickupItem : MonoBehaviour, IPlayerInteractable
     private SpriteRenderer runtimeMaterialOwner;
     private ItemUnlockRegistry itemUnlockRegistry;
     private bool passiveReservationClaimed = false;
+    private RunSaveIdentity runSaveIdentity;
 
     public int InteractionPriority => interactionPriority;
     public Vector3 InteractionPosition => transform.position;
@@ -144,6 +145,7 @@ public class PickupItem : MonoBehaviour, IPlayerInteractable
 
     private void Awake()
     {
+        runSaveIdentity = RunSaveIdentity.Ensure(gameObject);
         CacheVisualReferences();
         EnsureVisualProfiles();
     }
@@ -205,6 +207,7 @@ public class PickupItem : MonoBehaviour, IPlayerInteractable
             return;
 
         isPickedUp = true;
+        RunSaveRuntimeState.MarkPickupConsumed(GetSaveId());
 
         if (canvas != null)
             canvas.enabled = false;
@@ -245,6 +248,39 @@ public class PickupItem : MonoBehaviour, IPlayerInteractable
         useExplicitRarity = false;
         RefreshItemView();
         EnsurePassiveAvailability();
+    }
+
+    public void RestoreRunState(bool passive, PassiveItem passiveItem, ActiveItem activeItemData, int z, bool purchaseRequired, int itemPrice)
+    {
+        RestoreRunState(passive, passiveItem, activeItemData, z, purchaseRequired, itemPrice, false);
+    }
+
+    public void RestoreRunState(bool passive, PassiveItem passiveItem, ActiveItem activeItemData, int z, bool purchaseRequired, int itemPrice, bool preserveSavedAvailability)
+    {
+        ReleasePassiveReservation();
+        isPickedUp = false;
+        isPlayerInRange = false;
+        isPassive = passive;
+        item = passiveItem;
+        activeItem = activeItemData;
+        passiveReservationClaimed = preserveSavedAvailability && passive && passiveItem != null;
+        requiresPurchase = purchaseRequired;
+        price = Mathf.Max(0, itemPrice);
+        merchant = null;
+        SetZ(z);
+        RefreshItemView();
+
+        if (canvas != null)
+            canvas.enabled = false;
+
+        if (!preserveSavedAvailability)
+            EnsurePassiveAvailability();
+    }
+
+    public string GetSaveId()
+    {
+        runSaveIdentity ??= RunSaveIdentity.Ensure(gameObject);
+        return runSaveIdentity != null ? runSaveIdentity.SaveId : gameObject.name;
     }
 
     public void MarkPassiveReservationClaimed()

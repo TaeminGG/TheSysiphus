@@ -204,6 +204,201 @@ public class SaveSystemEditModeTests
     }
 
     [Test]
+    public void RunSaveStateController_PersistsConsumedPickupTombstones()
+    {
+        GameObject controllerObject = new GameObject("RunSaveConsumedPickupControllerTest");
+
+        try
+        {
+            RunSaveRuntimeState.MarkPickupConsumed("pickup-save-id");
+            RunSaveStateController controller = controllerObject.AddComponent<RunSaveStateController>();
+
+            RunSaveData captured = controller.Capture("SampleScene");
+
+            Assert.That(captured.Pickups.Exists(pickup => pickup.saveId == "pickup-save-id" && pickup.consumed), Is.True);
+        }
+        finally
+        {
+            Object.DestroyImmediate(controllerObject);
+        }
+    }
+
+    [Test]
+    public void RunSaveRuntimeState_RestoresTombstones_FromSavedRun()
+    {
+        RunSaveData runData = RunSaveData.CreateNew("SampleScene");
+        runData.Enemies.Add(new EnemyRunSaveData { saveId = "dead-enemy", isDead = true });
+        runData.Pickups.Add(new PickupRunSaveData { saveId = "consumed-pickup", consumed = true });
+
+        RunSaveRuntimeState.RestoreFromRun(runData);
+
+        Assert.That(RunSaveRuntimeState.DeadEnemyIds, Does.Contain("dead-enemy"));
+        Assert.That(RunSaveRuntimeState.ConsumedPickupIds, Does.Contain("consumed-pickup"));
+    }
+
+    [Test]
+    public void MerchantStockSpawner_AssignsStableSaveIds_ToSpawnedStockSlots()
+    {
+        GameObject merchantObject = new GameObject("Merchant");
+        GameObject spawnerObject = new GameObject("MerchantStockSpawner");
+        GameObject displayPointObject = new GameObject("DisplayPoint");
+        GameObject pickupPrefab = new GameObject("PickupPrefab");
+        TestActiveItem activeItem = ScriptableObject.CreateInstance<TestActiveItem>();
+
+        try
+        {
+            activeItem.name = "MerchantActive";
+            pickupPrefab.AddComponent<PickupItem>();
+
+            RunSaveIdentity merchantIdentity = merchantObject.AddComponent<RunSaveIdentity>();
+            merchantIdentity.Configure("merchant-save-id", "Merchant");
+
+            MerchantStockSpawner spawner = spawnerObject.AddComponent<MerchantStockSpawner>();
+            spawner.merchant = merchantObject.AddComponent<MerchantNPC>();
+            spawner.pickupItemPrefab = pickupPrefab.GetComponent<PickupItem>();
+            spawner.displayPoints = new[] { displayPointObject.transform };
+            spawner.stockEntries = new[]
+            {
+                new MerchantStockSpawner.MerchantStockEntry
+                {
+                    isPassive = false,
+                    activeItem = activeItem,
+                    price = 7,
+                    weight = 1f
+                }
+            };
+
+            spawner.SpawnStock();
+
+            PickupItem[] spawnedItems = Object.FindObjectsByType<PickupItem>(FindObjectsSortMode.None);
+            PickupItem spawnedItem = System.Array.Find(spawnedItems, item => item != null && item.gameObject != pickupPrefab);
+            Assert.That(spawnedItem, Is.Not.Null);
+
+            RunSaveIdentity spawnedIdentity = spawnedItem.GetComponent<RunSaveIdentity>();
+            Assert.That(spawnedIdentity, Is.Not.Null);
+            Assert.That(spawnedIdentity.SaveId, Is.EqualTo("merchant-save-id:merchant-stock:0"));
+        }
+        finally
+        {
+            PickupItem[] spawnedItems = Object.FindObjectsByType<PickupItem>(FindObjectsSortMode.None);
+            for (int i = 0; i < spawnedItems.Length; i++)
+            {
+                if (spawnedItems[i] != null && spawnedItems[i].gameObject != pickupPrefab)
+                    Object.DestroyImmediate(spawnedItems[i].gameObject);
+            }
+
+            Object.DestroyImmediate(activeItem);
+            Object.DestroyImmediate(pickupPrefab);
+            Object.DestroyImmediate(displayPointObject);
+            Object.DestroyImmediate(spawnerObject);
+            Object.DestroyImmediate(merchantObject);
+        }
+    }
+
+    [Test]
+    public void RunSaveWorldObject_RestoresOpenedChest_AsOpenedAndActive()
+    {
+        GameObject chestObject = new GameObject("Chest");
+        GameObject restoredChestObject = new GameObject("RestoredChest");
+
+        try
+        {
+            RunSaveIdentity identity = chestObject.AddComponent<RunSaveIdentity>();
+            identity.Configure("chest-save-id", "Chest");
+            PickupChest chest = chestObject.AddComponent<PickupChest>();
+            RunSaveWorldObject worldObject = chestObject.AddComponent<RunSaveWorldObject>();
+            SetPrivateField(chest, "isOpened", true);
+            worldObject.MarkConsumedWithoutApplyingVisualState();
+
+            WorldObjectRunSaveData saved = worldObject.Capture();
+
+            RunSaveIdentity restoredIdentity = restoredChestObject.AddComponent<RunSaveIdentity>();
+            restoredIdentity.Configure("chest-save-id", "Chest");
+            PickupChest restoredChest = restoredChestObject.AddComponent<PickupChest>();
+            RunSaveWorldObject restoredWorldObject = restoredChestObject.AddComponent<RunSaveWorldObject>();
+            restoredChestObject.SetActive(false);
+
+            restoredWorldObject.Restore(saved);
+
+            Assert.That(restoredChestObject.activeSelf, Is.True);
+            Assert.That(GetPrivateField<bool>(restoredChest, "isOpened"), Is.True);
+        }
+        finally
+        {
+            Object.DestroyImmediate(restoredChestObject);
+            Object.DestroyImmediate(chestObject);
+        }
+    }
+
+    [Test]
+    public void RunSaveStateController_CapturesNonGoldDroppedItems_AsDroppedItems()
+    {
+        GameObject controllerObject = new GameObject("RunSaveDropControllerTest");
+        GameObject dropObject = new GameObject("NonGoldDrop");
+
+        try
+        {
+            RunSaveIdentity identity = dropObject.AddComponent<RunSaveIdentity>();
+            identity.Configure("drop-save-id", "NonGoldDropPrefab");
+            DroppedItem drop = dropObject.AddComponent<DroppedItem>();
+            drop.isGold = false;
+            drop.SetZ(3);
+            dropObject.transform.position = new Vector3(1f, 2f, 3f);
+
+            RunSaveStateController controller = controllerObject.AddComponent<RunSaveStateController>();
+            RunSaveData captured = controller.Capture("SampleScene");
+
+            PickupRunSaveData savedDrop = captured.Pickups.Find(pickup => pickup.saveId == "drop-save-id");
+            Assert.That(savedDrop, Is.Not.Null);
+            Assert.That(savedDrop.isDroppedItem, Is.True);
+            Assert.That(savedDrop.isGold, Is.False);
+            Assert.That(savedDrop.floorZ, Is.EqualTo(3));
+            Assert.That(savedDrop.position, Is.EqualTo(new Vector3(1f, 2f, 3f)));
+        }
+        finally
+        {
+            Object.DestroyImmediate(dropObject);
+            Object.DestroyImmediate(controllerObject);
+        }
+    }
+
+    [Test]
+    public void RunSaveStateController_CapturesMerchantStockItemIdentityAndPrice()
+    {
+        GameObject controllerObject = new GameObject("RunSaveMerchantStockControllerTest");
+        GameObject stockObject = new GameObject("MerchantStockItem");
+        TestActiveItem activeItem = ScriptableObject.CreateInstance<TestActiveItem>();
+
+        try
+        {
+            activeItem.name = "SavedMerchantActive";
+            RunSaveIdentity identity = stockObject.AddComponent<RunSaveIdentity>();
+            identity.Configure("merchant-save-id:merchant-stock:0", "MerchantStockItem");
+
+            PickupItem pickup = stockObject.AddComponent<PickupItem>();
+            pickup.RestoreRunState(false, null, activeItem, 2, true, 17, true);
+            stockObject.transform.position = new Vector3(4f, -6f, 2f);
+
+            RunSaveStateController controller = controllerObject.AddComponent<RunSaveStateController>();
+            RunSaveData captured = controller.Capture("SampleScene");
+
+            PickupRunSaveData savedStock = captured.Pickups.Find(item => item.saveId == "merchant-save-id:merchant-stock:0");
+            Assert.That(savedStock, Is.Not.Null);
+            Assert.That(savedStock.isDroppedItem, Is.False);
+            Assert.That(savedStock.itemId, Is.EqualTo(activeItem.ItemId));
+            Assert.That(savedStock.requiresPurchase, Is.True);
+            Assert.That(savedStock.price, Is.EqualTo(17));
+            Assert.That(savedStock.floorZ, Is.EqualTo(2));
+        }
+        finally
+        {
+            Object.DestroyImmediate(activeItem);
+            Object.DestroyImmediate(stockObject);
+            Object.DestroyImmediate(controllerObject);
+        }
+    }
+
+    [Test]
     public void SaveManager_SavesUnlocksWithoutRunCollectedState()
     {
         GameSaveRepository repository = new GameSaveRepository(testDirectory);
@@ -332,6 +527,20 @@ public class SaveSystemEditModeTests
         }
 
         return null;
+    }
+
+    private static void SetPrivateField<T>(object target, string fieldName, T value)
+    {
+        FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.That(field, Is.Not.Null);
+        field.SetValue(target, value);
+    }
+
+    private static T GetPrivateField<T>(object target, string fieldName)
+    {
+        FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.That(field, Is.Not.Null);
+        return (T)field.GetValue(target);
     }
 
     private static void ConfigureCatalog(ItemUnlockCatalog catalog, PassiveItem passiveItem, ActiveItem activeItem)

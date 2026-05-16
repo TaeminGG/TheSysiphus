@@ -36,6 +36,7 @@ public class MerchantStockSpawner : MonoBehaviour
     public int floorZ = 0;
 
     private readonly List<PickupItem> spawnedItems = new List<PickupItem>();
+    private bool hasSpawnedStock;
 
     private struct RuntimeStockEntry
     {
@@ -48,12 +49,21 @@ public class MerchantStockSpawner : MonoBehaviour
 
     private void Start()
     {
+        EnsureStockSpawned();
+    }
+
+    public void EnsureStockSpawned()
+    {
+        if (hasSpawnedStock)
+            return;
+
         SpawnStock();
     }
 
     [ContextMenu("Spawn Stock")]
     public void SpawnStock()
     {
+        hasSpawnedStock = true;
         ClearSpawnedItems();
 
         if (pickupItemPrefab == null || displayPoints == null || displayPoints.Length == 0)
@@ -92,11 +102,25 @@ public class MerchantStockSpawner : MonoBehaviour
             }
 
             spawnedItem.ConfigureAsMerchantItem(entry.IsPassive, entry.PassiveItem, entry.ActiveItem, entry.Price, merchant, floorZ, entry.IsPassive);
+            AssignRunSaveIdentity(spawnedItem, i);
             spawnedItems.Add(spawnedItem);
 
             if (!allowDuplicates)
                 availableEntries.RemoveAt(selectedIndex);
         }
+    }
+
+    private void AssignRunSaveIdentity(PickupItem spawnedItem, int displayIndex)
+    {
+        if (spawnedItem == null)
+            return;
+
+        RunSaveIdentity ownerIdentity = GetComponent<RunSaveIdentity>();
+        if (ownerIdentity == null && merchant != null)
+            ownerIdentity = merchant.GetComponent<RunSaveIdentity>();
+
+        string ownerSaveId = ownerIdentity != null ? ownerIdentity.SaveId : gameObject.name;
+        RunSaveIdentity.Ensure(spawnedItem.gameObject, $"{ownerSaveId}:merchant-stock:{displayIndex}", "MerchantStockItem");
     }
 
     private List<RuntimeStockEntry> BuildAvailableEntries()

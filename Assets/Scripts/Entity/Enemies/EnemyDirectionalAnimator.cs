@@ -15,6 +15,7 @@ public class EnemyDirectionalAnimator : MonoBehaviour
 
     private Animator animator;
     private SpriteRenderer spriteRenderer;
+    private EnemyStats stats;
     private IEnemyAttack attack;
     private IEnemyMovement movement;
     private Transform player;
@@ -22,11 +23,14 @@ public class EnemyDirectionalAnimator : MonoBehaviour
     private Vector2 lastFacingDirection = Vector2.right;
     private Vector2 lastMovementDirection = Vector2.right;
     private Vector2 lockedAttackDirection = Vector2.right;
+    private Vector2 lockedDeathDirection = Vector2.right;
     private float lastMovementTime = float.NegativeInfinity;
     private bool wasBusy;
+    private bool isDeathDirectionLocked;
 
     private void Awake()
     {
+        stats = GetComponent<EnemyStats>();
         movement = GetComponent<IEnemyMovement>();
         attack = GetComponent<IEnemyAttack>();
 
@@ -53,6 +57,9 @@ public class EnemyDirectionalAnimator : MonoBehaviour
     {
         if (animator == null)
             return;
+
+        if (stats != null && stats.IsDead)
+            LockDeathDirection();
 
         bool isBusy = attack != null && attack.IsBusy;
         if (isBusy && !wasBusy)
@@ -83,7 +90,7 @@ public class EnemyDirectionalAnimator : MonoBehaviour
 
         bool movementReportedWalking = animator.GetBool(IsWalkingHash) || animator.GetBool(LegacyIsWalkingHash);
         bool recentlyMoved = Time.time - lastMovementTime <= MovementHoldTime;
-        bool isWalking = !isBusy && movement != null && (movementReportedWalking || recentlyMoved);
+        bool isWalking = !isBusy && !isDeathDirectionLocked && movement != null && (movementReportedWalking || recentlyMoved);
         animator.SetBool(IsWalkingHash, isWalking);
         animator.SetBool(LegacyIsWalkingHash, isWalking);
 
@@ -96,6 +103,27 @@ public class EnemyDirectionalAnimator : MonoBehaviour
         previousPosition = transform.position;
     }
 
+    public void LockDeathDirection()
+    {
+        if (isDeathDirectionLocked)
+            return;
+
+        lockedDeathDirection = ResolveAttackDirection();
+        if (lockedDeathDirection.sqrMagnitude <= 0.001f)
+            lockedDeathDirection = lastFacingDirection;
+
+        lockedDeathDirection.Normalize();
+        lastFacingDirection = lockedDeathDirection;
+        isDeathDirectionLocked = true;
+
+        if (animator != null)
+        {
+            animator.SetFloat(DirectionHash, DirectionToIndex(lastFacingDirection));
+            animator.SetBool(IsWalkingHash, false);
+            animator.SetBool(LegacyIsWalkingHash, false);
+        }
+    }
+
     private Transform ResolveSpriteTransform()
     {
         Animator childAnimator = GetComponentInChildren<Animator>();
@@ -104,6 +132,9 @@ public class EnemyDirectionalAnimator : MonoBehaviour
 
     private Vector2 ResolveFacingDirection(bool isBusy, Vector2 movementDelta)
     {
+        if (isDeathDirectionLocked)
+            return lockedDeathDirection;
+
         if (isBusy)
             return lockedAttackDirection;
 

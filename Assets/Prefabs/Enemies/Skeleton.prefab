@@ -383,7 +383,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01049d2e664f0604f9a1f74152acd9f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
-  maxHp: 100
+  maxHp: 50
   knockBackResist: 0.5
   canvas: {fileID: 7115197825974064350}
   hpbar: {fileID: 5188829508925080104}
@@ -421,7 +421,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ee74193be2bed24ba5dd8aa23aa32f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UndeadMovement
-  moveSpeed: 1
+  moveSpeed: 1.8
   floorZ: 0
   isDetected: 0
   sprite: {fileID: 8418245287335229799}

@@ -79,13 +79,10 @@ public sealed class TitleMenuController : MonoBehaviour
     public void ContinueGame()
     {
         saveManager ??= SaveManager.EnsureInstance();
-        if (!saveManager.TryLoadRun(out RunSaveData runData))
+        if (!saveManager.ContinueRun())
         {
             RefreshContinueState();
-            return;
         }
-
-        SceneManager.LoadScene(string.IsNullOrWhiteSpace(runData.SceneName) ? ResolveGameSceneName() : runData.SceneName);
     }
 
     public void ToggleCollectionAndSettings()

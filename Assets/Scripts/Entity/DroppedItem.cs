@@ -8,14 +8,14 @@ public class DroppedItem : MonoBehaviour
     public int gold = 0;
 
     public int floorZ = 0;
+    private RunSaveIdentity runSaveIdentity;
 
-    void Start()
+    private void Awake()
     {
-        
+        runSaveIdentity = RunSaveIdentity.Ensure(gameObject);
     }
 
-    // Update is called once per frame
-    void Update()
+    void Start()
     {
         
     }
@@ -26,6 +26,19 @@ public class DroppedItem : MonoBehaviour
         Vector3 pos = transform.position;
         pos.z = z;
         transform.position = pos;
+    }
+
+    public void RestoreRunState(bool goldDrop, int goldAmount, int z)
+    {
+        isGold = goldDrop;
+        gold = Mathf.Max(0, goldAmount);
+        SetZ(z);
+    }
+
+    public string GetSaveId()
+    {
+        runSaveIdentity ??= RunSaveIdentity.Ensure(gameObject);
+        return runSaveIdentity != null ? runSaveIdentity.SaveId : gameObject.name;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -46,6 +59,7 @@ public class DroppedItem : MonoBehaviour
 
             }
 
+            RunSaveRuntimeState.MarkPickupConsumed(GetSaveId());
             Destroy(gameObject);
         }
     }

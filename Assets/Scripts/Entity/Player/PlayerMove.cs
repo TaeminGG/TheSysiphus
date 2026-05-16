@@ -34,6 +34,11 @@ public class PlayerMove : MonoBehaviour
     public float jumpForce = 5.0f;
     public float gravity = -9.81f;
 
+    [Header("Map Bounds")]
+    [SerializeField] private bool useHorizontalBounds = true;
+    [SerializeField] private float horizontalBoundsCenterX = 0f;
+    [SerializeField] private float horizontalBoundsWidth = 50f;
+
     [Header("Status")]
     public float playerZ = 0;
     private float verticalVelocity = 0f;
@@ -137,6 +142,7 @@ public class PlayerMove : MonoBehaviour
             PlayerMoveMent();
         }
 
+        ClampToHorizontalBounds();
         UpdatePosition();
     }
 
@@ -374,6 +380,8 @@ public class PlayerMove : MonoBehaviour
             }
         }
 
+        ClampToHorizontalBounds();
+
         return Vector2.Distance(new Vector2(startPos.x, startPos.y), new Vector2(transform.position.x, transform.position.y));
     }
 
@@ -441,6 +449,17 @@ public class PlayerMove : MonoBehaviour
             return 0;
 
         return tileZLevel + 2;
+    }
+
+    private void ClampToHorizontalBounds()
+    {
+        if (!useHorizontalBounds || horizontalBoundsWidth <= 0f)
+            return;
+
+        float halfWidth = horizontalBoundsWidth * 0.5f;
+        Vector3 position = transform.position;
+        position.x = Mathf.Clamp(position.x, horizontalBoundsCenterX - halfWidth, horizontalBoundsCenterX + halfWidth);
+        transform.position = position;
     }
 
     private void UpdatePosition()
@@ -605,6 +624,8 @@ public class PlayerMove : MonoBehaviour
         fixedZ = -1;
         spriteZ = Mathf.Max(0f, playerZ - floorZ);
         yOffset = 0f;
+
+        ClampToHorizontalBounds();
 
         if (shadow != null && stc != null)
             stc.SyncToPosition(shadow.transform.position);

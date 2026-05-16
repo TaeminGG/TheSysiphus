@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8340871889764788507}
   - component: {fileID: 6415529603329546253}
   - component: {fileID: 1915500590467283867}
+  - component: {fileID: 3776101568557286725}
   m_Layer: 9
   m_Name: Barrel
   m_TagString: Untagged
@@ -29,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 1.73, y: -2.14, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -60,7 +61,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 28e3debe99dbd8f49941d40450e72d02, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -83,8 +84,8 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.8301887, g: 0.52561194, b: 0.2232111, a: 1}
+  m_Sprite: {fileID: 4100000001, guid: b6f4ac3e47334a87aaf00c4ea256df83, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -155,6 +156,24 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1032
   dropItem: {fileID: 4327369436755851135, guid: bcbf89086957f344db1e553ea3a74919, type: 3}
+  breakEffect: {fileID: 4500000001, guid: 41bb621d3b3641c293d453cc8a3afee8, type: 3}
+  breakEffectLifetime: 0.5
   isGold: 1
   gold: 20
   floorZ: 0
+--- !u!114 &3776101568557286725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2386049474017580117}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee158225ee1e59f4791627785501d950, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: AllIn1SpriteShaderAssembly::AllIn1SpriteShader.AllIn1Shader
+  currentShaderType: 3
+  normalStrength: 5
+  normalSmoothing: 1
+  computingNormal: 0

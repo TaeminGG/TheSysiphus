@@ -1,8 +1,10 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class LevelManager : MonoBehaviour
 {
     private ChunkLoader chunkLoader;
+    private readonly List<ChunkRunSaveData> loadedChunks = new List<ChunkRunSaveData>();
 
     [Header("Run State")]
     public bool autoStart = false;
@@ -31,6 +33,7 @@ public class LevelManager : MonoBehaviour
     public bool HasStarted => hasStarted;
     public bool HasStageGoal => useStageGoalY;
     public float StageGoalY => stageGoalY;
+    public IReadOnlyList<ChunkRunSaveData> LoadedChunks => loadedChunks;
 
     private void Awake()
     {
@@ -99,12 +102,27 @@ public class LevelManager : MonoBehaviour
 
     public void LoadChunk(int index, int height)
     {
+        LoadChunk(index, height, currentLevel, true);
+    }
+
+    public void LoadChunk(int index, int height, int chunkCount, bool recordChunk)
+    {
         if (chunkLoader == null)
             return;
 
-        chunkLoader.AddChunk(index, height, currentLevel, true);
-        chunkLoader.AddChunk(index, height, currentLevel, false);
-        currentLevel += 1;
+        chunkLoader.AddChunk(index, height, chunkCount, true);
+        chunkLoader.AddChunk(index, height, chunkCount, false);
+        currentLevel = Mathf.Max(currentLevel, chunkCount + 1);
+
+        if (recordChunk && !ContainsLoadedChunk(chunkCount))
+        {
+            loadedChunks.Add(new ChunkRunSaveData
+            {
+                chunkIndex = index,
+                chunkHeight = height,
+                chunkCount = chunkCount
+            });
+        }
     }
 
     private void LoadNextChunk()
@@ -121,6 +139,85 @@ public class LevelManager : MonoBehaviour
         }
 
         LoadChunk(chunkIndex, chunkHeight);
+    }
+
+    public LevelRunSaveData CaptureRunState()
+    {
+        LevelRunSaveData data = new LevelRunSaveData
+        {
+            hasData = true,
+            hasStarted = hasStarted,
+            currentLevel = currentLevel,
+            chunkHeight = chunkHeight,
+            nextChunkTriggerY = nextChunkTriggerY,
+            loadedChunks = new List<ChunkRunSaveData>()
+        };
+
+        for (int i = 0; i < loadedChunks.Count; i++)
+        {
+            ChunkRunSaveData chunk = loadedChunks[i];
+            if (chunk == null)
+                continue;
+
+            data.loadedChunks.Add(new ChunkRunSaveData
+            {
+                chunkIndex = chunk.chunkIndex,
+                chunkHeight = chunk.chunkHeight,
+                chunkCount = chunk.chunkCount
+            });
+        }
+
+        return data;
+    }
+
+    public void RestoreRunState(LevelRunSaveData data)
+    {
+        if (data == null || !data.hasData)
+            return;
+
+        ResolveReferences();
+        loadedChunks.Clear();
+
+        hasStarted = data.hasStarted;
+        chunkHeight = data.chunkHeight > 0 ? data.chunkHeight : chunkHeight;
+
+        if (hasStarted)
+            ActivateRestrictionZone();
+
+        if (data.loadedChunks != null)
+        {
+            for (int i = 0; i < data.loadedChunks.Count; i++)
+            {
+                ChunkRunSaveData chunk = data.loadedChunks[i];
+                if (chunk == null)
+                    continue;
+
+                LoadChunk(chunk.chunkIndex, chunk.chunkHeight > 0 ? chunk.chunkHeight : chunkHeight, chunk.chunkCount, true);
+            }
+        }
+
+        EnsureRestoredChunkRuntimeSpawns();
+
+        currentLevel = Mathf.Max(currentLevel, data.currentLevel);
+        nextChunkTriggerY = data.nextChunkTriggerY;
+    }
+
+    private void EnsureRestoredChunkRuntimeSpawns()
+    {
+        MerchantStockSpawner[] merchantSpawners = FindObjectsByType<MerchantStockSpawner>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < merchantSpawners.Length; i++)
+            merchantSpawners[i]?.EnsureStockSpawned();
+    }
+
+    private bool ContainsLoadedChunk(int chunkCount)
+    {
+        for (int i = 0; i < loadedChunks.Count; i++)
+        {
+            if (loadedChunks[i] != null && loadedChunks[i].chunkCount == chunkCount)
+                return true;
+        }
+
+        return false;
     }
 
     private void ActivateRestrictionZone()

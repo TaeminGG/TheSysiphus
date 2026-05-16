@@ -53,6 +53,7 @@ public class FountainOfHealth : MonoBehaviour, IPlayerInteractable
 
         isUsed = true;
         UnregisterInteractable();
+        GetComponent<RunSaveWorldObject>()?.MarkConsumedWithoutApplyingVisualState();
 
         if (depletedSprite != null && spriteRenderer != null)
             spriteRenderer.sprite = depletedSprite;

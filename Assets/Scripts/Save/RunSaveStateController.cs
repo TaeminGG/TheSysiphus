@@ -9,6 +9,7 @@ public sealed class RunSaveStateController : MonoBehaviour
     {
         RunSaveData data = RunSaveData.CreateNew(string.IsNullOrWhiteSpace(sceneName) ? SceneManager.GetActiveScene().name : sceneName);
         data.Player = CapturePlayer();
+        data.Level = CaptureLevel();
         data.Enemies = CaptureEnemies();
         data.Pickups = CapturePickups();
         data.WorldObjects = CaptureWorldObjects();
@@ -25,14 +26,15 @@ public sealed class RunSaveStateController : MonoBehaviour
         if (data == null || !data.ActiveRun)
             return false;
 
+        ItemUnlockRegistry registry = ItemUnlockRegistry.FindInstance();
+        if (registry != null)
+            registry.RestoreSnapshot(data.RunItemSnapshot);
+
+        RestoreLevel(data.Level);
         RestorePlayer(data.Player);
         RestoreEnemies(data.Enemies);
         RestorePickups(data.Pickups);
         RestoreWorldObjects(data.WorldObjects);
-
-        ItemUnlockRegistry registry = ItemUnlockRegistry.FindInstance();
-        if (registry != null)
-            registry.RestoreSnapshot(data.RunItemSnapshot);
 
         return true;
     }
@@ -93,6 +95,27 @@ public sealed class RunSaveStateController : MonoBehaviour
 
         if (stats != null)
             stats.RestoreRunState(data.maxHp, data.currentHp, data.gold, data.potionCount, data.maxPotionCount, data.damage, data.attackSpeed);
+    }
+
+    private static LevelRunSaveData CaptureLevel()
+    {
+        LevelManager levelManager = FindFirstObjectByType<LevelManager>();
+        if (levelManager == null)
+            return new LevelRunSaveData();
+
+        return levelManager.CaptureRunState();
+    }
+
+    private static void RestoreLevel(LevelRunSaveData data)
+    {
+        if (data == null || !data.hasData)
+            return;
+
+        LevelManager levelManager = FindFirstObjectByType<LevelManager>();
+        if (levelManager == null)
+            return;
+
+        levelManager.RestoreRunState(data);
     }
 
     private static List<EnemyRunSaveData> CaptureEnemies()
@@ -185,12 +208,16 @@ public sealed class RunSaveStateController : MonoBehaviour
             pickups.Add(new PickupRunSaveData
             {
                 saveId = identity != null ? identity.SaveId : pickup.gameObject.name,
+                prefabId = identity != null ? identity.PrefabId : pickup.gameObject.name,
+                isDroppedItem = false,
                 isPassive = pickup.isPassive,
+                isGold = false,
                 itemId = pickup.isPassive ? (pickup.item?.ItemId ?? string.Empty) : (pickup.activeItem?.ItemId ?? string.Empty),
                 position = pickup.transform.position,
                 floorZ = pickup.floorZ,
                 requiresPurchase = pickup.requiresPurchase,
-                price = pickup.price
+                price = pickup.price,
+                consumed = false
             });
         }
 
@@ -198,17 +225,33 @@ public sealed class RunSaveStateController : MonoBehaviour
         for (int i = 0; i < droppedItems.Length; i++)
         {
             DroppedItem dropped = droppedItems[i];
-            if (dropped == null || !dropped.isGold)
+            if (dropped == null)
                 continue;
 
             RunSaveIdentity identity = dropped.GetComponent<RunSaveIdentity>();
             pickups.Add(new PickupRunSaveData
             {
                 saveId = identity != null ? identity.SaveId : dropped.gameObject.name,
+                prefabId = identity != null ? identity.PrefabId : dropped.gameObject.name,
+                isDroppedItem = true,
                 isPassive = false,
+                isGold = dropped.isGold,
                 goldAmount = dropped.gold,
                 position = dropped.transform.position,
-                floorZ = dropped.floorZ
+                floorZ = dropped.floorZ,
+                consumed = false
+            });
+        }
+
+        foreach (string consumedPickupId in RunSaveRuntimeState.ConsumedPickupIds)
+        {
+            if (string.IsNullOrWhiteSpace(consumedPickupId) || ContainsPickupSaveId(pickups, consumedPickupId))
+                continue;
+
+            pickups.Add(new PickupRunSaveData
+            {
+                saveId = consumedPickupId,
+                consumed = true
             });
         }
 
@@ -217,8 +260,23 @@ public sealed class RunSaveStateController : MonoBehaviour
 
     private static void RestorePickups(List<PickupRunSaveData> savedPickups)
     {
-        // Runtime pickup respawn needs prefab registries. The saved data is captured now so
-        // item, gold, and shop pickup restoration can be added without changing save format.
+        if (savedPickups == null)
+            return;
+
+        Dictionary<string, PickupRunSaveData> savedById = new Dictionary<string, PickupRunSaveData>();
+        for (int i = 0; i < savedPickups.Count; i++)
+        {
+            PickupRunSaveData saved = savedPickups[i];
+            if (saved == null || string.IsNullOrWhiteSpace(saved.saveId) || savedById.ContainsKey(saved.saveId))
+                continue;
+
+            savedById.Add(saved.saveId, saved);
+        }
+
+        HashSet<string> restoredIds = new HashSet<string>();
+        RestoreExistingPickupItems(savedById, restoredIds);
+        RestoreExistingDroppedItems(savedById, restoredIds);
+        CreateMissingPickups(savedPickups, restoredIds);
     }
 
     private static List<WorldObjectRunSaveData> CaptureWorldObjects()
@@ -283,6 +341,183 @@ public sealed class RunSaveStateController : MonoBehaviour
         }
 
         return false;
+    }
+
+    private static bool ContainsPickupSaveId(List<PickupRunSaveData> pickups, string saveId)
+    {
+        for (int i = 0; i < pickups.Count; i++)
+        {
+            if (pickups[i] != null && pickups[i].saveId == saveId)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static void RestoreExistingPickupItems(Dictionary<string, PickupRunSaveData> savedById, HashSet<string> restoredIds)
+    {
+        PickupItem[] currentPickups = FindObjectsByType<PickupItem>(FindObjectsSortMode.None);
+        ItemUnlockCatalog catalog = ResolveCatalog();
+
+        for (int i = 0; i < currentPickups.Length; i++)
+        {
+            PickupItem pickup = currentPickups[i];
+            if (pickup == null)
+                continue;
+
+            RunSaveIdentity identity = pickup.GetComponent<RunSaveIdentity>();
+            string saveId = identity != null ? identity.SaveId : pickup.gameObject.name;
+            if (!savedById.TryGetValue(saveId, out PickupRunSaveData saved) || saved.consumed || saved.isDroppedItem)
+            {
+                Object.Destroy(pickup.gameObject);
+                continue;
+            }
+
+            RestorePickupItem(pickup, saved, catalog, true);
+            restoredIds.Add(saveId);
+        }
+    }
+
+    private static void RestoreExistingDroppedItems(Dictionary<string, PickupRunSaveData> savedById, HashSet<string> restoredIds)
+    {
+        DroppedItem[] currentDrops = FindObjectsByType<DroppedItem>(FindObjectsSortMode.None);
+        for (int i = 0; i < currentDrops.Length; i++)
+        {
+            DroppedItem drop = currentDrops[i];
+            if (drop == null)
+                continue;
+
+            RunSaveIdentity identity = drop.GetComponent<RunSaveIdentity>();
+            string saveId = identity != null ? identity.SaveId : drop.gameObject.name;
+            if (!savedById.TryGetValue(saveId, out PickupRunSaveData saved) || saved.consumed || !saved.isDroppedItem)
+            {
+                Object.Destroy(drop.gameObject);
+                continue;
+            }
+
+            drop.transform.position = saved.position;
+            drop.RestoreRunState(saved.isGold, saved.goldAmount, saved.floorZ);
+            restoredIds.Add(saveId);
+        }
+    }
+
+    private static void CreateMissingPickups(List<PickupRunSaveData> savedPickups, HashSet<string> restoredIds)
+    {
+        ItemUnlockCatalog catalog = ResolveCatalog();
+        for (int i = 0; i < savedPickups.Count; i++)
+        {
+            PickupRunSaveData saved = savedPickups[i];
+            if (saved == null || saved.consumed || string.IsNullOrWhiteSpace(saved.saveId) || restoredIds.Contains(saved.saveId))
+                continue;
+
+            if (saved.isDroppedItem)
+            {
+                CreateMissingDroppedItem(saved);
+                continue;
+            }
+
+            CreateMissingPickupItem(saved, catalog);
+        }
+    }
+
+    private static void CreateMissingPickupItem(PickupRunSaveData saved, ItemUnlockCatalog catalog)
+    {
+        GameObject template = FindPickupItemTemplate();
+        if (template == null)
+            return;
+
+        GameObject created = Object.Instantiate(template, saved.position, Quaternion.identity);
+        RunSaveIdentity.Ensure(created, saved.saveId, string.IsNullOrWhiteSpace(saved.prefabId) ? template.name : saved.prefabId);
+
+        PickupItem pickup = created.GetComponent<PickupItem>();
+        if (pickup == null)
+        {
+            Object.Destroy(created);
+            return;
+        }
+
+        RestorePickupItem(pickup, saved, catalog, true);
+    }
+
+    private static void CreateMissingDroppedItem(PickupRunSaveData saved)
+    {
+        GameObject template = FindDroppedItemTemplate();
+        if (template == null)
+            return;
+
+        GameObject created = Object.Instantiate(template, saved.position, Quaternion.identity);
+        RunSaveIdentity.Ensure(created, saved.saveId, string.IsNullOrWhiteSpace(saved.prefabId) ? template.name : saved.prefabId);
+        DroppedItem drop = created.GetComponent<DroppedItem>();
+        if (drop == null)
+        {
+            Object.Destroy(created);
+            return;
+        }
+
+        drop.RestoreRunState(saved.isGold, saved.goldAmount, saved.floorZ);
+    }
+
+    private static void RestorePickupItem(PickupItem pickup, PickupRunSaveData saved, ItemUnlockCatalog catalog, bool preserveSavedAvailability)
+    {
+        PassiveItem passiveItem = null;
+        ActiveItem activeItem = null;
+        if (saved.isPassive)
+            catalog?.TryGetPassiveItem(saved.itemId, out passiveItem);
+        else
+            catalog?.TryGetActiveItem(saved.itemId, out activeItem);
+
+        pickup.transform.position = saved.position;
+        pickup.RestoreRunState(saved.isPassive, passiveItem, activeItem, saved.floorZ, saved.requiresPurchase, saved.price, preserveSavedAvailability);
+    }
+
+    private static ItemUnlockCatalog ResolveCatalog()
+    {
+        ItemUnlockRegistry registry = ItemUnlockRegistry.FindInstance();
+        return registry != null ? registry.Catalog : null;
+    }
+
+    private static GameObject FindPickupItemTemplate()
+    {
+        PickupChest[] chests = FindObjectsByType<PickupChest>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < chests.Length; i++)
+        {
+            if (chests[i] != null && chests[i].pickupItemPrefab != null)
+                return chests[i].pickupItemPrefab;
+        }
+
+        MerchantStockSpawner[] merchants = FindObjectsByType<MerchantStockSpawner>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < merchants.Length; i++)
+        {
+            if (merchants[i] != null && merchants[i].pickupItemPrefab != null)
+                return merchants[i].pickupItemPrefab.gameObject;
+        }
+
+        PickupItem existing = FindFirstObjectByType<PickupItem>();
+        return existing != null ? existing.gameObject : null;
+    }
+
+    private static GameObject FindDroppedItemTemplate()
+    {
+        BreakableProbs[] breakables = FindObjectsByType<BreakableProbs>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < breakables.Length; i++)
+        {
+            if (breakables[i] != null && breakables[i].dropItem != null && breakables[i].dropItem.GetComponent<DroppedItem>() != null)
+                return breakables[i].dropItem;
+        }
+
+        ItemDrop[] enemyDrops = FindObjectsByType<ItemDrop>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < enemyDrops.Length; i++)
+        {
+            if (enemyDrops[i] != null && enemyDrops[i].item != null && enemyDrops[i].item.GetComponent<DroppedItem>() != null)
+                return enemyDrops[i].item;
+        }
+
+        ActiveInventory inventory = FindFirstObjectByType<ActiveInventory>();
+        if (inventory != null && inventory.dropItem != null && inventory.dropItem.GetComponent<DroppedItem>() != null)
+            return inventory.dropItem;
+
+        DroppedItem existing = FindFirstObjectByType<DroppedItem>();
+        return existing != null ? existing.gameObject : null;
     }
 
     private static List<string> CapturePassiveItemIds(PassiveItemList passiveItemList)

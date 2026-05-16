@@ -20,6 +20,10 @@ public class ItemDrop : MonoBehaviour
             return;
 
         GameObject prefab = Instantiate(item, transform.position, Quaternion.identity);
+        RunSaveIdentity sourceIdentity = GetComponent<RunSaveIdentity>();
+        if (sourceIdentity != null)
+            RunSaveIdentity.Ensure(prefab, $"{sourceIdentity.SaveId}:drop", item.name);
+
         PickupItem pickupItem = prefab.GetComponent<PickupItem>();
         pickupItem?.MarkPassiveReservationClaimed();
 
