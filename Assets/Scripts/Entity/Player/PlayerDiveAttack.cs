@@ -141,7 +141,7 @@ public class PlayerDiveAttack : MonoBehaviour
 
         playerMove.BeginForcedFall(GetResolvedFallSpeed());
         directionalAnimator?.PlayDiveAttack(playerMove.GetFacingDirection());
-        SpawnVisual(fallingAttackData, transform.position + fallingVisualOffset);
+        SpawnVisual(fallingAttackData, transform.position, fallingVisualOffset);
         OnDiveStarted?.Invoke();
         return true;
     }
@@ -194,7 +194,7 @@ public class PlayerDiveAttack : MonoBehaviour
         {
             Vector3 landingPosition = transform.position;
             ApplyAreaDamage(landingShockwaveData, landingHitTargets, playerMove != null ? playerMove.floorZ : 0f, landingPosition);
-            SpawnVisual(landingShockwaveData, landingPosition + landingVisualOffset);
+            SpawnVisual(landingShockwaveData, landingPosition, landingVisualOffset, landingShockwaveRangeMultiplier);
             float recoveryDuration = ApplyPostLandingRecovery();
             ScheduleDiveAnimationEnd(recoveryDuration);
         }
@@ -393,13 +393,15 @@ public class PlayerDiveAttack : MonoBehaviour
         hitSparkController.Play(attackData.onHitSparkPrefab, hit.bounds.center, settings);
     }
 
-    private void SpawnVisual(AttackData attackData, Vector3 worldPosition)
+    private void SpawnVisual(AttackData attackData, Vector3 origin, Vector3 visualOffset, float rangeMultiplier = 1f)
     {
         if (attackData == null || attackData.visual == null)
             return;
 
         Transform parent = visualRoot != null ? visualRoot : null;
+        Vector3 worldPosition = origin + (Vector3)attackData.hitboxOffset + visualOffset;
         GameObject visualObject = Instantiate(attackData.visual, worldPosition, Quaternion.identity, parent);
+        AttackVisualSizingUtility.FitToCircularHitRange(visualObject, attackData, rangeMultiplier);
         float lifetime = Mathf.Max(0.05f, attackData.attackDuration);
         Destroy(visualObject, lifetime);
     }

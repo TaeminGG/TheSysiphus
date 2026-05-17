@@ -243,11 +243,11 @@ public class SaveSystemEditModeTests
         GameObject spawnerObject = new GameObject("MerchantStockSpawner");
         GameObject displayPointObject = new GameObject("DisplayPoint");
         GameObject pickupPrefab = new GameObject("PickupPrefab");
-        TestActiveItem activeItem = ScriptableObject.CreateInstance<TestActiveItem>();
+        TestPassiveItem passiveItem = ScriptableObject.CreateInstance<TestPassiveItem>();
 
         try
         {
-            activeItem.name = "MerchantActive";
+            passiveItem.name = "MerchantPassive";
             pickupPrefab.AddComponent<PickupItem>();
 
             RunSaveIdentity merchantIdentity = merchantObject.AddComponent<RunSaveIdentity>();
@@ -261,8 +261,8 @@ public class SaveSystemEditModeTests
             {
                 new MerchantStockSpawner.MerchantStockEntry
                 {
-                    isPassive = false,
-                    activeItem = activeItem,
+                    isPassive = true,
+                    passiveItem = passiveItem,
                     price = 7,
                     weight = 1f
                 }
@@ -287,7 +287,7 @@ public class SaveSystemEditModeTests
                     Object.DestroyImmediate(spawnedItems[i].gameObject);
             }
 
-            Object.DestroyImmediate(activeItem);
+            Object.DestroyImmediate(passiveItem);
             Object.DestroyImmediate(pickupPrefab);
             Object.DestroyImmediate(displayPointObject);
             Object.DestroyImmediate(spawnerObject);

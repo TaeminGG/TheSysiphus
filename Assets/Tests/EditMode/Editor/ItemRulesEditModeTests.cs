@@ -229,6 +229,111 @@ public class ItemRulesEditModeTests
     }
 
     [Test]
+    public void ItemSpawnPool_BuildsChestEntries_FromAllUnlockedRegistryItems()
+    {
+        GameObject registryObject = new GameObject("UnlockedRegistryChestEntriesTest");
+        TestPassiveItem availablePassive = ScriptableObject.CreateInstance<TestPassiveItem>();
+        TestPassiveItem reservedPassive = ScriptableObject.CreateInstance<TestPassiveItem>();
+        TestActiveItem availableActive = ScriptableObject.CreateInstance<TestActiveItem>();
+
+        try
+        {
+            availablePassive.name = "AvailablePassive";
+            reservedPassive.name = "ReservedPassive";
+            availableActive.name = "AvailableActive";
+
+            ItemUnlockRegistry registry = registryObject.AddComponent<ItemUnlockRegistry>();
+            registry.ResetToInitialState();
+            Assert.That(registry.Unlock(availablePassive), Is.True);
+            Assert.That(registry.Unlock(reservedPassive), Is.True);
+            Assert.That(registry.Unlock(availableActive), Is.True);
+            Assert.That(registry.TryReservePassive(reservedPassive), Is.True);
+
+            System.Collections.Generic.List<ItemSpawnPool.RollResult> unlockedEntries = ItemSpawnPool.GetUnlockedRegistryEntries(registry);
+
+            Assert.That(unlockedEntries.Count, Is.EqualTo(2));
+            Assert.That(ContainsPassive(unlockedEntries, availablePassive), Is.True);
+            Assert.That(ContainsPassive(unlockedEntries, reservedPassive), Is.False);
+            Assert.That(ContainsActive(unlockedEntries, availableActive), Is.True);
+        }
+        finally
+        {
+            Object.DestroyImmediate(registryObject);
+            Object.DestroyImmediate(availablePassive);
+            Object.DestroyImmediate(reservedPassive);
+            Object.DestroyImmediate(availableActive);
+        }
+    }
+
+    [Test]
+    public void MerchantStockSpawner_UsesUnlockedItems_WithPassiveFirstAndRepeatableActives()
+    {
+        GameObject registryObject = new GameObject("MerchantUnlockedRegistryTest");
+        GameObject spawnerObject = new GameObject("MerchantStockSpawnerTest");
+        GameObject pickupPrefabObject = new GameObject("MerchantPickupPrefab");
+        GameObject[] displayPointObjects = new GameObject[3];
+        TestPassiveItem passiveItem = ScriptableObject.CreateInstance<TestPassiveItem>();
+        TestActiveItem activeItem = ScriptableObject.CreateInstance<TestActiveItem>();
+
+        try
+        {
+            passiveItem.name = "MerchantPassive";
+            activeItem.name = "MerchantActive";
+
+            ItemUnlockRegistry registry = registryObject.AddComponent<ItemUnlockRegistry>();
+            registry.ResetToInitialState();
+            Assert.That(registry.Unlock(passiveItem), Is.True);
+            Assert.That(registry.Unlock(activeItem), Is.True);
+
+            PickupItem pickupPrefab = pickupPrefabObject.AddComponent<PickupItem>();
+            Transform[] displayPoints = new Transform[displayPointObjects.Length];
+            for (int i = 0; i < displayPointObjects.Length; i++)
+            {
+                displayPointObjects[i] = new GameObject($"MerchantDisplayPoint{i}");
+                displayPointObjects[i].transform.position = new Vector3(i, 0f, 0f);
+                displayPoints[i] = displayPointObjects[i].transform;
+            }
+
+            MerchantStockSpawner spawner = spawnerObject.AddComponent<MerchantStockSpawner>();
+            spawner.pickupItemPrefab = pickupPrefab;
+            spawner.displayPoints = displayPoints;
+
+            spawner.SpawnStock();
+
+            PickupItem[] spawnedItems = Object.FindObjectsByType<PickupItem>(FindObjectsSortMode.None);
+            PickupItem firstSlot = FindSpawnedPickupAt(spawnedItems, pickupPrefab, displayPoints[0].position);
+            PickupItem secondSlot = FindSpawnedPickupAt(spawnedItems, pickupPrefab, displayPoints[1].position);
+            PickupItem thirdSlot = FindSpawnedPickupAt(spawnedItems, pickupPrefab, displayPoints[2].position);
+
+            Assert.That(firstSlot, Is.Not.Null);
+            Assert.That(firstSlot.isPassive, Is.True);
+            Assert.That(firstSlot.item, Is.EqualTo(passiveItem));
+            Assert.That(registry.IsReserved(passiveItem), Is.True);
+
+            Assert.That(secondSlot, Is.Not.Null);
+            Assert.That(secondSlot.isPassive, Is.False);
+            Assert.That(secondSlot.activeItem, Is.EqualTo(activeItem));
+
+            Assert.That(thirdSlot, Is.Not.Null);
+            Assert.That(thirdSlot.isPassive, Is.False);
+            Assert.That(thirdSlot.activeItem, Is.EqualTo(activeItem));
+        }
+        finally
+        {
+            DestroySpawnedPickupsExcept(pickupPrefabObject.GetComponent<PickupItem>());
+            Object.DestroyImmediate(registryObject);
+            Object.DestroyImmediate(spawnerObject);
+            Object.DestroyImmediate(pickupPrefabObject);
+
+            for (int i = 0; i < displayPointObjects.Length; i++)
+                DestroyImmediateSafe(displayPointObjects[i]);
+
+            Object.DestroyImmediate(passiveItem);
+            Object.DestroyImmediate(activeItem);
+        }
+    }
+
+    [Test]
     public void ItemSpawnPool_RollsAcrossCombinedChestPool_InsteadOfSplittingActiveAndPassive()
     {
         const int rollCount = 1000;
@@ -1010,6 +1115,31 @@ public class ItemRulesEditModeTests
                 continue;
 
             Object.DestroyImmediate(gameObject);
+        }
+    }
+
+    private static PickupItem FindSpawnedPickupAt(PickupItem[] pickupItems, PickupItem prefab, Vector3 position)
+    {
+        for (int i = 0; i < pickupItems.Length; i++)
+        {
+            PickupItem pickupItem = pickupItems[i];
+            if (pickupItem == null || pickupItem == prefab)
+                continue;
+
+            if (Vector3.Distance(pickupItem.transform.position, position) <= 0.001f)
+                return pickupItem;
+        }
+
+        return null;
+    }
+
+    private static void DestroySpawnedPickupsExcept(PickupItem prefab)
+    {
+        PickupItem[] pickupItems = Object.FindObjectsByType<PickupItem>(FindObjectsSortMode.None);
+        for (int i = 0; i < pickupItems.Length; i++)
+        {
+            if (pickupItems[i] != null && pickupItems[i] != prefab)
+                Object.DestroyImmediate(pickupItems[i].gameObject);
         }
     }
 

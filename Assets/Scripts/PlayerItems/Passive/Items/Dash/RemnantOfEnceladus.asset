@@ -21,4 +21,4 @@ MonoBehaviour:
   effectPrefab: {fileID: 4066200000000000001, guid: 68a8c0b2eb96493087cb3b5dad75cdb1, type: 3}
   attackData: {fileID: 11400000, guid: bf41144352e0802478567c35db807752, type: 2}
   rangeIndicatorLocalOffset: {x: 0, y: 0, z: 0}
-  rangeIndicatorLocalScale: {x: 2.5, y: 2.5, z: 1}
+  rangeIndicatorLocalScale: {x: 1, y: 1, z: 1}

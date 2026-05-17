@@ -243,6 +243,9 @@ public class PickupChest : MonoBehaviour, IPlayerInteractable, IRunSaveWorldStat
     private bool TryResolveLoot(out bool isPassive, out PassiveItem passiveItem, out ActiveItem activeItem)
     {
         ItemUnlockRegistry registry = ItemUnlockRegistry.FindInstance();
+        if (TryResolveLootFromRegistry(registry, out isPassive, out passiveItem, out activeItem))
+            return true;
+
         if (TryResolveLootFromPool(registry, out isPassive, out passiveItem, out activeItem))
             return true;
 
@@ -276,6 +279,42 @@ public class PickupChest : MonoBehaviour, IPlayerInteractable, IRunSaveWorldStat
         isPassive = false;
         passiveItem = null;
         activeItem = null;
+        return false;
+    }
+
+    private bool TryResolveLootFromRegistry(ItemUnlockRegistry registry, out bool isPassive, out PassiveItem passiveItem, out ActiveItem activeItem)
+    {
+        isPassive = false;
+        passiveItem = null;
+        activeItem = null;
+
+        List<ItemSpawnPool.RollResult> unlockedEntries = ItemSpawnPool.GetUnlockedRegistryEntries(registry);
+        while (unlockedEntries.Count > 0)
+        {
+            int selectedIndex = SelectWeightedIndex(unlockedEntries);
+            if (selectedIndex < 0)
+                break;
+
+            ItemSpawnPool.RollResult selectedResult = unlockedEntries[selectedIndex];
+            if (!selectedResult.IsPassive)
+            {
+                isPassive = false;
+                passiveItem = null;
+                activeItem = selectedResult.ActiveItem;
+                return activeItem != null;
+            }
+
+            if (TryReservePassive(registry, selectedResult.PassiveItem))
+            {
+                isPassive = true;
+                passiveItem = selectedResult.PassiveItem;
+                activeItem = null;
+                return true;
+            }
+
+            unlockedEntries.RemoveAt(selectedIndex);
+        }
+
         return false;
     }
 
