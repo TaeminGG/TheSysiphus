@@ -96,6 +96,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Projectile
   moveSpeed: 4
   lifeTime: 2
+  blockOnGroundCollision: 0
+  useHeightTrajectory: 0
+  shadowSprite: {fileID: 0}
+  shadowColor: {r: 1, g: 1, b: 1, a: 0.35}
+  shadowScale: 1
+  shadowMinAlpha: 0.15
+  visualYOffsetPerZ: 0.25
 --- !u!114 &4423243032697150714
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -111,9 +118,8 @@ MonoBehaviour:
   hitLayer:
     serializedVersion: 2
     m_Bits: 64
-  showDebugInGame: 0
-  activeColor: {r: 1, g: 0, b: 0, a: 0.4}
-  inactiveColor: {r: 1, g: 1, b: 0, a: 0.2}
+  hitSparkController: {fileID: 0}
+  visual: {fileID: 0}
 --- !u!50 &5605783800823781462
 Rigidbody2D:
   serializedVersion: 5

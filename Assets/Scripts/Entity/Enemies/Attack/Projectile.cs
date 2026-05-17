@@ -3,10 +3,55 @@ using UnityEngine.Tilemaps;
 
 public class Projectile : MonoBehaviour
 {
+    [System.Serializable]
+    public struct DirectionalVisualRotationOffsets
+    {
+        public float north;
+        public float northEast;
+        public float east;
+        public float southEast;
+        public float south;
+        public float southWest;
+        public float west;
+        public float northWest;
+
+        public float GetOffset(Vector2 direction)
+        {
+            if (direction.sqrMagnitude <= 0.001f)
+                return south;
+
+            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            if (angle < 0f)
+                angle += 360f;
+
+            if (angle >= 337.5f || angle < 22.5f)
+                return east;
+            if (angle < 67.5f)
+                return northEast;
+            if (angle < 112.5f)
+                return north;
+            if (angle < 157.5f)
+                return northWest;
+            if (angle < 202.5f)
+                return west;
+            if (angle < 247.5f)
+                return southWest;
+            if (angle < 292.5f)
+                return south;
+
+            return southEast;
+        }
+    }
+
     public float moveSpeed = 1.0f;
     public float lifeTime = 2.0f;
     [Header("Ground Blocking")]
     public bool blockOnGroundCollision = false;
+    [Header("Visual Rotation")]
+    [SerializeField] private SpriteRenderer visualRendererOverride;
+    [SerializeField] private bool useVisualRotationOffsets = false;
+    [SerializeField] private float visualRotationOffset = 0f;
+    [SerializeField] private DirectionalVisualRotationOffsets directionalVisualRotationOffsets;
     [Header("Height Visual")]
     [SerializeField] private bool useHeightTrajectory = false;
     [SerializeField] private Sprite shadowSprite;
@@ -30,14 +75,21 @@ public class Projectile : MonoBehaviour
     private Transform renderRoot;
     private SpriteRenderer visualRenderer;
     private SpriteRenderer shadowRenderer;
+    private Vector3 visualBaseLocalPosition;
 
     private void Awake()
     {
         attackHitBox = GetComponent<AttackHitBox>();
         rootRenderer = GetComponent<SpriteRenderer>();
+        visualRenderer = ResolveVisualRenderer();
+        if (visualRenderer != null)
+            visualBaseLocalPosition = visualRenderer.transform.localPosition;
 
-        if (useHeightTrajectory)
-            SetupHeightVisuals();
+        if (useHeightTrajectory || useVisualRotationOffsets)
+        {
+            SetupVisuals();
+            ApplyVisualRotation();
+        }
     }
 
     private void Start()
@@ -70,11 +122,7 @@ public class Projectile : MonoBehaviour
             Destroy(gameObject);
         }
 
-        if (renderRoot != null)
-            renderRoot.rotation = Quaternion.identity;
-
-        if (visualRenderer != null)
-            visualRenderer.transform.rotation = transform.rotation;
+        ApplyVisualRotation();
     }
     private void FixedUpdate()
     {
@@ -200,15 +248,17 @@ public class Projectile : MonoBehaviour
         targetProjectileZ = targetZ;
         targetHeightDistance = Mathf.Max(0.01f, targetDistance);
 
-        if (visualRenderer == null)
-            SetupHeightVisuals();
+        if (visualRenderer == null || renderRoot == null)
+            SetupVisuals();
 
         UpdateHeightVisuals();
     }
 
-    private void SetupHeightVisuals()
+    private void SetupVisuals()
     {
-        if (rootRenderer == null)
+        if (visualRenderer == null)
+            visualRenderer = ResolveVisualRenderer();
+        if (visualRenderer == null)
             return;
 
         if (renderRoot == null)
@@ -220,16 +270,22 @@ public class Projectile : MonoBehaviour
             renderRoot.rotation = Quaternion.identity;
         }
 
-        if (visualRenderer == null)
+        if (rootRenderer != null && visualRenderer == rootRenderer)
         {
             GameObject visualObject = new GameObject("ProjectileVisual");
             visualObject.transform.SetParent(renderRoot, false);
             visualRenderer = visualObject.AddComponent<SpriteRenderer>();
             CopyRendererSettings(rootRenderer, visualRenderer);
+            visualBaseLocalPosition = visualRenderer.transform.localPosition;
             rootRenderer.enabled = false;
         }
+        else if (visualRenderer.transform.parent != renderRoot)
+        {
+            visualRenderer.transform.SetParent(renderRoot, false);
+            visualBaseLocalPosition = visualRenderer.transform.localPosition;
+        }
 
-        if (shadowRenderer == null && shadowSprite != null)
+        if (useHeightTrajectory && shadowRenderer == null && shadowSprite != null)
         {
             GameObject shadowObject = new GameObject("ProjectileShadow");
             shadowObject.transform.SetParent(renderRoot, false);
@@ -253,6 +309,41 @@ public class Projectile : MonoBehaviour
         target.sortingOrder = source.sortingOrder;
         target.drawMode = source.drawMode;
         target.size = source.size;
+    }
+
+    private void ApplyVisualRotation()
+    {
+        if (renderRoot == null && !useVisualRotationOffsets)
+            return;
+
+        if (renderRoot != null)
+            renderRoot.rotation = Quaternion.identity;
+
+        if (visualRenderer == null)
+            return;
+
+        visualRenderer.transform.rotation = GetVisualRotation();
+    }
+
+    private SpriteRenderer ResolveVisualRenderer()
+    {
+        if (visualRendererOverride != null)
+            return visualRendererOverride;
+
+        if (rootRenderer != null)
+            return rootRenderer;
+
+        return GetComponentInChildren<SpriteRenderer>();
+    }
+
+    private Quaternion GetVisualRotation()
+    {
+        if (!useVisualRotationOffsets)
+            return transform.rotation;
+
+        Vector2 direction = transform.up;
+        float directionOffset = directionalVisualRotationOffsets.GetOffset(direction);
+        return transform.rotation * Quaternion.Euler(0f, 0f, visualRotationOffset + directionOffset);
     }
 
     private static float ResolveProjectileZ(float startZ, float targetZ, float targetDistance, float travelledDistance)
@@ -283,8 +374,8 @@ public class Projectile : MonoBehaviour
             return;
 
         float heightOffset = Mathf.Max(0f, currentProjectileZ - groundFloorZ);
-        visualRenderer.transform.localPosition = new Vector3(0f, currentProjectileZ * visualYOffsetPerZ, currentProjectileZ);
-        visualRenderer.transform.rotation = transform.rotation;
+        visualRenderer.transform.localPosition = visualBaseLocalPosition + new Vector3(0f, currentProjectileZ * visualYOffsetPerZ, currentProjectileZ);
+        ApplyVisualRotation();
 
         if (shadowRenderer != null)
         {
