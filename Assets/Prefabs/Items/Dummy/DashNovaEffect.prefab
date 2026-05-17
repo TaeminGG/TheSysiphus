@@ -114,6 +114,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   hitSparkController: {fileID: 0}
+  visual: {fileID: 0}
 --- !u!114 &4066200000000000006
 MonoBehaviour:
   m_ObjectHideFlags: 0
