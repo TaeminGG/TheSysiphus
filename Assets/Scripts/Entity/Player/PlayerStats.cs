@@ -15,7 +15,7 @@ public class PlayerStats : MonoBehaviour, IDamageable, IStatusTickDamageable
     private float invTimer = 0f;
     private bool isInv => invTimer > 0f;
 
-    private int gold = 0;
+    private int gold = 100;
 
     private int potionCount = 5;
     private int maxPotion = 5;

@@ -284,22 +284,22 @@ public class MerchantStockSpawner : MonoBehaviour
     private static int GetDefaultPrice(bool isPassive, ItemRarity rarity)
     {
         if (!isPassive)
-            return rarity >= ItemRarity.Epic ? 6 : 5;
+            return 100;
 
         switch (rarity)
         {
             case ItemRarity.Common:
-                return 3;
+                return 100;
             case ItemRarity.Uncommon:
-                return 4;
+                return 150;
             case ItemRarity.Rare:
-                return 6;
+                return 200;
             case ItemRarity.Epic:
-                return 8;
+                return 300;
             case ItemRarity.Legendary:
-                return 10;
+                return 500;
             default:
-                return 3;
+                return 100;
         }
     }
 

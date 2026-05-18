@@ -557,27 +557,27 @@ MonoBehaviour:
   - isPassive: 1
     passiveItem: {fileID: 11400000, guid: a0c86b3472f5ea644944a582526d34b7, type: 2}
     activeItem: {fileID: 0}
-    price: 3
+    price: 100
     weight: 2
   - isPassive: 1
     passiveItem: {fileID: 11400000, guid: e3cf19f05cf3d3b4ba53476b3d8f3e23, type: 2}
     activeItem: {fileID: 0}
-    price: 3
+    price: 100
     weight: 2
   - isPassive: 0
     passiveItem: {fileID: 0}
     activeItem: {fileID: 11400000, guid: db27c7aaca375db4080cbe80b3f2e9f8, type: 2}
-    price: 5
+    price: 100
     weight: 1
   - isPassive: 0
     passiveItem: {fileID: 0}
     activeItem: {fileID: 11400000, guid: 244161eb188503541986f307880234b2, type: 2}
-    price: 5
+    price: 100
     weight: 1
   - isPassive: 1
     passiveItem: {fileID: 11400000, guid: 4d3084ea2c785ed4a874a12d9fa75f60, type: 2}
     activeItem: {fileID: 0}
-    price: 3
+    price: 150
     weight: 1
   allowDuplicates: 0
   floorZ: 0
