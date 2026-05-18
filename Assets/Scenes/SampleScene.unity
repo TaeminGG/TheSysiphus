@@ -25123,6 +25123,12 @@ MonoBehaviour:
   firstChunkIndex: 0
   nextChunkPlayerYStep: 12.5
   randomizeChunksAfterFirst: 1
+  bossRoomChunks:
+  - enabled: 1
+    chunkNumber: 5
+    chunkIndex: 101
+    stopChunkGenerationAfterLoaded: 1
+    roomId: stage-1-boss
 --- !u!4 &1871822790
 Transform:
   m_ObjectHideFlags: 0

@@ -153,6 +153,8 @@ public class LevelRunSaveData
     public int currentLevel;
     public int chunkHeight;
     public float nextChunkTriggerY;
+    public bool hasLoadedBossRoom;
+    public int loadedBossRoomNumber = -1;
     public List<ChunkRunSaveData> loadedChunks = new List<ChunkRunSaveData>();
 }
 
@@ -162,6 +164,7 @@ public class ChunkRunSaveData
     public int chunkIndex;
     public int chunkHeight;
     public int chunkCount;
+    public bool isBossRoom;
 }
 
 [Serializable]

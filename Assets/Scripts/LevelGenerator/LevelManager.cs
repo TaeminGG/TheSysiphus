@@ -1,5 +1,16 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
+
+[Serializable]
+public class BossRoomChunkDefinition
+{
+    public bool enabled = true;
+    [Min(1)] public int chunkNumber = 5;
+    [Min(0)] public int chunkIndex = 0;
+    public bool stopChunkGenerationAfterLoaded = true;
+    public string roomId = "stage-1-boss";
+}
 
 public class LevelManager : MonoBehaviour
 {
@@ -27,13 +38,23 @@ public class LevelManager : MonoBehaviour
     public float nextChunkPlayerYStep = 12.5f;
     public bool randomizeChunksAfterFirst = true;
 
+    [Header("Boss Rooms")]
+    public List<BossRoomChunkDefinition> bossRoomChunks = new List<BossRoomChunkDefinition>();
+
     private bool hasStarted;
     private float nextChunkTriggerY;
+    private bool hasLoadedBossRoom;
+    private int loadedBossRoomNumber = -1;
+    private BossRoomChunkDefinition loadedBossRoomDefinition;
 
     public bool HasStarted => hasStarted;
     public bool HasStageGoal => useStageGoalY;
     public float StageGoalY => stageGoalY;
     public IReadOnlyList<ChunkRunSaveData> LoadedChunks => loadedChunks;
+    public bool HasLoadedBossRoom => hasLoadedBossRoom;
+    public int LoadedBossRoomNumber => loadedBossRoomNumber;
+
+    public event Action<BossRoomChunkDefinition, int> OnBossRoomChunkLoaded;
 
     private void Awake()
     {
@@ -85,16 +106,18 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
-        if (!chunkLoader.IsValidChunkIndex(firstChunkIndex))
+        int firstIndex = ResolveNextChunkIndex(firstChunkIndex, out BossRoomChunkDefinition bossRoom);
+
+        if (!chunkLoader.IsValidChunkIndex(firstIndex))
         {
-            Debug.LogWarning($"LevelManager: cannot start run because first chunk index {firstChunkIndex} is invalid.", this);
+            Debug.LogWarning($"LevelManager: cannot start run because first chunk index {firstIndex} is invalid.", this);
             return;
         }
 
         hasStarted = true;
 
         ActivateRestrictionZone();
-        LoadChunk(firstChunkIndex, chunkHeight);
+        LoadChunk(firstIndex, chunkHeight, currentLevel, true, bossRoom);
 
         float playerY = player != null ? player.position.y : 0f;
         nextChunkTriggerY = playerY - Mathf.Max(0.1f, nextChunkPlayerYStep);
@@ -107,8 +130,19 @@ public class LevelManager : MonoBehaviour
 
     public void LoadChunk(int index, int height, int chunkCount, bool recordChunk)
     {
+        LoadChunk(index, height, chunkCount, recordChunk, null);
+    }
+
+    private void LoadChunk(int index, int height, int chunkCount, bool recordChunk, BossRoomChunkDefinition bossRoom)
+    {
         if (chunkLoader == null)
             return;
+
+        if (!chunkLoader.IsValidChunkIndex(index))
+        {
+            Debug.LogWarning($"LevelManager: cannot load chunk because chunk index {index} is invalid.", this);
+            return;
+        }
 
         chunkLoader.AddChunk(index, height, chunkCount, true);
         chunkLoader.AddChunk(index, height, chunkCount, false);
@@ -120,25 +154,40 @@ public class LevelManager : MonoBehaviour
             {
                 chunkIndex = index,
                 chunkHeight = height,
-                chunkCount = chunkCount
+                chunkCount = chunkCount,
+                isBossRoom = bossRoom != null
             });
+        }
+
+        if (bossRoom != null)
+        {
+            hasLoadedBossRoom = true;
+            loadedBossRoomDefinition = bossRoom;
+            loadedBossRoomNumber = Mathf.Max(1, loadedChunks.Count);
+            OnBossRoomChunkLoaded?.Invoke(bossRoom, loadedBossRoomNumber);
         }
     }
 
     private void LoadNextChunk()
     {
-        int chunkIndex = firstChunkIndex;
+        if (ShouldStopChunkGenerationForBossRoom())
+            return;
 
-        if (randomizeChunksAfterFirst)
+        int chunkIndex = firstChunkIndex;
+        BossRoomChunkDefinition bossRoom = null;
+
+        chunkIndex = ResolveNextChunkIndex(chunkIndex, out bossRoom);
+
+        if (bossRoom == null && randomizeChunksAfterFirst)
         {
             int chunkCount = chunkLoader.GetAvailableChunkCount();
             if (chunkCount <= 0)
                 return;
 
-            chunkIndex = Random.Range(0, chunkCount);
+            chunkIndex = UnityEngine.Random.Range(0, chunkCount);
         }
 
-        LoadChunk(chunkIndex, chunkHeight);
+        LoadChunk(chunkIndex, chunkHeight, currentLevel, true, bossRoom);
     }
 
     public LevelRunSaveData CaptureRunState()
@@ -150,6 +199,8 @@ public class LevelManager : MonoBehaviour
             currentLevel = currentLevel,
             chunkHeight = chunkHeight,
             nextChunkTriggerY = nextChunkTriggerY,
+            hasLoadedBossRoom = hasLoadedBossRoom,
+            loadedBossRoomNumber = loadedBossRoomNumber,
             loadedChunks = new List<ChunkRunSaveData>()
         };
 
@@ -163,7 +214,8 @@ public class LevelManager : MonoBehaviour
             {
                 chunkIndex = chunk.chunkIndex,
                 chunkHeight = chunk.chunkHeight,
-                chunkCount = chunk.chunkCount
+                chunkCount = chunk.chunkCount,
+                isBossRoom = chunk.isBossRoom
             });
         }
 
@@ -180,6 +232,9 @@ public class LevelManager : MonoBehaviour
 
         hasStarted = data.hasStarted;
         chunkHeight = data.chunkHeight > 0 ? data.chunkHeight : chunkHeight;
+        hasLoadedBossRoom = data.hasLoadedBossRoom;
+        loadedBossRoomNumber = data.loadedBossRoomNumber;
+        loadedBossRoomDefinition = FindBossRoomDefinition(loadedBossRoomNumber);
 
         if (hasStarted)
             ActivateRestrictionZone();
@@ -193,6 +248,12 @@ public class LevelManager : MonoBehaviour
                     continue;
 
                 LoadChunk(chunk.chunkIndex, chunk.chunkHeight > 0 ? chunk.chunkHeight : chunkHeight, chunk.chunkCount, true);
+                if (chunk.isBossRoom)
+                {
+                    hasLoadedBossRoom = true;
+                    loadedBossRoomNumber = loadedChunks.Count;
+                    loadedBossRoomDefinition = FindBossRoomDefinition(loadedBossRoomNumber);
+                }
             }
         }
 
@@ -218,6 +279,39 @@ public class LevelManager : MonoBehaviour
         }
 
         return false;
+    }
+
+    private int ResolveNextChunkIndex(int fallbackIndex, out BossRoomChunkDefinition bossRoom)
+    {
+        int nextChunkNumber = loadedChunks.Count + 1;
+        bossRoom = FindBossRoomDefinition(nextChunkNumber);
+
+        if (bossRoom == null)
+            return fallbackIndex;
+
+        return bossRoom.chunkIndex;
+    }
+
+    private BossRoomChunkDefinition FindBossRoomDefinition(int chunkNumber)
+    {
+        if (chunkNumber <= 0 || bossRoomChunks == null)
+            return null;
+
+        for (int i = 0; i < bossRoomChunks.Count; i++)
+        {
+            BossRoomChunkDefinition definition = bossRoomChunks[i];
+            if (definition != null && definition.enabled && definition.chunkNumber == chunkNumber)
+                return definition;
+        }
+
+        return null;
+    }
+
+    private bool ShouldStopChunkGenerationForBossRoom()
+    {
+        return hasLoadedBossRoom
+            && loadedBossRoomDefinition != null
+            && loadedBossRoomDefinition.stopChunkGenerationAfterLoaded;
     }
 
     private void ActivateRestrictionZone()
