@@ -3,6 +3,12 @@ using UnityEngine;
 
 public class MerchantStockSpawner : MonoBehaviour
 {
+    private enum StockSlotItemType
+    {
+        Passive,
+        Active
+    }
+
     [System.Serializable]
     public class MerchantStockEntry
     {
@@ -70,13 +76,15 @@ public class MerchantStockSpawner : MonoBehaviour
             return;
 
         ItemUnlockRegistry registry = ItemUnlockRegistry.FindInstance();
-        List<RuntimeStockEntry> availableEntries = BuildAvailableEntries();
-        if (availableEntries.Count == 0)
+        List<RuntimeStockEntry> passiveEntries = BuildAvailableEntries(StockSlotItemType.Passive);
+        List<RuntimeStockEntry> activeEntries = BuildAvailableEntries(StockSlotItemType.Active);
+        if (passiveEntries.Count == 0 && activeEntries.Count == 0)
             return;
 
         for (int i = 0; i < displayPoints.Length; i++)
         {
             Transform displayPoint = displayPoints[i];
+            List<RuntimeStockEntry> availableEntries = i == 0 ? passiveEntries : activeEntries;
             if (displayPoint == null || availableEntries.Count == 0)
                 continue;
 
@@ -105,7 +113,7 @@ public class MerchantStockSpawner : MonoBehaviour
             AssignRunSaveIdentity(spawnedItem, i);
             spawnedItems.Add(spawnedItem);
 
-            if (!allowDuplicates)
+            if (entry.IsPassive)
                 availableEntries.RemoveAt(selectedIndex);
         }
     }
@@ -123,16 +131,23 @@ public class MerchantStockSpawner : MonoBehaviour
         RunSaveIdentity.Ensure(spawnedItem.gameObject, $"{ownerSaveId}:merchant-stock:{displayIndex}", "MerchantStockItem");
     }
 
-    private List<RuntimeStockEntry> BuildAvailableEntries()
+    private List<RuntimeStockEntry> BuildAvailableEntries(StockSlotItemType itemType)
     {
         List<RuntimeStockEntry> availableEntries = new List<RuntimeStockEntry>();
         ItemUnlockRegistry registry = ItemUnlockRegistry.FindInstance();
+
+        AppendUnlockedRegistryEntries(availableEntries, registry, itemType);
+        if (registry != null)
+            return availableEntries;
 
         if (stockPool != null)
         {
             List<ItemSpawnPool.RollResult> poolEntries = stockPool.GetUnlockedEntries(registry);
             for (int i = 0; i < poolEntries.Count; i++)
             {
+                if (!MatchesItemType(poolEntries[i].IsPassive, itemType))
+                    continue;
+
                 availableEntries.Add(new RuntimeStockEntry
                 {
                     IsPassive = poolEntries[i].IsPassive,
@@ -155,6 +170,9 @@ public class MerchantStockSpawner : MonoBehaviour
             if (stockEntry == null || !stockEntry.IsValid())
                 continue;
 
+            if (!MatchesItemType(stockEntry.isPassive, itemType))
+                continue;
+
             if (stockEntry.isPassive && registry != null && registry.IsUnavailable(stockEntry.passiveItem))
                 continue;
 
@@ -169,6 +187,120 @@ public class MerchantStockSpawner : MonoBehaviour
         }
 
         return availableEntries;
+    }
+
+    private void AppendUnlockedRegistryEntries(List<RuntimeStockEntry> availableEntries, ItemUnlockRegistry registry, StockSlotItemType itemType)
+    {
+        if (registry == null)
+            return;
+
+        if (itemType == StockSlotItemType.Passive)
+        {
+            IReadOnlyList<PassiveItem> unlockedPassiveItems = registry.UnlockedPassiveItems;
+            for (int i = 0; i < unlockedPassiveItems.Count; i++)
+            {
+                PassiveItem item = unlockedPassiveItems[i];
+                if (item == null || registry.IsUnavailable(item))
+                    continue;
+
+                availableEntries.Add(new RuntimeStockEntry
+                {
+                    IsPassive = true,
+                    PassiveItem = item,
+                    ActiveItem = null,
+                    Price = ResolvePrice(item),
+                    Weight = ItemRarityUtility.GetWeight(item.Rarity)
+                });
+            }
+
+            return;
+        }
+
+        IReadOnlyList<ActiveItem> unlockedActiveItems = registry.UnlockedActiveItems;
+        for (int i = 0; i < unlockedActiveItems.Count; i++)
+        {
+            ActiveItem item = unlockedActiveItems[i];
+            if (item == null)
+                continue;
+
+            availableEntries.Add(new RuntimeStockEntry
+            {
+                IsPassive = false,
+                PassiveItem = null,
+                ActiveItem = item,
+                Price = ResolvePrice(item),
+                Weight = ItemRarityUtility.GetWeight(item.Rarity)
+            });
+        }
+    }
+
+    private static bool MatchesItemType(bool isPassive, StockSlotItemType itemType)
+    {
+        return itemType == StockSlotItemType.Passive ? isPassive : !isPassive;
+    }
+
+    private int ResolvePrice(PassiveItem item)
+    {
+        if (item == null)
+            return 0;
+
+        if (stockPool != null && stockPool.TryGetConfiguredPrice(item, out int poolPrice))
+            return poolPrice;
+
+        if (stockEntries != null)
+        {
+            for (int i = 0; i < stockEntries.Length; i++)
+            {
+                MerchantStockEntry entry = stockEntries[i];
+                if (entry != null && entry.isPassive && entry.passiveItem == item)
+                    return entry.price;
+            }
+        }
+
+        return GetDefaultPrice(true, item.Rarity);
+    }
+
+    private int ResolvePrice(ActiveItem item)
+    {
+        if (item == null)
+            return 0;
+
+        if (stockPool != null && stockPool.TryGetConfiguredPrice(item, out int poolPrice))
+            return poolPrice;
+
+        if (stockEntries != null)
+        {
+            for (int i = 0; i < stockEntries.Length; i++)
+            {
+                MerchantStockEntry entry = stockEntries[i];
+                if (entry != null && !entry.isPassive && entry.activeItem == item)
+                    return entry.price;
+            }
+        }
+
+        return GetDefaultPrice(false, item.Rarity);
+    }
+
+    private static int GetDefaultPrice(bool isPassive, ItemRarity rarity)
+    {
+        if (!isPassive)
+            return 100;
+
+        switch (rarity)
+        {
+            case ItemRarity.Common:
+                return 100;
+            case ItemRarity.Uncommon:
+                return 150;
+            case ItemRarity.Rare:
+                return 200;
+            case ItemRarity.Epic:
+                return 300;
+            case ItemRarity.Legendary:
+                return 500;
+            default:
+                return 100;
+        }
     }
 
     private int SelectWeightedIndex(List<RuntimeStockEntry> availableEntries)

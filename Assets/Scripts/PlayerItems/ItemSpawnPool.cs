@@ -45,10 +45,85 @@ public class ItemSpawnPool : ScriptableObject
         return results;
     }
 
+    public static List<RollResult> GetUnlockedRegistryEntries(ItemUnlockRegistry registry)
+    {
+        List<RollResult> results = new List<RollResult>();
+        if (registry == null)
+            return results;
+
+        IReadOnlyList<PassiveItem> unlockedPassiveItems = registry.UnlockedPassiveItems;
+        for (int i = 0; i < unlockedPassiveItems.Count; i++)
+        {
+            PassiveItem item = unlockedPassiveItems[i];
+            if (item == null || registry.IsUnavailable(item))
+                continue;
+
+            results.Add(new RollResult
+            {
+                IsPassive = true,
+                PassiveItem = item,
+                ActiveItem = null,
+                Price = 0,
+                Weight = ItemRarityUtility.GetWeight(item.Rarity)
+            });
+        }
+
+        IReadOnlyList<ActiveItem> unlockedActiveItems = registry.UnlockedActiveItems;
+        for (int i = 0; i < unlockedActiveItems.Count; i++)
+        {
+            ActiveItem item = unlockedActiveItems[i];
+            if (item == null)
+                continue;
+
+            results.Add(new RollResult
+            {
+                IsPassive = false,
+                PassiveItem = null,
+                ActiveItem = item,
+                Price = 0,
+                Weight = ItemRarityUtility.GetWeight(item.Rarity)
+            });
+        }
+
+        return results;
+    }
+
     public bool TryRollChestLoot(ItemUnlockRegistry registry, out RollResult result)
     {
         List<RollResult> unlockedEntries = GetUnlockedEntries(registry);
         return TryRollFromEntries(unlockedEntries, out result);
+    }
+
+    public bool TryGetConfiguredPrice(PassiveItem item, out int price)
+    {
+        for (int i = 0; i < passiveItems.Count; i++)
+        {
+            PassiveEntry entry = passiveItems[i];
+            if (entry != null && entry.item == item)
+            {
+                price = entry.price;
+                return true;
+            }
+        }
+
+        price = 0;
+        return false;
+    }
+
+    public bool TryGetConfiguredPrice(ActiveItem item, out int price)
+    {
+        for (int i = 0; i < activeItems.Count; i++)
+        {
+            ActiveEntry entry = activeItems[i];
+            if (entry != null && entry.item == item)
+            {
+                price = entry.price;
+                return true;
+            }
+        }
+
+        price = 0;
+        return false;
     }
 
     private void AppendUnlockedPassiveEntries(List<RollResult> results, ItemUnlockRegistry registry)

@@ -37,9 +37,10 @@ public sealed class DashNovaEffectInstance : MonoBehaviour
             Transform parent = visualRoot != null ? visualRoot : transform;
             GameObject visualObject = Instantiate(attackData.visual, parent);
             visualObject.name = "Visual";
-            visualObject.transform.localPosition = visualLocalOffset;
+            visualObject.transform.localPosition = (Vector3)attackData.hitboxOffset + visualLocalOffset;
             visualObject.transform.localRotation = Quaternion.identity;
-            visualObject.transform.localScale = visualLocalScale;
+            visualObject.transform.localScale = Vector3.one;
+            AttackVisualSizingUtility.FitToCircularHitRange(visualObject, attackData, 1f, visualLocalScale);
         }
     }
 
