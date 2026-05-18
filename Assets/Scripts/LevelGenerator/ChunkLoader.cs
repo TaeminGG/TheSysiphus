@@ -254,6 +254,9 @@ public class ChunkLoader : MonoBehaviour
         if (spawnedObject.TryGetComponent(out MinotaurMovement minotaurMovement))
             minotaurMovement.floorZ = floorZ;
 
+        if (spawnedObject.TryGetComponent(out BossRoomController bossRoomController))
+            bossRoomController.bossFloorZ = floorZ;
+
         if (spawnedObject.TryGetComponent(out GroundedEnemy groundedEnemy))
             groundedEnemy.floorZ = floorZ;
 
