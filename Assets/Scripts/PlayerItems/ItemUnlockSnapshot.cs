@@ -16,6 +16,18 @@ public class ItemUnlockSnapshot
         || unlockedActiveItemIds.Count > 0
         || collectedPassiveItemIds.Count > 0;
 
+    public ItemUnlockSnapshot Clone(bool includeCollected = true)
+    {
+        ItemUnlockSnapshot clone = new ItemUnlockSnapshot();
+        clone.SetUnlockedPassiveItemIds(unlockedPassiveItemIds);
+        clone.SetUnlockedActiveItemIds(unlockedActiveItemIds);
+
+        if (includeCollected)
+            clone.SetCollectedPassiveItemIds(collectedPassiveItemIds);
+
+        return clone;
+    }
+
     public void SetUnlockedPassiveItemIds(IEnumerable<string> itemIds)
     {
         Replace(unlockedPassiveItemIds, itemIds);

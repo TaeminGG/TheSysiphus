@@ -91,6 +91,34 @@ public class ItemUnlockRegistry : MonoBehaviour
         return added;
     }
 
+    public int UnlockItemsByRarity(ItemRarity rarity)
+    {
+        if (catalog == null)
+            return 0;
+
+        int unlockedCount = 0;
+        IReadOnlyList<PassiveItem> passiveItems = catalog.PassiveItems;
+        for (int i = 0; i < passiveItems.Count; i++)
+        {
+            PassiveItem item = passiveItems[i];
+            if (item != null && item.Rarity == rarity && RegisterUnlockedPassive(item.ItemId, item))
+                unlockedCount++;
+        }
+
+        IReadOnlyList<ActiveItem> activeItems = catalog.ActiveItems;
+        for (int i = 0; i < activeItems.Count; i++)
+        {
+            ActiveItem item = activeItems[i];
+            if (item != null && item.Rarity == rarity && RegisterUnlockedActive(item.ItemId, item))
+                unlockedCount++;
+        }
+
+        if (unlockedCount > 0)
+            UnlocksChanged?.Invoke();
+
+        return unlockedCount;
+    }
+
     public bool Collect(PassiveItem item)
     {
         bool unlockAdded = RegisterUnlockedPassive(item?.ItemId, item);

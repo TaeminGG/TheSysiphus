@@ -66,6 +66,58 @@ public class ItemRulesEditModeTests
     }
 
     [Test]
+    public void ItemUnlockRegistry_UnlockItemsByRarity_UnlocksAllLegendaryCatalogItems()
+    {
+        GameObject registryObject = new GameObject("LegendaryUnlockRegistryTest");
+        ItemUnlockCatalog catalog = ScriptableObject.CreateInstance<ItemUnlockCatalog>();
+        TestPassiveItem legendaryPassive = ScriptableObject.CreateInstance<TestPassiveItem>();
+        TestPassiveItem rarePassive = ScriptableObject.CreateInstance<TestPassiveItem>();
+        TestActiveItem legendaryActive = ScriptableObject.CreateInstance<TestActiveItem>();
+
+        try
+        {
+            legendaryPassive.name = "LegendaryPassive";
+            rarePassive.name = "RarePassive";
+            legendaryActive.name = "LegendaryActive";
+            SetRarity(legendaryPassive, ItemRarity.Legendary);
+            SetRarity(rarePassive, ItemRarity.Rare);
+            SetRarity(legendaryActive, ItemRarity.Legendary);
+
+            SerializedObject serializedCatalog = new SerializedObject(catalog);
+            SerializedProperty passiveItems = serializedCatalog.FindProperty("passiveItems");
+            passiveItems.arraySize = 2;
+            passiveItems.GetArrayElementAtIndex(0).objectReferenceValue = legendaryPassive;
+            passiveItems.GetArrayElementAtIndex(1).objectReferenceValue = rarePassive;
+
+            SerializedProperty activeItems = serializedCatalog.FindProperty("activeItems");
+            activeItems.arraySize = 1;
+            activeItems.GetArrayElementAtIndex(0).objectReferenceValue = legendaryActive;
+            serializedCatalog.ApplyModifiedPropertiesWithoutUndo();
+
+            ItemUnlockRegistry registry = registryObject.AddComponent<ItemUnlockRegistry>();
+            SerializedObject serializedRegistry = new SerializedObject(registry);
+            serializedRegistry.FindProperty("catalog").objectReferenceValue = catalog;
+            serializedRegistry.ApplyModifiedPropertiesWithoutUndo();
+            registry.ResetToInitialState();
+
+            int unlockedCount = registry.UnlockItemsByRarity(ItemRarity.Legendary);
+
+            Assert.That(unlockedCount, Is.EqualTo(2));
+            Assert.That(registry.IsUnlocked(legendaryPassive), Is.True);
+            Assert.That(registry.IsUnlocked(legendaryActive), Is.True);
+            Assert.That(registry.IsUnlocked(rarePassive), Is.False);
+        }
+        finally
+        {
+            Object.DestroyImmediate(registryObject);
+            Object.DestroyImmediate(catalog);
+            Object.DestroyImmediate(legendaryPassive);
+            Object.DestroyImmediate(rarePassive);
+            Object.DestroyImmediate(legendaryActive);
+        }
+    }
+
+    [Test]
     public void ItemSpawnPool_FiltersLockedItems_WhenRegistryExists()
     {
         GameObject registryObject = new GameObject("UnlockRegistryForPoolTest");
@@ -1084,9 +1136,21 @@ public class ItemRulesEditModeTests
 
     private static void SetPrivateField(object target, string fieldName, object value)
     {
-        FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        FieldInfo field = null;
+        Type type = target.GetType();
+        while (type != null && field == null)
+        {
+            field = type.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            type = type.BaseType;
+        }
+
         Assert.That(field, Is.Not.Null, $"Could not find field '{fieldName}' on {target.GetType().Name}.");
         field.SetValue(target, value);
+    }
+
+    private static void SetRarity(ScriptableObject item, ItemRarity rarity)
+    {
+        SetPrivateField(item, "rarity", rarity);
     }
 
     private static GameObject FindSceneObjectByName(string objectName)

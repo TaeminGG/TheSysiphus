@@ -21872,7 +21872,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 620a8b1b1a71fae42a9d171702c4d03f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RockMovement
-  moveSpeed: 0.5
+  moveSpeed: 0.8
   hitLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -24802,12 +24802,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Settings tab is reserved for a later update.
-
-
-    The pause flow and
-    fixed action buttons already use the same frame so this panel can be expanded
-    without rebuilding the menu.'
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8acd26bfa7667b7469ce9071c930784e, type: 2}
   m_sharedMaterial: {fileID: -5981248014932956732, guid: 8acd26bfa7667b7469ce9071c930784e, type: 2}
@@ -25127,6 +25122,9 @@ MonoBehaviour:
   - markerTile: {fileID: 11400000, guid: 580b0415a0c2bd74e9c32fd5b91d0429, type: 2}
     prefab: {fileID: 6645399172908728918, guid: f5139963195932041a4eaf27545054e5, type: 3}
     positionOffset: {x: 0, y: 0, z: 0}
+  - markerTile: {fileID: 11400000, guid: 8ce9fbb3345ae0b4a818c40851773a8c, type: 2}
+    prefab: {fileID: 9096448468172697159, guid: 66bde95f039335b4184cad53d4b617d8, type: 3}
+    positionOffset: {x: 0, y: 0, z: 0}
   logMissingSpawnBindings: 1
 --- !u!114 &1871822789
 MonoBehaviour:
@@ -25151,14 +25149,15 @@ MonoBehaviour:
   resetChunkCountOnStart: 1
   startingChunkCount: 0
   currentLevel: 1
-  chunkHeight: 25
+  chunkHeight: 50
+  chunkWorldHeight: 25
   firstChunkIndex: 0
-  nextChunkTriggerRatio: 0.6666667
+  nextChunkTriggerRatio: 0.4
   randomizeChunksAfterFirst: 1
   bossRoomChunks:
   - enabled: 1
-    chunkNumber: 10
-    chunkIndex: 10
+    chunkNumber: 6
+    chunkIndex: 9
     stopChunkGenerationAfterLoaded: 1
     roomId: stage-1-boss
 --- !u!4 &1871822790
@@ -25623,6 +25622,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDeathScreenUI
   rootCanvasGroup: {fileID: 0}
+  backgroundImage: {fileID: 0}
   panelRoot: {fileID: 0}
   titleText: {fileID: 0}
   subtitleText: {fileID: 0}

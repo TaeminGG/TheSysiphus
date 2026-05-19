@@ -104,7 +104,7 @@ public class PauseItemCollectionMenu : MonoBehaviour
     [SerializeField] private bool titleMenuMode = false;
     [SerializeField] private GameObject closeTargetOnResume;
     [SerializeField] private string titleSceneName = "Main";
-    [SerializeField, TextArea(6, 12)] private string creditsText = "Credits\n\nDesign / Programming\nTeam Name\n\nSpecial Thanks\nPlayers";
+    [SerializeField, TextArea(6, 12)] private string creditsText = "Credits\n\nDesign / Programming\nTaemin\n\nSpecial Thanks\nAjou univ";
     [SerializeField] private PauseMenuStyle style = new PauseMenuStyle();
     [SerializeField] private PauseSectionTitles sectionTitles = new PauseSectionTitles();
 

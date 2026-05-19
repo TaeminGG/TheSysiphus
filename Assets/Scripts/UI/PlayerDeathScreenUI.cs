@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class PlayerDeathScreenUI : MonoBehaviour
 {
     [SerializeField] private CanvasGroup rootCanvasGroup;
+    [SerializeField] private Image backgroundImage;
     [SerializeField] private RectTransform panelRoot;
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI subtitleText;
@@ -54,6 +55,14 @@ public class PlayerDeathScreenUI : MonoBehaviour
         rootCanvasGroup.blocksRaycasts = false;
         rootObject.SetActive(false);
 
+        GameObject backgroundObject = CreateUiObject("BlackBackground", rootObject.transform);
+        RectTransform backgroundRect = backgroundObject.GetComponent<RectTransform>();
+        StretchToParent(backgroundRect);
+
+        backgroundImage = backgroundObject.AddComponent<Image>();
+        backgroundImage.color = new Color(0f, 0f, 0f, 0.78f);
+        backgroundImage.raycastTarget = false;
+
         GameObject panelObject = CreateUiObject("DeathPanel", rootObject.transform);
         panelRoot = panelObject.GetComponent<RectTransform>();
         panelRoot.anchorMin = new Vector2(0.5f, 0.5f);
@@ -78,6 +87,35 @@ public class PlayerDeathScreenUI : MonoBehaviour
         mainMenuButton = CreateButton("MainMenuButton", panelRoot, new Vector2(90f, -70f), fontAsset, "메인으로", out mainMenuButtonLabel);
 
         WireButtonListeners();
+    }
+
+    public void Configure(
+        string title,
+        string subtitle,
+        string restartLabel,
+        string mainMenuLabel,
+        bool showRestartButton,
+        bool showMainMenuButton)
+    {
+        if (titleText != null)
+            titleText.text = title;
+
+        if (subtitleText != null)
+            subtitleText.text = subtitle;
+
+        if (restartButtonLabel != null)
+            restartButtonLabel.text = restartLabel;
+
+        if (mainMenuButtonLabel != null)
+            mainMenuButtonLabel.text = mainMenuLabel;
+
+        if (restartButton != null)
+            restartButton.gameObject.SetActive(showRestartButton);
+
+        if (mainMenuButton != null)
+            mainMenuButton.gameObject.SetActive(showMainMenuButton);
+
+        LayoutButtons(showRestartButton, showMainMenuButton);
     }
 
     public void HideImmediate()
@@ -219,5 +257,28 @@ public class PlayerDeathScreenUI : MonoBehaviour
         StretchToParent(labelText.rectTransform);
         labelText.margin = new Vector4(8f, 6f, 8f, 6f);
         return button;
+    }
+
+    private void LayoutButtons(bool showRestartButton, bool showMainMenuButton)
+    {
+        RectTransform restartRect = restartButton != null ? restartButton.GetComponent<RectTransform>() : null;
+        RectTransform mainMenuRect = mainMenuButton != null ? mainMenuButton.GetComponent<RectTransform>() : null;
+
+        if (showRestartButton && showMainMenuButton)
+        {
+            if (restartRect != null)
+                restartRect.anchoredPosition = new Vector2(-90f, -70f);
+
+            if (mainMenuRect != null)
+                mainMenuRect.anchoredPosition = new Vector2(90f, -70f);
+
+            return;
+        }
+
+        if (showRestartButton && restartRect != null)
+            restartRect.anchoredPosition = new Vector2(0f, -70f);
+
+        if (showMainMenuButton && mainMenuRect != null)
+            mainMenuRect.anchoredPosition = new Vector2(0f, -70f);
     }
 }
