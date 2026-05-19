@@ -33,9 +33,9 @@ public class LevelManager : MonoBehaviour
     public bool resetChunkCountOnStart = true;
     public int startingChunkCount = 1;
     public int currentLevel = 1;
-    public int chunkHeight = 50;
+    public int chunkHeight = 25;
     public int firstChunkIndex = 0;
-    public float nextChunkPlayerYStep = 12.5f;
+    [Range(0.01f, 1f)] public float nextChunkTriggerRatio = 2f / 3f;
     public bool randomizeChunksAfterFirst = true;
 
     [Header("Boss Rooms")]
@@ -88,8 +88,16 @@ public class LevelManager : MonoBehaviour
 
         while (player.position.y <= nextChunkTriggerY)
         {
+            int previousLevel = currentLevel;
             LoadNextChunk();
-            nextChunkTriggerY -= Mathf.Max(0.1f, nextChunkPlayerYStep);
+
+            if (currentLevel <= previousLevel)
+            {
+                nextChunkTriggerY -= Mathf.Max(1f, chunkHeight);
+                break;
+            }
+
+            SetNextChunkTriggerFromLoadedChunk(currentLevel - 1);
         }
     }
 
@@ -119,8 +127,7 @@ public class LevelManager : MonoBehaviour
         ActivateRestrictionZone();
         LoadChunk(firstIndex, chunkHeight, currentLevel, true, bossRoom);
 
-        float playerY = player != null ? player.position.y : 0f;
-        nextChunkTriggerY = playerY - Mathf.Max(0.1f, nextChunkPlayerYStep);
+        SetNextChunkTriggerFromLoadedChunk(currentLevel - 1);
     }
 
     public void LoadChunk(int index, int height)
@@ -188,6 +195,18 @@ public class LevelManager : MonoBehaviour
         }
 
         LoadChunk(chunkIndex, chunkHeight, currentLevel, true, bossRoom);
+    }
+
+    private void SetNextChunkTriggerFromLoadedChunk(int chunkCount)
+    {
+        nextChunkTriggerY = CalculateChunkTriggerY(chunkCount, chunkHeight);
+    }
+
+    private float CalculateChunkTriggerY(int chunkCount, int height)
+    {
+        float chunkTopY = -Mathf.Max(0, height) * Mathf.Max(0, chunkCount);
+        float triggerDistance = Mathf.Max(0.1f, Mathf.Max(1, height) * Mathf.Clamp01(nextChunkTriggerRatio));
+        return chunkTopY - triggerDistance;
     }
 
     public LevelRunSaveData CaptureRunState()

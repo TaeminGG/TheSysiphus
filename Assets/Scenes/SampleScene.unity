@@ -18798,7 +18798,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -13, y: 0}
-  m_SizeDelta: {x: 18, y: 18}
+  m_SizeDelta: {x: 40, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1028129302
 MonoBehaviour:
@@ -18813,16 +18813,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.82, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 0f2c07e2d41a4a3ca8b18b98d1773a75, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -25045,15 +25045,47 @@ MonoBehaviour:
   tileChunkPrefabs:
   - {fileID: 3733575453582543997, guid: fe86c75d3e8cdc24a8aa04dc6b062adc, type: 3}
   - {fileID: 3733575453582543997, guid: c211fe77547d53041b1b84f3347f2864, type: 3}
+  - {fileID: 3733575453582543997, guid: dabf4096d54f585438d3c30f3df0d2e8, type: 3}
+  - {fileID: 3733575453582543997, guid: 1bd5105ab49a0a64989565ab7ef74b96, type: 3}
+  - {fileID: 3733575453582543997, guid: ad0851b47ea39054786e98d7c58f6f24, type: 3}
+  - {fileID: 3733575453582543997, guid: 444251ea8541c3b42a8c6b1a33580e49, type: 3}
+  - {fileID: 3733575453582543997, guid: ceb18f8cb56baf94e95b078ddd16cba3, type: 3}
+  - {fileID: 3733575453582543997, guid: 4e97ca010ccfe6f43b8456f62cb1ddda, type: 3}
+  - {fileID: 3733575453582543997, guid: bb7d3ed0c5079d64a8657407e65f9691, type: 3}
+  - {fileID: 3733575453582543997, guid: 7f5bdcd20adc1d045a3aebbb0b3eb4f1, type: 3}
   boxChunkPrefabs:
   - {fileID: 5370994671876825349, guid: a650fcf752ad11a49a005152e6b4f035, type: 3}
   - {fileID: 5370994671876825349, guid: 190a2ae16d359524a9cf4fdc5e06ac3d, type: 3}
+  - {fileID: 5370994671876825349, guid: 277f66773795a4b4ebea1df69ed77058, type: 3}
+  - {fileID: 5370994671876825349, guid: 0930d39379a996b4da28456691c7484b, type: 3}
+  - {fileID: 5370994671876825349, guid: a3203f027c11658468f367c970cd1d58, type: 3}
+  - {fileID: 5370994671876825349, guid: fa1684167b5125b44bd46379748d4f04, type: 3}
+  - {fileID: 5370994671876825349, guid: f63175365e63de144a8facf37bf56284, type: 3}
+  - {fileID: 5370994671876825349, guid: a160fd5d1dfa9e5428773da9e43e8ec0, type: 3}
+  - {fileID: 5370994671876825349, guid: 2f7ebc5b484686b40997220c6532b26c, type: 3}
+  - {fileID: 5370994671876825349, guid: 00b7db6639c28c64e9bd621d08a1653b, type: 3}
   spawnChunkPrefabs:
   - {fileID: 8888767243822381497, guid: 9dd8173ed42cc4e4ab5531848aed5d3e, type: 3}
   - {fileID: 8888767243822381497, guid: 3f9a52d2ea8097141a5aa1ebeed09f12, type: 3}
+  - {fileID: 8888767243822381497, guid: fdefdab88269a0943a5b98320b2d186c, type: 3}
+  - {fileID: 8888767243822381497, guid: b35b08ec16a35054bba15acf0968c4c5, type: 3}
+  - {fileID: 8888767243822381497, guid: a15759aa759c6a149bf92df7de46c5db, type: 3}
+  - {fileID: 8888767243822381497, guid: 61c69388b7cae554a852d2a03b5460c4, type: 3}
+  - {fileID: 8888767243822381497, guid: c09a4065ebd42ac45bb8d01f250374e9, type: 3}
+  - {fileID: 8888767243822381497, guid: 3f8116dda8393a84fb04280da9434de3, type: 3}
+  - {fileID: 8888767243822381497, guid: 5546ecd7e16d669438299ce483e72d67, type: 3}
+  - {fileID: 8888767243822381497, guid: 3c6a29ef9829b644ba8df0d573ca67fa, type: 3}
   eventChunkPrefabs:
   - {fileID: 8888767243822381497, guid: ebf80d09212822e43bcbbb6198bac0cc, type: 3}
   - {fileID: 8888767243822381497, guid: 33ed6d2b5bf24fc459aa474dfd075d2c, type: 3}
+  - {fileID: 8888767243822381497, guid: 79b21f8d5a3595b4bbb9fb31c9255cc9, type: 3}
+  - {fileID: 8888767243822381497, guid: fb24a80c01a582c439bf9dfdecb33fe0, type: 3}
+  - {fileID: 8888767243822381497, guid: b6f451a0ddcfedd4dad431752d6ad927, type: 3}
+  - {fileID: 8888767243822381497, guid: f0fb2743816d9f1459c9462cfc46c145, type: 3}
+  - {fileID: 8888767243822381497, guid: f1e8af53b723b064e93d000d66f6c9f5, type: 3}
+  - {fileID: 8888767243822381497, guid: 51ec0c8d9cf3f3d4a8bcab2cffaae114, type: 3}
+  - {fileID: 8888767243822381497, guid: b12123d7fb24c6c45bb8cda5cf63dcb3, type: 3}
+  - {fileID: 8888767243822381497, guid: bbf1a404861db7746bbff8dbea6f6f13, type: 3}
   spawnedChunkObjectsRoot: {fileID: 921874773}
   spawnMarkerBindings:
   - markerTile: {fileID: 11400000, guid: 2928f2447a5c1a24ea8d5d794bc75b4d, type: 2}
@@ -25119,14 +25151,14 @@ MonoBehaviour:
   resetChunkCountOnStart: 1
   startingChunkCount: 0
   currentLevel: 1
-  chunkHeight: 50
+  chunkHeight: 25
   firstChunkIndex: 0
-  nextChunkPlayerYStep: 12.5
+  nextChunkTriggerRatio: 0.6666667
   randomizeChunksAfterFirst: 1
   bossRoomChunks:
   - enabled: 1
-    chunkNumber: 5
-    chunkIndex: 101
+    chunkNumber: 10
+    chunkIndex: 10
     stopChunkGenerationAfterLoaded: 1
     roomId: stage-1-boss
 --- !u!4 &1871822790

@@ -49,7 +49,7 @@ public class ChunkAndRestrictionZonePlayModeTests
             levelManager.rockMovement = rockMovement;
             levelManager.startingChunkCount = 0;
             levelManager.currentLevel = 0;
-            levelManager.nextChunkPlayerYStep = 2f;
+            levelManager.chunkHeight = 3;
 
             Assert.That(levelManager.currentLevel, Is.EqualTo(0));
             Assert.That(rocksObject.activeSelf, Is.False);
@@ -116,7 +116,7 @@ public class ChunkAndRestrictionZonePlayModeTests
             levelManager.rockMovement = rocksObject.AddComponent<RockMovement>();
             levelManager.startingChunkCount = 0;
             levelManager.currentLevel = 0;
-            levelManager.nextChunkPlayerYStep = 2f;
+            levelManager.chunkHeight = 3;
             levelManager.randomizeChunksAfterFirst = false;
             levelManager.bossRoomChunks.Add(new BossRoomChunkDefinition
             {
@@ -348,7 +348,7 @@ public class ChunkAndRestrictionZonePlayModeTests
             levelManager.rockMovement = rocksObject.AddComponent<RockMovement>();
             levelManager.startingChunkCount = 0;
             levelManager.currentLevel = 0;
-            levelManager.nextChunkPlayerYStep = 2f;
+            levelManager.chunkHeight = 3;
 
             levelManager.StartRun();
             playerObject.transform.position = new Vector3(0f, -2.1f, 0f);
