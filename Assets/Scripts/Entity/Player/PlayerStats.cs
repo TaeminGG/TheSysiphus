@@ -315,6 +315,7 @@ public class PlayerStats : MonoBehaviour, IDamageable, IStatusTickDamageable
     public void ApplyPetrify(float duration)
     {
         ApplyCrowdControl(PlayerCrowdControlRequest.CreatePetrify(duration));
+        EnsureStatusAilmentController().ApplyPetrifyVisual(duration);
     }
 
     public void ApplySlow(float duration, float moveSpeedMultiplier)
@@ -329,18 +330,20 @@ public class PlayerStats : MonoBehaviour, IDamageable, IStatusTickDamageable
 
     public void ApplyPoison(float duration, float damagePerSecond)
     {
-        if (statusAilmentController == null)
-            statusAilmentController = GetComponent<StatusAilmentController>() ?? gameObject.AddComponent<StatusAilmentController>();
-
-        statusAilmentController.ApplyPoison(duration, damagePerSecond);
+        EnsureStatusAilmentController().ApplyPoison(duration, damagePerSecond);
     }
 
     public void ApplyBurn(float duration, float tickInterval, float damagePerTick)
     {
+        EnsureStatusAilmentController().ApplyBurn(duration, tickInterval, damagePerTick);
+    }
+
+    private StatusAilmentController EnsureStatusAilmentController()
+    {
         if (statusAilmentController == null)
             statusAilmentController = GetComponent<StatusAilmentController>() ?? gameObject.AddComponent<StatusAilmentController>();
 
-        statusAilmentController.ApplyBurn(duration, tickInterval, damagePerTick);
+        return statusAilmentController;
     }
 
     public void Buff(int idx, float amount, float duration)

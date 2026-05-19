@@ -78,6 +78,12 @@ public class DelayedGroundBlastAttack : MonoBehaviour, IEnemyAttack
             return;
 
         GameObject hitBoxObject = Instantiate(hitBoxPrefab, lockedTargetPosition, Quaternion.identity);
+        if (hitBoxObject.TryGetComponent(out Projectile projectile))
+        {
+            projectile.SetFloorZ(lockedTargetFloorZ);
+            projectile.SetProjectileStartZ(lockedTargetFloorZ);
+        }
+
         if (hitBoxObject.TryGetComponent(out AttackHitBox hitBox))
             hitBox.EnemySetup(attackData, attackData.damage, attackData.attackDuration, lockedTargetPosition, 0f, lockedTargetFloorZ);
     }

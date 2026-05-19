@@ -438,8 +438,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyProjectileAttack
   range: 4.5
-  readyTime: 0.6
-  recoveryTime: 0.8
+  readyTime: 0.8
+  recoveryTime: 1.8
   requireCasterFloorAtLeastTargetFloor: 1
   rangedStartHeightOffset: 1
   rangedTargetHeightOffset: 0.5
@@ -511,7 +511,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDrop
   item: {fileID: 4327369436755851135, guid: bcbf89086957f344db1e553ea3a74919, type: 3}
   isGold: 1
-  dropGold: 15
+  dropGold: 8
 --- !u!114 &2511865043647835158
 MonoBehaviour:
   m_ObjectHideFlags: 0

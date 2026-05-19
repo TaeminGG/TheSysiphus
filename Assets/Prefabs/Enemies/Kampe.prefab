@@ -311,7 +311,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 50, y: 50}
+  m_Size: {x: 25, y: 20}
   m_EdgeRadius: 0
 --- !u!114 &6896399281276893251
 MonoBehaviour:
@@ -435,7 +435,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cf3481a92c68e34f9acc70cede680e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DelayedGroundBlastAttack
-  range: 4.5
+  range: 15
   readyTime: 1
   recoveryTime: 0.5
   telegraphRadius: 1.4
@@ -503,7 +503,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDrop
   item: {fileID: 4327369436755851135, guid: bcbf89086957f344db1e553ea3a74919, type: 3}
   isGold: 1
-  dropGold: 15
+  dropGold: 50
 --- !u!114 &6475027175383602816
 MonoBehaviour:
   m_ObjectHideFlags: 0

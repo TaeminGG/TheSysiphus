@@ -25145,6 +25145,7 @@ MonoBehaviour:
   player: {fileID: 0}
   useStageGoalY: 1
   stageGoalY: -250
+  deriveStageGoalYFromBossRoom: 1
   setRocksTargetToStageGoal: 1
   resetChunkCountOnStart: 1
   startingChunkCount: 0
@@ -26294,6 +26295,7 @@ MonoBehaviour:
   autoCollectChildRenderers: 1
   poisonMaterial: {fileID: 2100000, guid: 61e25b6b796a9e8429acdacdcd47c0fc, type: 2}
   burnMaterial: {fileID: 2100000, guid: 1d5473fa31be26f40b9579abc847c291, type: 2}
+  petrifyMaterial: {fileID: 2100000, guid: 7fd15e0fb0c57ef459bb869a9bbcd3ea, type: 2}
 --- !u!114 &7953271858389095973
 MonoBehaviour:
   m_ObjectHideFlags: 0
