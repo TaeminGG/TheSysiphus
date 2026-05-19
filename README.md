@@ -1,4 +1,4 @@
-﻿# MediaProject
+﻿# The Sysiphus
 
 Unity `6000.3.10f1` 기반의 Isometric View 2D 로그라이크 액션 게임 프로젝트입니다.
 
