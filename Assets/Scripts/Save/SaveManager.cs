@@ -124,7 +124,16 @@ public sealed class SaveManager : MonoBehaviour, IItemUnlockStateStore
     {
         RunSaveRuntimeState.ClearRunState();
         Repository.DeleteRun();
-        return Repository.StartNewRun(string.IsNullOrWhiteSpace(sceneName) ? GameSceneName : sceneName);
+
+        RunSaveData runData = RunSaveData.CreateNew(string.IsNullOrWhiteSpace(sceneName) ? GameSceneName : sceneName);
+        runData.RunItemSnapshot = CreateProfileUnlockSnapshot(Profile.ItemUnlockSnapshot);
+        Repository.SaveRun(runData);
+
+        ItemUnlockRegistry registry = ItemUnlockRegistry.FindInstance();
+        if (registry != null)
+            RestoreUnlocksToRegistry(registry);
+
+        return runData;
     }
 
     public bool TryLoadRun(out RunSaveData runData)
@@ -182,6 +191,8 @@ public sealed class SaveManager : MonoBehaviour, IItemUnlockStateStore
 
     public bool RestoreRun(RunSaveData runData)
     {
+        EnsureRunUnlockSnapshot(runData);
+
         bool restored = GetRunSaveStateController().Restore(runData);
         if (restored)
             RunSaveRuntimeState.RestoreFromRun(runData);
@@ -224,6 +235,7 @@ public sealed class SaveManager : MonoBehaviour, IItemUnlockStateStore
 
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        UnbindRegistry();
         BindActiveRegistry();
 
         if (restorePendingAfterSceneLoad && pendingRunRestore != null)
@@ -301,13 +313,18 @@ public sealed class SaveManager : MonoBehaviour, IItemUnlockStateStore
 
     private static ItemUnlockSnapshot CreateProfileUnlockSnapshot(ItemUnlockSnapshot source)
     {
-        ItemUnlockSnapshot profileSnapshot = new ItemUnlockSnapshot();
-        if (source == null)
-            return profileSnapshot;
+        return source != null ? source.Clone(includeCollected: false) : new ItemUnlockSnapshot();
+    }
 
-        profileSnapshot.SetUnlockedPassiveItemIds(source.UnlockedPassiveItemIds);
-        profileSnapshot.SetUnlockedActiveItemIds(source.UnlockedActiveItemIds);
-        return profileSnapshot;
+    private void EnsureRunUnlockSnapshot(RunSaveData runData)
+    {
+        if (runData == null)
+            return;
+
+        if (runData.RunItemSnapshot != null && runData.RunItemSnapshot.HasAnyUnlocks)
+            return;
+
+        runData.RunItemSnapshot = CreateProfileUnlockSnapshot(Profile.ItemUnlockSnapshot);
     }
 
     private static bool IsPlayerDeadInRun(RunSaveData runData)

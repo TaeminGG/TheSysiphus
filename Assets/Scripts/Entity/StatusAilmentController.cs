@@ -4,7 +4,8 @@ public enum StatusAilmentType
 {
     None = 0,
     Poison = 1,
-    Burn = 2
+    Burn = 2,
+    Petrify = 3
 }
 
 public class StatusAilmentController : MonoBehaviour
@@ -14,6 +15,7 @@ public class StatusAilmentController : MonoBehaviour
     [SerializeField] private bool autoCollectChildRenderers = true;
     [SerializeField] private Material poisonMaterial;
     [SerializeField] private Material burnMaterial;
+    [SerializeField] private Material petrifyMaterial;
 
     private IDamageable damageable;
     private IStatusTickDamageable statusTickDamageable;
@@ -21,9 +23,11 @@ public class StatusAilmentController : MonoBehaviour
 
     private TimedDamageAilment poison;
     private TimedDamageAilment burn;
+    private TimedVisualAilment petrify;
 
     public bool IsPoisoned => poison.IsActive;
     public bool IsBurning => burn.IsActive;
+    public bool IsPetrified => petrify.IsActive;
 
     private void Awake()
     {
@@ -44,6 +48,7 @@ public class StatusAilmentController : MonoBehaviour
         bool changed = false;
         changed |= UpdateAilment(ref poison);
         changed |= UpdateAilment(ref burn);
+        changed |= UpdateVisualAilment(ref petrify);
 
         if (changed)
             RefreshVisualMaterial();
@@ -67,6 +72,15 @@ public class StatusAilmentController : MonoBehaviour
         RefreshVisualMaterial();
     }
 
+    public void ApplyPetrifyVisual(float duration)
+    {
+        if (duration <= 0f)
+            return;
+
+        petrify = TimedVisualAilment.Create(StatusAilmentType.Petrify, duration);
+        RefreshVisualMaterial();
+    }
+
     public void ClearPoison()
     {
         poison = default;
@@ -79,10 +93,17 @@ public class StatusAilmentController : MonoBehaviour
         RefreshVisualMaterial();
     }
 
+    public void ClearPetrifyVisual()
+    {
+        petrify = default;
+        RefreshVisualMaterial();
+    }
+
     public void ClearAllAilments()
     {
         poison = default;
         burn = default;
+        petrify = default;
         RefreshVisualMaterial();
     }
 
@@ -106,6 +127,19 @@ public class StatusAilmentController : MonoBehaviour
                 break;
         }
 
+        if (ailment.RemainingDuration > 0f)
+            return false;
+
+        ailment = default;
+        return true;
+    }
+
+    private bool UpdateVisualAilment(ref TimedVisualAilment ailment)
+    {
+        if (!ailment.IsActive)
+            return false;
+
+        ailment.RemainingDuration -= Time.deltaTime;
         if (ailment.RemainingDuration > 0f)
             return false;
 
@@ -175,6 +209,9 @@ public class StatusAilmentController : MonoBehaviour
 
     private Material GetActiveStatusMaterial()
     {
+        if (petrify.IsActive && petrifyMaterial != null)
+            return petrifyMaterial;
+
         if (burn.IsActive && burnMaterial != null)
             return burnMaterial;
 
@@ -186,7 +223,7 @@ public class StatusAilmentController : MonoBehaviour
 
     private void ClearExpiredVisualIfNeeded()
     {
-        if (poison.IsActive || burn.IsActive)
+        if (poison.IsActive || burn.IsActive || petrify.IsActive)
             return;
 
         RefreshVisualMaterial();
@@ -224,6 +261,23 @@ public class StatusAilmentController : MonoBehaviour
                 TickInterval = tickInterval,
                 DamagePerTick = damagePerTick,
                 TickTimer = 0f
+            };
+        }
+    }
+
+    private struct TimedVisualAilment
+    {
+        public StatusAilmentType Type;
+        public float RemainingDuration;
+
+        public bool IsActive => RemainingDuration > 0f;
+
+        public static TimedVisualAilment Create(StatusAilmentType type, float duration)
+        {
+            return new TimedVisualAilment
+            {
+                Type = type,
+                RemainingDuration = duration
             };
         }
     }

@@ -83,6 +83,7 @@ public static class RestrictionProgressUIAuthoringUtility
         {
             SerializedObject levelSerialized = new SerializedObject(levelManager);
             levelSerialized.FindProperty("useStageGoalY").boolValue = true;
+            levelSerialized.FindProperty("deriveStageGoalYFromBossRoom").boolValue = true;
             levelSerialized.FindProperty("stageGoalY").floatValue = -250f;
             levelSerialized.FindProperty("setRocksTargetToStageGoal").boolValue = true;
             levelSerialized.ApplyModifiedPropertiesWithoutUndo();

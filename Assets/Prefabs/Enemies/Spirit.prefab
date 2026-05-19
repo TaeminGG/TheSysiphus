@@ -509,7 +509,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDrop
   item: {fileID: 4327369436755851135, guid: bcbf89086957f344db1e553ea3a74919, type: 3}
   isGold: 1
-  dropGold: 15
+  dropGold: 10
 --- !u!114 &4533495910132519631
 MonoBehaviour:
   m_ObjectHideFlags: 0

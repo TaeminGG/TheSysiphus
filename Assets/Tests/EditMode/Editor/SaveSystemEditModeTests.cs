@@ -432,6 +432,80 @@ public class SaveSystemEditModeTests
     }
 
     [Test]
+    public void SaveManager_StartNewRun_SeedsRunUnlockSnapshotFromProfile()
+    {
+        GameSaveRepository repository = new GameSaveRepository(testDirectory);
+        GameObject managerObject = new GameObject("SaveManagerNewRunUnlockTest");
+
+        try
+        {
+            SaveManager saveManager = managerObject.AddComponent<SaveManager>();
+            saveManager.ConfigureRepositoryForTests(repository);
+
+            ItemUnlockSnapshot profileSnapshot = new ItemUnlockSnapshot();
+            profileSnapshot.SetUnlockedPassiveItemIds(new[] { "profile_passive" });
+            profileSnapshot.SetUnlockedActiveItemIds(new[] { "profile_active" });
+            profileSnapshot.SetCollectedPassiveItemIds(new[] { "profile_passive" });
+            saveManager.Save(profileSnapshot);
+
+            RunSaveData runData = saveManager.StartNewRun("SampleScene");
+
+            Assert.That(runData.RunItemSnapshot.UnlockedPassiveItemIds, Does.Contain("profile_passive"));
+            Assert.That(runData.RunItemSnapshot.UnlockedActiveItemIds, Does.Contain("profile_active"));
+            Assert.That(runData.RunItemSnapshot.CollectedPassiveItemIds, Is.Empty);
+            Assert.That(repository.TryLoadRun(out RunSaveData loaded), Is.True);
+            Assert.That(loaded.RunItemSnapshot.UnlockedPassiveItemIds, Does.Contain("profile_passive"));
+            Assert.That(loaded.RunItemSnapshot.UnlockedActiveItemIds, Does.Contain("profile_active"));
+        }
+        finally
+        {
+            Object.DestroyImmediate(managerObject);
+        }
+    }
+
+    [Test]
+    public void SaveManager_RestoreRun_UsesProfileUnlocks_WhenRunSnapshotIsEmpty()
+    {
+        GameSaveRepository repository = new GameSaveRepository(testDirectory);
+        GameObject managerObject = new GameObject("SaveManagerRestoreUnlockTest");
+        GameObject registryObject = new GameObject("RestoreUnlockRegistryTest");
+        TestPassiveItem passiveItem = ScriptableObject.CreateInstance<TestPassiveItem>();
+        ItemUnlockCatalog catalog = ScriptableObject.CreateInstance<ItemUnlockCatalog>();
+
+        try
+        {
+            passiveItem.name = "ProfilePassive";
+            ConfigureCatalog(catalog, passiveItem, null);
+
+            ItemUnlockRegistry registry = registryObject.AddComponent<ItemUnlockRegistry>();
+            SerializedObject serializedRegistry = new SerializedObject(registry);
+            serializedRegistry.FindProperty("catalog").objectReferenceValue = catalog;
+            serializedRegistry.ApplyModifiedPropertiesWithoutUndo();
+            registry.ResetToInitialState();
+
+            SaveManager saveManager = managerObject.AddComponent<SaveManager>();
+            saveManager.ConfigureRepositoryForTests(repository);
+
+            ItemUnlockSnapshot profileSnapshot = new ItemUnlockSnapshot();
+            profileSnapshot.SetUnlockedPassiveItemIds(new[] { passiveItem.ItemId });
+            saveManager.Save(profileSnapshot);
+
+            RunSaveData emptyUnlockRun = RunSaveData.CreateNew("SampleScene");
+            Assert.That(saveManager.RestoreRun(emptyUnlockRun), Is.True);
+
+            Assert.That(registry.IsUnlocked(passiveItem), Is.True);
+            Assert.That(emptyUnlockRun.RunItemSnapshot.UnlockedPassiveItemIds, Does.Contain(passiveItem.ItemId));
+        }
+        finally
+        {
+            Object.DestroyImmediate(managerObject);
+            Object.DestroyImmediate(registryObject);
+            Object.DestroyImmediate(passiveItem);
+            Object.DestroyImmediate(catalog);
+        }
+    }
+
+    [Test]
     public void PauseCollectionMenu_ReportsUnlockedCatalogItemDetails()
     {
         GameObject registryObject = new GameObject("CollectionRegistryTest");

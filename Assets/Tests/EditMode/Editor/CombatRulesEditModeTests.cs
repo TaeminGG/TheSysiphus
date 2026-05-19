@@ -244,6 +244,37 @@ public class CombatRulesEditModeTests
     }
 
     [Test]
+    public void StatusAilmentController_PetrifyVisual_OverridesAndRestoresMaterial()
+    {
+        GameObject player = new GameObject("Player");
+        Material defaultMaterial = new Material(Shader.Find("Sprites/Default"));
+        Material petrifyMaterial = new Material(Shader.Find("Sprites/Default"));
+
+        try
+        {
+            SpriteRenderer renderer = player.AddComponent<SpriteRenderer>();
+            renderer.sharedMaterial = defaultMaterial;
+
+            StatusAilmentController status = player.AddComponent<StatusAilmentController>();
+            SetPrivateField(status, "petrifyMaterial", petrifyMaterial);
+
+            status.ApplyPetrifyVisual(1f);
+
+            Assert.That(renderer.sharedMaterial, Is.EqualTo(petrifyMaterial));
+
+            status.ClearPetrifyVisual();
+
+            Assert.That(renderer.sharedMaterial, Is.EqualTo(defaultMaterial));
+        }
+        finally
+        {
+            Object.DestroyImmediate(defaultMaterial);
+            Object.DestroyImmediate(petrifyMaterial);
+            Object.DestroyImmediate(player);
+        }
+    }
+
+    [Test]
     public void GorgonAnimatorController_IsConfiguredForCoreMotions()
     {
         AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>("Assets/Sprites/Enemies/Gorgon/Gorgon.controller");
@@ -394,6 +425,13 @@ public class CombatRulesEditModeTests
         FieldInfo field = typeof(PlayerStats).GetField("currentHp", BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.That(field, Is.Not.Null);
         field.SetValue(stats, Mathf.Clamp(value, 0f, stats.GetMaxHp()));
+    }
+
+    private static void SetPrivateField(object target, string fieldName, object value)
+    {
+        FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.That(field, Is.Not.Null);
+        field.SetValue(target, value);
     }
 
     private static bool HasParameter(AnimatorController controller, string name, AnimatorControllerParameterType type)

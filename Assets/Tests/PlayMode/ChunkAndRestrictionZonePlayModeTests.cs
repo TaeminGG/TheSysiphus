@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
@@ -49,7 +51,8 @@ public class ChunkAndRestrictionZonePlayModeTests
             levelManager.rockMovement = rockMovement;
             levelManager.startingChunkCount = 0;
             levelManager.currentLevel = 0;
-            levelManager.nextChunkPlayerYStep = 2f;
+            levelManager.chunkHeight = 6;
+            levelManager.chunkWorldHeight = 3f;
 
             Assert.That(levelManager.currentLevel, Is.EqualTo(0));
             Assert.That(rocksObject.activeSelf, Is.False);
@@ -116,7 +119,8 @@ public class ChunkAndRestrictionZonePlayModeTests
             levelManager.rockMovement = rocksObject.AddComponent<RockMovement>();
             levelManager.startingChunkCount = 0;
             levelManager.currentLevel = 0;
-            levelManager.nextChunkPlayerYStep = 2f;
+            levelManager.chunkHeight = 6;
+            levelManager.chunkWorldHeight = 3f;
             levelManager.randomizeChunksAfterFirst = false;
             levelManager.bossRoomChunks.Add(new BossRoomChunkDefinition
             {
@@ -127,6 +131,10 @@ public class ChunkAndRestrictionZonePlayModeTests
             });
 
             levelManager.StartRun();
+
+            Assert.That(levelManager.StageGoalY, Is.EqualTo(-3f).Within(0.0001f));
+            Assert.That(levelManager.rockMovement.TargetY, Is.EqualTo(-3f).Within(0.0001f));
+
             playerObject.transform.position = new Vector3(0f, -2.1f, 0f);
             levelManager.TickChunkGeneration();
 
@@ -140,6 +148,88 @@ public class ChunkAndRestrictionZonePlayModeTests
             levelManager.TickChunkGeneration();
 
             Assert.That(levelManager.LoadedChunks.Count, Is.EqualTo(2));
+        }
+        finally
+        {
+            Object.DestroyImmediate(spawnChunkBoss);
+            Object.DestroyImmediate(spawnChunkA);
+            Object.DestroyImmediate(boxChunkBoss);
+            Object.DestroyImmediate(boxChunkA);
+            Object.DestroyImmediate(tileChunkBoss);
+            Object.DestroyImmediate(tileChunkA);
+            Object.DestroyImmediate(rocksObject);
+            Object.DestroyImmediate(playerObject);
+            Object.DestroyImmediate(levelObject);
+            Object.DestroyImmediate(eventMapObject);
+            Object.DestroyImmediate(bmapObject);
+            Object.DestroyImmediate(tmapObject);
+            Object.DestroyImmediate(gridObject);
+        }
+    }
+
+    [Test]
+    public void LevelManager_RandomChunkGeneration_ExcludesRegisteredBossRoomChunkIndex()
+    {
+        GameObject gridObject = new GameObject("Grid", typeof(Grid));
+        GameObject tmapObject = new GameObject("tmap", typeof(Tilemap));
+        GameObject bmapObject = new GameObject("bmap", typeof(Tilemap));
+        GameObject eventMapObject = new GameObject("eventmap", typeof(Tilemap));
+        GameObject levelObject = new GameObject("LevelManager");
+        GameObject playerObject = new GameObject("Player");
+        GameObject rocksObject = new GameObject("Rocks");
+        GameObject tileChunkA = new GameObject("TileChunkA", typeof(Tilemap));
+        GameObject tileChunkBoss = new GameObject("TileChunkBoss", typeof(Tilemap));
+        GameObject boxChunkA = new GameObject("BoxChunkA", typeof(Tilemap));
+        GameObject boxChunkBoss = new GameObject("BoxChunkBoss", typeof(Tilemap));
+        GameObject spawnChunkA = new GameObject("SpawnChunkA", typeof(Tilemap));
+        GameObject spawnChunkBoss = new GameObject("SpawnChunkBoss", typeof(Tilemap));
+
+        try
+        {
+            tmapObject.transform.SetParent(gridObject.transform);
+            bmapObject.transform.SetParent(gridObject.transform);
+            eventMapObject.transform.SetParent(gridObject.transform);
+
+            ChunkLoader chunkLoader = levelObject.AddComponent<ChunkLoader>();
+            chunkLoader.tmap = tmapObject.GetComponent<Tilemap>();
+            chunkLoader.bmap = bmapObject.GetComponent<Tilemap>();
+            chunkLoader.eventMap = eventMapObject.GetComponent<Tilemap>();
+            chunkLoader.tileChunkPrefabs = new[] { tileChunkA, tileChunkBoss };
+            chunkLoader.boxChunkPrefabs = new[] { boxChunkA, boxChunkBoss };
+            chunkLoader.spawnChunkPrefabs = new[] { spawnChunkA, spawnChunkBoss };
+
+            LevelManager levelManager = levelObject.AddComponent<LevelManager>();
+            levelManager.player = playerObject.transform;
+            levelManager.rocksObject = rocksObject;
+            levelManager.rockMovement = rocksObject.AddComponent<RockMovement>();
+            levelManager.startingChunkCount = 0;
+            levelManager.currentLevel = 0;
+            levelManager.chunkWorldHeight = 25f;
+            levelManager.nextChunkTriggerRatio = 0.1f;
+            levelManager.randomizeChunksAfterFirst = true;
+            levelManager.bossRoomChunks.Add(new BossRoomChunkDefinition
+            {
+                chunkNumber = 3,
+                chunkIndex = 1,
+                stopChunkGenerationAfterLoaded = true,
+                roomId = "test-boss"
+            });
+
+            levelManager.StartRun();
+
+            playerObject.transform.position = new Vector3(0f, -3f, 0f);
+            levelManager.TickChunkGeneration();
+
+            Assert.That(levelManager.LoadedChunks.Count, Is.EqualTo(2));
+            Assert.That(levelManager.LoadedChunks[1].chunkIndex, Is.EqualTo(0));
+            Assert.That(levelManager.LoadedChunks[1].isBossRoom, Is.False);
+
+            playerObject.transform.position = new Vector3(0f, -28f, 0f);
+            levelManager.TickChunkGeneration();
+
+            Assert.That(levelManager.LoadedChunks.Count, Is.EqualTo(3));
+            Assert.That(levelManager.LoadedChunks[2].chunkIndex, Is.EqualTo(1));
+            Assert.That(levelManager.LoadedChunks[2].isBossRoom, Is.True);
         }
         finally
         {
@@ -213,6 +303,141 @@ public class ChunkAndRestrictionZonePlayModeTests
 
             if (bossPrefab != null)
                 Object.DestroyImmediate(bossPrefab);
+        }
+    }
+
+    [Test]
+    public void BossRoomController_BossClearScreenPausesWorld_AndSceneTransitionResumeRestoresTime()
+    {
+        GameObject bossRoomObject = new GameObject("BossRoom");
+        GameObject bossPrefab = new GameObject("BossPrefab");
+        GameObject canvasObject = new GameObject("Canvas", typeof(Canvas));
+        GameObject timeObject = new GameObject("TimeControlService");
+        GameObject spawnedBoss = null;
+
+        try
+        {
+            Time.timeScale = 1f;
+
+            EnemyStats prefabStats = bossPrefab.AddComponent<EnemyStats>();
+            prefabStats.enabled = false;
+
+            Canvas canvas = canvasObject.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
+            TimeControlService timeControlService = timeObject.AddComponent<TimeControlService>();
+
+            BossRoomController bossRoom = bossRoomObject.AddComponent<BossRoomController>();
+            bossRoom.bossPrefab = bossPrefab;
+            bossRoom.uiCanvas = canvas;
+            bossRoom.timeControlService = timeControlService;
+            bossRoom.rocksResumeDelay = 0f;
+            bossRoom.bossClearUiDelay = 0f;
+            bossRoom.bossClearUiFadeDuration = 0f;
+
+            bossRoom.EnterBossRoom();
+            spawnedBoss = bossRoom.ActiveBoss;
+
+            EnemyStats bossStats = bossRoom.ActiveBoss.GetComponent<EnemyStats>();
+            bossStats.Kill();
+
+            Assert.That(Time.timeScale, Is.EqualTo(0f).Within(0.0001f));
+            Assert.That(timeControlService.IsPaused, Is.True);
+
+            MethodInfo resumeMethod = typeof(BossRoomController).GetMethod("ResumeWorldForSceneTransition", BindingFlags.NonPublic | BindingFlags.Instance);
+            resumeMethod.Invoke(bossRoom, null);
+
+            Assert.That(Time.timeScale, Is.EqualTo(1f).Within(0.0001f));
+            Assert.That(timeControlService.IsPaused, Is.False);
+        }
+        finally
+        {
+            Time.timeScale = 1f;
+
+            if (bossRoomObject != null)
+                Object.DestroyImmediate(bossRoomObject);
+
+            if (spawnedBoss != null)
+                Object.DestroyImmediate(spawnedBoss);
+
+            if (bossPrefab != null)
+                Object.DestroyImmediate(bossPrefab);
+
+            Object.DestroyImmediate(timeObject);
+            Object.DestroyImmediate(canvasObject);
+        }
+    }
+
+    [Test]
+    public void BossRoomController_BossDeathUnlocksLegendaryItems_AndPersistsProfile()
+    {
+        string testDirectory = Path.Combine(Application.temporaryCachePath, "BossLegendaryUnlockSaveTest");
+        GameObject registryObject = new GameObject("LegendaryUnlockRegistry");
+        GameObject saveManagerObject = new GameObject("SaveManagerTest");
+        GameObject bossRoomObject = new GameObject("BossRoom");
+        GameObject bossPrefab = new GameObject("BossPrefab");
+        ItemUnlockCatalog catalog = ScriptableObject.CreateInstance<ItemUnlockCatalog>();
+        TestPassiveItem legendaryPassive = ScriptableObject.CreateInstance<TestPassiveItem>();
+        TestActiveItem legendaryActive = ScriptableObject.CreateInstance<TestActiveItem>();
+        GameObject spawnedBoss = null;
+
+        try
+        {
+            if (Directory.Exists(testDirectory))
+                Directory.Delete(testDirectory, true);
+
+            legendaryPassive.name = "BossClearLegendaryPassive";
+            legendaryActive.name = "BossClearLegendaryActive";
+            SetPrivateField(legendaryPassive, "rarity", ItemRarity.Legendary);
+            SetPrivateField(legendaryActive, "rarity", ItemRarity.Legendary);
+            SetPrivateField(catalog, "passiveItems", new List<PassiveItem> { legendaryPassive });
+            SetPrivateField(catalog, "activeItems", new List<ActiveItem> { legendaryActive });
+
+            SaveManager saveManager = saveManagerObject.AddComponent<SaveManager>();
+            saveManager.ConfigureRepositoryForTests(new GameSaveRepository(testDirectory));
+
+            ItemUnlockRegistry registry = registryObject.AddComponent<ItemUnlockRegistry>();
+            SetPrivateField(registry, "catalog", catalog);
+            registry.ResetToInitialState();
+
+            EnemyStats prefabStats = bossPrefab.AddComponent<EnemyStats>();
+            prefabStats.enabled = false;
+
+            BossRoomController bossRoom = bossRoomObject.AddComponent<BossRoomController>();
+            bossRoom.bossPrefab = bossPrefab;
+            bossRoom.clearStageWhenBossDies = false;
+            bossRoom.showClearScreenWhenBossDies = false;
+
+            bossRoom.EnterBossRoom();
+            spawnedBoss = bossRoom.ActiveBoss;
+            bossRoom.ActiveBoss.GetComponent<EnemyStats>().Kill();
+
+            ProfileSaveData loadedProfile = new GameSaveRepository(testDirectory).LoadProfile();
+
+            Assert.That(registry.IsUnlocked(legendaryPassive), Is.True);
+            Assert.That(registry.IsUnlocked(legendaryActive), Is.True);
+            Assert.That(loadedProfile.ItemUnlockSnapshot.UnlockedPassiveItemIds, Does.Contain(legendaryPassive.ItemId));
+            Assert.That(loadedProfile.ItemUnlockSnapshot.UnlockedActiveItemIds, Does.Contain(legendaryActive.ItemId));
+        }
+        finally
+        {
+            if (bossRoomObject != null)
+                Object.DestroyImmediate(bossRoomObject);
+
+            if (spawnedBoss != null)
+                Object.DestroyImmediate(spawnedBoss);
+
+            if (bossPrefab != null)
+                Object.DestroyImmediate(bossPrefab);
+
+            Object.DestroyImmediate(saveManagerObject);
+            Object.DestroyImmediate(registryObject);
+            Object.DestroyImmediate(catalog);
+            Object.DestroyImmediate(legendaryPassive);
+            Object.DestroyImmediate(legendaryActive);
+
+            if (Directory.Exists(testDirectory))
+                Directory.Delete(testDirectory, true);
         }
     }
 
@@ -348,7 +573,8 @@ public class ChunkAndRestrictionZonePlayModeTests
             levelManager.rockMovement = rocksObject.AddComponent<RockMovement>();
             levelManager.startingChunkCount = 0;
             levelManager.currentLevel = 0;
-            levelManager.nextChunkPlayerYStep = 2f;
+            levelManager.chunkHeight = 6;
+            levelManager.chunkWorldHeight = 3f;
 
             levelManager.StartRun();
             playerObject.transform.position = new Vector3(0f, -2.1f, 0f);
@@ -510,6 +736,38 @@ public class ChunkAndRestrictionZonePlayModeTests
         finally
         {
             Object.DestroyImmediate(rockObject);
+        }
+    }
+
+    private static void SetPrivateField(object target, string fieldName, object value)
+    {
+        FieldInfo field = null;
+        System.Type type = target.GetType();
+        while (type != null && field == null)
+        {
+            field = type.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            type = type.BaseType;
+        }
+
+        Assert.That(field, Is.Not.Null, $"Could not find field '{fieldName}' on {target.GetType().Name}.");
+        field.SetValue(target, value);
+    }
+
+    private class TestPassiveItem : PassiveItem
+    {
+        public override void OnEquip(PlayerStats stats)
+        {
+        }
+
+        public override void OnUnequip(PlayerStats stats)
+        {
+        }
+    }
+
+    private class TestActiveItem : ActiveItem
+    {
+        public override void OnUsed()
+        {
         }
     }
 }
